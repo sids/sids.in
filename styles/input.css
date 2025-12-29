@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .post-content {
+    @apply prose prose-slate mx-auto max-w-3xl;
+  }
+
+  .post-content a {
+    @apply text-blue-600 hover:text-blue-800;
+  }
+}
+
+@layer utilities {
+  .htmx-swapping {
+    opacity: 0;
+    transition: opacity 150ms ease-out;
+  }
+
+  .htmx-settling {
+    opacity: 1;
+    transition: opacity 150ms ease-in;
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "sids.in",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build:css": "tailwindcss -i ./styles/input.css -o ./public/css/styles.css --minify",
+    "build:manifest": "bun run scripts/build-manifest.ts",
+    "build": "bun run build:css && bun run build:manifest",
+    "dev:css": "tailwindcss -i ./styles/input.css -o ./public/css/styles.css --watch",
+    "dev:worker": "wrangler dev",
+    "dev": "concurrently \"bun run dev:css\" \"bun run dev:worker\"",
+    "deploy": "bun run build && wrangler deploy",
+    "types": "wrangler types"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251229.0",
+    "@tailwindcss/typography": "^0.5.19",
+    "@types/bun": "latest",
+    "autoprefixer": "^10.4.23",
+    "concurrently": "^9.2.1",
+    "postcss": "^8.5.6",
+    "tailwindcss": "3",
+    "wrangler": "^4.54.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "front-matter": "^4.0.2",
+    "marked": "^17.0.1"
+  }
+}
