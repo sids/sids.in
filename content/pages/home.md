@@ -1,10 +1,10 @@
 ---
-title: "Welcome"
-description: "Personal blog and thoughts"
+title: "sids.in"
+description: "Homepage of Siddhartha Reddy Kothakapu"
 ---
 
-# Hello, I'm Sid
+👋🏽 Hi, I’m Sid.
 
-Welcome to my corner of the internet. Here I write about technology, software engineering, and things I find interesting.
+Welcome to my corner of the internet. Over here I write about technology, software engineering, and things I find interesting. These days it's mostly AI, specifically AI for software development.
 
-Check out my [recent posts](/posts) or browse the [archive](/archive).
+Learn more [about me](/about), check out my [recent posts](/posts), or browse the [archive](/archive). Subscribe to my [rss feed](/posts/feed.xml) is that's how you roll.

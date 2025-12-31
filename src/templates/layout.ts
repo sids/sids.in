@@ -64,9 +64,11 @@ export function layout(content: string, title: string, description?: string, tag
         </span>
         <div class="h-0.5 w-full bg-accent mt-2" style="background-color: var(--accent)"></div>
       </a>
-      <div class="flex items-center gap-2 font-mono text-sm">
+      <div class="flex items-center gap-2 font-mono text-sm md:flex-col md:items-end md:gap-1">
+        <a href="/about" class="nav-link">About</a>
+        <span class="text-secondary md:hidden">·</span>
         <a href="/posts" class="nav-link">Posts</a>
-        <span class="text-secondary">·</span>
+        <span class="text-secondary md:hidden">·</span>
         <a href="/archive" class="nav-link">Archive</a>
       </div>
     </nav>
