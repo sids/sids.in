@@ -54,7 +54,7 @@ export function archiveTemplate(posts: PostMeta[], tags: TagInfo[]): string {
       .map((post) => {
         return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-12 shrink-0" style="color: var(--text-secondary)">${formatMonthDay(post.date)}</span>
-      <a href="/posts/${post.slug}" class="nav-link">${escapeHtml(post.title)}</a>
+      <a href="/posts/${post.slug}" style="color: var(--text-primary); text-decoration: none;">${escapeHtml(post.title)}</a>
     </li>`;
       })
       .join("");
