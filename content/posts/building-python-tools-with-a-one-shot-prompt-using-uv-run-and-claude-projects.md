@@ -2,7 +2,7 @@
 title: "🔗 Building Python tools with a one-shot prompt using uv run and Claude Projects"
 slug: "building-python-tools-with-a-one-shot-prompt-using-uv-run-and-claude-projects"
 date: "2025-04-06"
-description: "Building Python tools with a one-shot prompt using uv run and Claude Projects Nice and clever use of uv’s run inline dependency management and Claude Project Custom Instructions to create..."
+description: ""
 tags: ["ai", "AI Coding", "link-log", "llm"]
 draft: false
 ---

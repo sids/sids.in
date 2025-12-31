@@ -2,7 +2,7 @@
 title: "🔗 Humanity’s Last Exam"
 slug: "humanitys-last-exam"
 date: "2025-01-26"
-description: "Humanity’s Last Exam “Benchmarks are important tools for tracking the rapid advancements in large language model (LLM) capabilities. However, benchmarks are not keeping pace in difficulty: LLMs now achieve over..."
+description: ""
 tags: ["ai", "link-log", "llm"]
 draft: false
 ---

@@ -2,7 +2,7 @@
 title: "🔗 APOSD vs Clean Code"
 slug: "aposd-vs-clean-code"
 date: "2025-03-03"
-description: "APOSD vs Clean Code This document is the result of a series of discussions, some online and some in person, held between Robert \"Uncle Bob\" Martin and John Ousterhout between September 2024 and February 2025. John is the author of the book A Philosophy of Software Design (APOSD), a book that was first published in 2018. This book has been on my “to read” list for a while now—I’ve heard very good reviews for it from a lot of people. “Uncle Bob” Martin and his 2008 book Clean Code of course need no introduction. Clean Code is one of the..."
+description: ""
 tags: ["book", "link-log", "programming"]
 draft: false
 ---

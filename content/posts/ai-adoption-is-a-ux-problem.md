@@ -2,7 +2,7 @@
 title: "🔗 AI adoption is a UX problem"
 slug: "ai-adoption-is-a-ux-problem"
 date: "2025-04-13"
-description: "AI adoption is a UX problem Nan Yu: “These tools are casually dismissed as “GPT wrappers” by some industry commentators — after all, ChatGPT (or Sonnet or Gemini or Llama..."
+description: ""
 tags: ["ai", "link-log", "llm"]
 draft: false
 ---

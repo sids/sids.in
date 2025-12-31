@@ -2,7 +2,7 @@
 title: "🔗 Marshmallow Test and Parenting"
 slug: "marshmallow-test-and-parenting"
 date: "2025-02-23"
-description: "Marshmallow Test and Parenting by @desunit (Sergey Bogdanov) “The marshmallow experiment is famous: a little kid in a room staring at a marshmallow. If they wait 15 minutes, they get..."
+description: ""
 tags: ["link-log", "parenting"]
 draft: false
 ---

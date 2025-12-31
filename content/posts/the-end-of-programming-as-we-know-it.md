@@ -2,7 +2,7 @@
 title: "🔗 The End of Programming as We Know It"
 slug: "the-end-of-programming-as-we-know-it"
 date: "2025-03-30"
-description: "The End of Programming as We Know It by Tim O’Reilly “It is not the end of programming. It is the end of programming as we know it today. That is..."
+description: ""
 tags: ["AI Coding", "link-log"]
 draft: false
 ---
