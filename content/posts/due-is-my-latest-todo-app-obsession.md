@@ -2,7 +2,7 @@
 title: "Due is my latest todo app obsession"
 slug: "due-is-my-latest-todo-app-obsession"
 date: "2025-01-11"
-description: "Over the years, I have tried dozens of todo/task-management/reminder apps — nearly every such app I came across. Or so I thought, until I discovered the Due app a couple of weeks ago."
+description: "After trying dozens of task management apps, I found Due—an app whose deliberately persistent notifications are annoying enough to actually work."
 tags: ["productivity"]
 draft: false
 ---

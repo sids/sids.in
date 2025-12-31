@@ -2,7 +2,7 @@
 title: "🔗 Things we learned about LLMs in 2024"
 slug: "things-we-learned-about-llms-in-2024"
 date: "2025-01-11"
-description: "Things we learned about LLMs in 2024 Simon Willison: “A lot has happened in the world of Large Language Models over the course of 2024. Here’s a review of things..."
+description: ""
 tags: ["ai", "link-log", "llm"]
 draft: false
 ---

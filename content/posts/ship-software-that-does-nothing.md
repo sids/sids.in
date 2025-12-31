@@ -2,7 +2,7 @@
 title: "🔗 Ship Software That Does Nothing"
 slug: "ship-software-that-does-nothing"
 date: "2025-04-25"
-description: "Ship Software That Does Nothing Kerrick Long: “Many people will tell you to ship a minimum viable product. Others say to ship a prototype to get feedback. Not me. I..."
+description: ""
 tags: ["entrepreneurship", "link-log", "product building"]
 draft: false
 ---

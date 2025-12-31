@@ -2,7 +2,7 @@
 title: "💬 How to Stop Worrying and Learn to Love the Internet"
 slug: "how-to-stop-worrying-and-learn-to-love-the-internet"
 date: "2025-03-02"
-description: "Douglas Adams: everything that’s already in the world when you’re born is just normal; anything that gets invented between then and before you turn thirty is incredibly exciting and creative and with any luck you can make a career out of it; anything that gets invented after you’re thirty is against the natural order of things and the beginning of the end of civilisation as we know it until it’s been around for about ten years when it gradually turns out to be alright really. This was penned in the distant, dial-up days of 1999, when the Internet was at..."
+description: "Douglas Adams wrote about technology adoption in 1999, and his observations hold up remarkably well when applied to how people react to AI today."
 tags: ["ai", "quote"]
 draft: false
 ---

@@ -2,7 +2,7 @@
 title: "🔗 The Bitter Lesson versus The Garbage Can"
 slug: "the-bitter-lesson-versus-the-garbage-can"
 date: "2025-08-02"
-description: "The Bitter Lesson versus The Garbage Can by Ethan Mollick A thought-provoking article that, on the surface, explores which modality of AI agent deployment is more likely to succeed in a large organisation — agents carefully designed around organisational processes, or general-purpose agents trained to seek successful outcomes (RL, for example). But dig a little deeper, and it raises a more fundamental question: what shape will successful AI-powered products take?"
+description: ""
 tags: ["ai", "link-log"]
 draft: false
 ---

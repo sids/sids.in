@@ -2,7 +2,7 @@
 title: "💬 Barrels & Ammunition"
 slug: "barrels-ammunition"
 date: "2025-03-02"
-description: "Keith Rabois: If you think about people, there are two categories of high-quality people: there is the ammunition, and then there are the barrels. You can add all the ammunition you want, but if you have only five barrels in your company, you can literally do only five things simultaneously. If you add one more barrel, you can now do six things simultaneously. If you add another one, you can do seven, and so on. Finding those barrels that you can shoot through — someone who can take an idea from conception to live and it’s almost perfect — are..."
+description: "Keith Rabois' mental model for thinking about people in organizations: barrels can take an idea from conception to completion on their own, ammunition can't. The number of barrels limits how many things you can do at once."
 tags: ["quote", "work culture"]
 draft: false
 ---
