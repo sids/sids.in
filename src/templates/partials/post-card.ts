@@ -1,6 +1,5 @@
-import type { PostMeta } from "../../types.ts";
+import type { Post } from "../../types.ts";
 import { escapeHtml } from "../../markdown.ts";
-import { marked } from "marked";
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -10,16 +9,21 @@ function formatDate(dateStr: string): string {
   return `${year}.${month}.${day}`;
 }
 
-export function postCard(post: PostMeta, excerpt: string): string {
-  const descriptionHtml = marked.parse(post.description, { async: false, breaks: true }) as string;
-  const isTruncated = excerpt.endsWith("...");
+function extractFirstParagraphs(html: string, maxParagraphs: number = 2): string {
+  const paragraphs = html.match(/<p>.*?<\/p>/gs) || [];
+  return paragraphs.slice(0, maxParagraphs).join('\n');
+}
+
+export function postCard(post: Post): string {
+  const contentPreview = extractFirstParagraphs(post.html);
+  const isTruncated = post.excerpt.endsWith("...");
 
   return `<article class="py-8 first:pt-0">
   <time class="date-mono block mb-2">${formatDate(post.date)}</time>
   <a href="/posts/${post.slug}" class="group">
     <h2 class="font-mono text-xl font-medium transition-colors mb-2 text-primary group-hover:text-accent">${escapeHtml(post.title)}</h2>
   </a>
-  <div class="leading-relaxed prose-sm text-secondary">${descriptionHtml}</div>
+  <div class="leading-relaxed prose-sm text-secondary">${contentPreview}</div>
   ${isTruncated ? `<a href="/posts/${post.slug}" class="link-animated inline-block mt-2">Continue reading →</a>` : ""}
   ${
     post.tags.length > 0

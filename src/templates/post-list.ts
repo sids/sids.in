@@ -10,7 +10,7 @@ export function postListTemplate(
     return `<p style="color: var(--text-secondary)">No posts yet.</p>`;
   }
 
-  const cards = posts.map((post) => postCard(post, post.excerpt)).join("");
+  const cards = posts.map((post) => postCard(post)).join("");
 
   return `<h1 class="font-mono text-3xl font-medium mb-8 text-secondary">Posts</h1>
 <div class="divide-y" style="border-color: var(--border)">
