@@ -2,7 +2,7 @@
 title: "Book: Apple in China by Patrick McGee"
 slug: "book-apple-in-china-by-patrick-mcgee"
 date: "2025-07-27"
-description: "A five-star review of Patrick McGee's account of how Apple became entangled with China—covering the manufacturing dependency, the unknown heroes who shaped both the company and its fate, and what led to where things stand today."
+description: "A review of Patrick McGee's account of how Apple became entangled with China—covering the manufacturing dependency, the unknown heroes who shaped both the company and its fate, and what led to where things stand today."
 tags: ["book"]
 draft: false
 ---
