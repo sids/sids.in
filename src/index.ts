@@ -3,6 +3,7 @@ import { parsePage, parsePost } from "./markdown.ts";
 import { pages, posts, postContent, tagIndex, allTags, contentVersion } from "./manifest.ts";
 import { layout, partial } from "./templates/layout.ts";
 import { pageTemplate } from "./templates/page.ts";
+import { homeTemplate } from "./templates/home.ts";
 import { postTemplate } from "./templates/post.ts";
 import { postListTemplate } from "./templates/post-list.ts";
 import { archiveTemplate } from "./templates/archive.ts";
@@ -85,7 +86,8 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
     const pageData = pages["home"];
     if (pageData) {
       const page = parsePage(pageData.content, "home");
-      const content = pageTemplate(page);
+      const recentPosts = posts.slice(0, 10);
+      const content = homeTemplate(page, recentPosts);
       return html(content, page.title, page.description, isHtmx, request);
     }
     return null;
