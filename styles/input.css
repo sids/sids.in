@@ -56,19 +56,57 @@
     color: var(--text-primary);
   }
 
-  .post-content a {
+  /* Simple links: inherit color, underlined, orange on hover */
+  .link-simple {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: currentColor;
+    text-underline-offset: 2px;
+    transition: color 0.2s ease;
+  }
+
+  .link-simple:hover {
+    color: var(--accent);
+  }
+
+  /* Simple links without underline (for tags, etc.) */
+  .link-simple-subtle {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .link-simple-subtle:hover {
+    color: var(--accent);
+  }
+
+  /* Accented links: orange, animated underline on hover */
+  .link-accent {
     color: var(--accent);
     text-decoration: none;
-    background-image: linear-gradient(currentColor, currentColor);
+    background-image: linear-gradient(var(--accent), var(--accent));
     background-size: 0% 1px;
     background-position: 0 100%;
     background-repeat: no-repeat;
-    transition: background-size 0.3s ease;
+    transition: background-size 0.3s ease, color 0.2s ease;
+  }
+
+  .link-accent:hover {
+    color: var(--accent-hover);
+    background-size: 100% 1px;
+  }
+
+  /* Post content links use simple style */
+  .post-content a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: currentColor;
+    text-underline-offset: 2px;
+    transition: color 0.2s ease;
   }
 
   .post-content a:hover {
-    color: var(--accent-hover);
-    background-size: 100% 1px;
+    color: var(--accent);
   }
 
   .post-content h1,
@@ -120,30 +158,6 @@
 
   .post-content hr {
     border-color: var(--border);
-  }
-
-  .link-animated {
-    color: var(--accent);
-    text-decoration: none;
-    background-image: linear-gradient(currentColor, currentColor);
-    background-size: 0% 1px;
-    background-position: 0 100%;
-    background-repeat: no-repeat;
-    transition: background-size 0.3s ease;
-  }
-
-  .link-animated:hover {
-    color: var(--accent-hover);
-    background-size: 100% 1px;
-  }
-
-  .nav-link {
-    color: var(--text-secondary);
-    transition: color 0.2s;
-  }
-
-  .nav-link:hover {
-    color: var(--accent);
   }
 
   .date-mono {

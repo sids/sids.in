@@ -16,7 +16,7 @@ function renderTags(tags: TagInfo[]): string {
   const tagLinks = tags
     .map(
       ({ tag, count }) =>
-        `<a href="/tags/${tag}" class="nav-link inline-flex items-center gap-2 font-mono text-sm py-2">
+        `<a href="/tags/${tag}" class="link-simple-subtle inline-flex items-center gap-2 font-mono text-sm py-2 text-secondary">
       <span>${escapeHtml(tag)}</span>
       <span style="opacity: 0.5">${count}</span>
     </a>`
@@ -54,7 +54,7 @@ export function archiveTemplate(posts: PostMeta[], tags: TagInfo[]): string {
       .map((post) => {
         return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-12 shrink-0 text-secondary">${formatMonthDay(post.date)}</span>
-      <a href="/posts/${post.slug}" class="text-primary no-underline">${escapeHtml(post.title)}</a>
+      <a href="/posts/${post.slug}" class="link-simple text-primary">${escapeHtml(post.title)}</a>
     </li>`;
       })
       .join("");
