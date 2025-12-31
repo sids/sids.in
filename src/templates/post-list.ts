@@ -12,7 +12,7 @@ export function postListTemplate(
 
   const cards = posts.map((post) => postCard(post, post.excerpt)).join("");
 
-  return `<h1 class="font-mono text-3xl font-medium mb-8" style="color: var(--text-secondary)">Posts</h1>
+  return `<h1 class="font-mono text-3xl font-medium mb-8 text-secondary">Posts</h1>
 <div class="divide-y" style="border-color: var(--border)">
   ${cards}
 </div>
