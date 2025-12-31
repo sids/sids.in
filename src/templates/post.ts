@@ -1,21 +1,23 @@
 import type { Post } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
 
-export function postTemplate(post: Post): string {
-  const date = new Date(post.date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}.${month}.${day}`;
+}
 
+export function postTemplate(post: Post): string {
   return `<article>
-  <header class="mb-8">
-    <h1 class="text-3xl font-bold mb-2">${escapeHtml(post.title)}</h1>
-    <time class="text-slate-500">${date}</time>
+  <header class="mb-12">
+    <time class="date-mono block mb-3">${formatDate(post.date)}</time>
+    <h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-4" style="color: var(--text-primary)">${escapeHtml(post.title)}</h1>
     ${
       post.tags.length > 0
-        ? `<div class="mt-3 flex gap-2 flex-wrap">
-      ${post.tags.map((tag) => `<a href="/tags/${tag}" class="text-xs bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded">${escapeHtml(tag)}</a>`).join("")}
+        ? `<div class="flex gap-2 flex-wrap">
+      ${post.tags.map((tag) => `<a href="/tags/${tag}" class="tag-pill">${escapeHtml(tag)}</a>`).join("")}
     </div>`
         : ""
     }

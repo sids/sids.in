@@ -7,14 +7,13 @@ export function postListTemplate(
   paginationInfo: PaginationInfo
 ): string {
   if (posts.length === 0) {
-    return `<p class="text-slate-500">No posts yet.</p>`;
+    return `<p style="color: var(--text-secondary)">No posts yet.</p>`;
   }
 
   const cards = posts.map((post) => postCard(post, post.excerpt)).join("");
 
-  return `<div>
-  <h1 class="text-2xl font-bold mb-6">Posts</h1>
+  return `<div class="divide-y" style="border-color: var(--border)">
   ${cards}
-  ${pagination(paginationInfo, "/posts")}
-</div>`;
+</div>
+${pagination(paginationInfo, "/posts")}`;
 }

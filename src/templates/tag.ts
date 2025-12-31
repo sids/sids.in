@@ -9,16 +9,18 @@ export function tagTemplate(
   paginationInfo: PaginationInfo
 ): string {
   if (posts.length === 0) {
-    return `<p class="text-slate-500">No posts with this tag.</p>`;
+    return `<p style="color: var(--text-secondary)">No posts with this tag.</p>`;
   }
 
   const cards = posts.map((post) => postCard(post, post.excerpt)).join("");
 
   return `<div>
-  <h1 class="text-2xl font-bold mb-6">
-    Posts tagged <span class="text-blue-600">${escapeHtml(tag)}</span>
+  <h1 class="font-mono text-sm tracking-widest uppercase mb-8" style="color: var(--text-secondary)">
+    Tagged: <span style="color: var(--accent)">${escapeHtml(tag)}</span>
   </h1>
-  ${cards}
+  <div class="divide-y" style="border-color: var(--border)">
+    ${cards}
+  </div>
   ${pagination(paginationInfo, `/tags/${tag}`)}
 </div>`;
 }
