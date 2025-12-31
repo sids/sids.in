@@ -7,6 +7,7 @@ import { postTemplate } from "./templates/post.ts";
 import { postListTemplate } from "./templates/post-list.ts";
 import { archiveTemplate } from "./templates/archive.ts";
 import { tagTemplate } from "./templates/tag.ts";
+import { generateRssFeed } from "./rss.ts";
 
 const POSTS_PER_PAGE = 10;
 
@@ -22,7 +23,7 @@ export default {
     }
 
     try {
-      const response = route(path, url.searchParams, isHtmx);
+      const response = route(path, url.searchParams, url.origin, isHtmx);
       if (response) {
         return response;
       }
@@ -35,7 +36,49 @@ export default {
   },
 };
 
-function route(path: string, params: URLSearchParams, isHtmx: boolean): Response | null {
+function route(path: string, params: URLSearchParams, origin: string, isHtmx: boolean): Response | null {
+  // Main RSS feed
+  if (path === "/posts/feed.xml") {
+    const fullPosts = posts.map((meta) => {
+      const raw = postContent[meta.slug];
+      return raw ? parsePost(raw) : null;
+    }).filter((p): p is Post => p !== null);
+
+    const feed = generateRssFeed(fullPosts, {
+      title: "Sid's Blog",
+      description: "Posts from Sid's blog",
+      feedUrl: `${origin}/posts/feed.xml`,
+      siteUrl: origin,
+    });
+    return xml(feed);
+  }
+
+  // Tag RSS feed
+  const tagFeedMatch = path.match(/^\/tags\/([a-z0-9-]+)\/feed\.xml$/i);
+  if (tagFeedMatch) {
+    const tag = tagFeedMatch[1]!;
+    const slugs = tagIndex[tag];
+    if (slugs && slugs.length > 0) {
+      const tagPosts = slugs
+        .map((slug) => posts.find((p) => p.slug === slug))
+        .filter((p) => p !== undefined);
+
+      const fullPosts = tagPosts.map((meta) => {
+        const raw = postContent[meta.slug];
+        return raw ? parsePost(raw) : null;
+      }).filter((p): p is Post => p !== null);
+
+      const feed = generateRssFeed(fullPosts, {
+        title: `Sid's Blog - ${tag}`,
+        description: `Posts tagged ${tag}`,
+        feedUrl: `${origin}/tags/${tag}/feed.xml`,
+        siteUrl: origin,
+      });
+      return xml(feed);
+    }
+    return null;
+  }
+
   // Home page
   if (path === "/") {
     const pageData = pages["home"];
@@ -98,7 +141,7 @@ function route(path: string, params: URLSearchParams, isHtmx: boolean): Response
       }).filter((p): p is Post => p !== null);
 
       const content = tagTemplate(tag, fullPosts, pagination);
-      return html(content, `Tag: ${tag}`, `Posts tagged ${tag}`, isHtmx);
+      return html(content, `Tag: ${tag}`, `Posts tagged ${tag}`, isHtmx, tag);
     }
     return null;
   }
@@ -115,10 +158,16 @@ function route(path: string, params: URLSearchParams, isHtmx: boolean): Response
   return null;
 }
 
-function html(content: string, title: string, description: string | undefined, isHtmx: boolean): Response {
-  const body = isHtmx ? partial(content, title) : layout(content, title, description);
+function html(content: string, title: string, description: string | undefined, isHtmx: boolean, tag?: string): Response {
+  const body = isHtmx ? partial(content, title) : layout(content, title, description, tag);
   return new Response(body, {
     headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
+}
+
+function xml(content: string): Response {
+  return new Response(content, {
+    headers: { "Content-Type": "application/rss+xml; charset=utf-8" },
   });
 }
 
