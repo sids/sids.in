@@ -73,10 +73,10 @@ export function layout(content: string, title: string, description?: string, tag
       </div>
     </nav>
   </header>
-  <main id="content" class="content-width py-12">
+  <main id="content" class="content-width py-8">
     ${content}
   </main>
-  <footer class="border-t border-border mt-24">
+  <footer class="border-t border-border mt-8">
     <div class="content-width py-8 flex flex-col items-center gap-4 md:flex-row md:justify-between">
       <div class="flex items-center gap-4 md:order-2">
         <a href="/posts/feed.xml" hx-boost="false" class="font-mono text-xs text-secondary hover:text-accent transition-colors" aria-label="RSS Feed">RSS</a>

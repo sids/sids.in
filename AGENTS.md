@@ -6,6 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A personal blog (sids.in) built as a Cloudflare Worker. Markdown content is bundled at build time and served with HTMX for smooth page transitions. Uses Tailwind CSS for styling.
 
+## Styling Conventions
+
+**Color Classes:**
+Use Tailwind utility classes for colors instead of inline styles:
+- `.text-primary` - for primary text color (instead of `style="color: var(--text-primary)"`)
+- `.text-secondary` - for secondary text color (instead of `style="color: var(--text-secondary)"`)
+- `.text-accent` - for accent color
+- `.bg-primary`, `.bg-secondary` - for background colors
+- `.border-border` - for border colors
+
+These classes are defined in `styles/input.css` and automatically adapt to light/dark themes.
+
 ## Commands
 
 ```bash

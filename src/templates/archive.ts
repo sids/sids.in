@@ -68,6 +68,7 @@ export function archiveTemplate(posts: PostMeta[], tags: TagInfo[]): string {
   });
 
   return `<div>
+  <h1 class="font-mono text-3xl font-medium mb-8 text-secondary">Archive</h1>
   ${renderTags(tags)}
   ${sections.join("")}
 </div>`;
