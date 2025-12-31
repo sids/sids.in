@@ -35,7 +35,10 @@ function updateToggle() {
 document.addEventListener('DOMContentLoaded', updateToggle);
 `;
 
-export function layout(content: string, title: string, description?: string): string {
+export function layout(content: string, title: string, description?: string, tag?: string): string {
+  const tagFeedLink = tag
+    ? `\n  <link rel="alternate" type="application/rss+xml" title="Posts tagged ${escapeHtml(tag)}" href="/tags/${tag}/feed.xml">`
+    : "";
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,6 +48,7 @@ export function layout(content: string, title: string, description?: string): st
   ${description ? `<meta name="description" content="${escapeHtml(description)}">` : ""}
   <link rel="icon" type="image/png" href="/images/s.png">
   <link rel="stylesheet" href="/css/styles.css">
+  <link rel="alternate" type="application/rss+xml" title="Sid's Blog" href="/posts/feed.xml">${tagFeedLink}
   <script>${themeScript}</script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <script src="https://unpkg.com/htmx-ext-head-support@2.0.2/head-support.js"></script>
@@ -72,10 +76,13 @@ export function layout(content: string, title: string, description?: string): st
   </main>
   <footer class="border-t border-border mt-24">
     <div class="content-width py-8 flex flex-col items-center gap-4 md:flex-row md:justify-between">
-      <button onclick="toggleTheme()" class="theme-switch md:order-2" id="theme-switch" aria-label="Toggle theme">
-        <span class="theme-switch-icon" id="theme-icon">☀</span>
-        <span class="theme-switch-knob" id="theme-knob"></span>
-      </button>
+      <div class="flex items-center gap-4 md:order-2">
+        <a href="/posts/feed.xml" hx-boost="false" class="font-mono text-xs text-secondary hover:text-accent transition-colors" aria-label="RSS Feed">RSS</a>
+        <button onclick="toggleTheme()" class="theme-switch" id="theme-switch" aria-label="Toggle theme">
+          <span class="theme-switch-icon" id="theme-icon">☀</span>
+          <span class="theme-switch-knob" id="theme-knob"></span>
+        </button>
+      </div>
       <span class="font-mono text-xs text-secondary tracking-wide md:order-1">
         &copy; 2024&ndash;${new Date().getFullYear()} Siddhartha Reddy Kothakapu. All Rights Reserved.
       </span>

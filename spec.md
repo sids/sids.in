@@ -68,6 +68,7 @@ sids.in/
 │   ├── index.ts              # Worker entry point and router
 │   ├── markdown.ts           # Markdown parsing with frontmatter
 │   ├── manifest.ts           # Auto-generated content manifest
+│   ├── rss.ts                # RSS feed generation
 │   ├── types.ts              # TypeScript interfaces
 │   └── templates/
 │       ├── layout.ts         # Base HTML layout with HTMX
@@ -133,6 +134,8 @@ draft: false
 | `/posts/{slug}` | post.ts | Individual post |
 | `/archive` | archive.ts | Tags + posts grouped by year |
 | `/tags/{tag}` | tag.ts | Paginated posts with tag |
+| `/posts/feed.xml` | rss.ts | RSS feed for all posts |
+| `/tags/{tag}/feed.xml` | rss.ts | RSS feed for tag |
 | `/css/*`, `/images/*` | - | Static assets |
 
 ## Pagination
@@ -141,6 +144,13 @@ draft: false
 - Query param: `?page=N`
 - Shows: prev/next links, page numbers
 - Applied to: `/posts`, `/tags/{tag}`
+
+## RSS Feeds
+
+- RSS 2.0 format with `content:encoded` for full HTML
+- Feed discovery via `<link rel="alternate">` in HTML head
+- Footer link to main feed; tag pages link to tag-specific feed
+- Feed links use `hx-boost="false"` to bypass HTMX
 
 ## Key Dependencies
 
