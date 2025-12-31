@@ -2,10 +2,11 @@ name: PR Preview
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, closed]
 
 jobs:
   deploy-preview:
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     name: Deploy PR Preview
     permissions:
@@ -78,3 +79,17 @@ jobs:
                 body: comment
               });
             }
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Cleanup PR Preview
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Delete Cloudflare Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: delete --name sids-in-pr-${{ github.event.pull_request.number }}
