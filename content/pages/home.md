@@ -7,4 +7,4 @@ description: "Personal blog and thoughts"
 
 Welcome to my corner of the internet. Here I write about technology, software engineering, and things I find interesting.
 
-Check out my [posts](/posts) or browse by [tags](/tags).
+Check out my [recent posts](/posts) or browse the [archive](/archive).

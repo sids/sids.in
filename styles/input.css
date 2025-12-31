@@ -1,25 +1,222 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  html {
+    color-scheme: light dark;
+  }
+
+  :root {
+    --bg-primary: #FAFAFA;
+    --bg-secondary: #F0F0F0;
+    --text-primary: #1A1A1A;
+    --text-secondary: #666666;
+    --accent: #cd5c2e;
+    --accent-hover: #b34d22;
+    --border: #E5E5E5;
+  }
+
+  :root.dark {
+    --bg-primary: #171717;
+    --bg-secondary: #242424;
+    --text-primary: #FAFAFA;
+    --text-secondary: #999999;
+    --accent: #cd5c2e;
+    --accent-hover: #e07040;
+    --border: #2A2A2A;
+  }
+
+  body {
+    @apply font-sans antialiased;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  /* Responsive media */
+  img, svg, video {
+    max-width: 100%;
+    display: block;
+  }
+}
+
 @layer components {
+  /* Typography-aware content width */
+  .content-width {
+    max-width: min(70ch, 100% - 3rem);
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+  }
+
   .post-content {
-    @apply prose prose-slate mx-auto max-w-3xl;
+    @apply prose prose-lg leading-relaxed;
+    max-width: min(70ch, 100%);
+    color: var(--text-primary);
   }
 
   .post-content a {
-    @apply text-blue-600 hover:text-blue-800;
+    color: var(--accent);
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.3s ease;
+  }
+
+  .post-content a:hover {
+    color: var(--accent-hover);
+    background-size: 100% 1px;
+  }
+
+  .post-content h1,
+  .post-content h2,
+  .post-content h3 {
+    @apply font-mono font-medium;
+    color: var(--text-primary);
+  }
+
+  .post-content strong,
+  .post-content b {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .post-content code {
+    @apply font-mono text-sm px-1.5 py-0.5 rounded;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+  }
+
+  .post-content pre {
+    @apply rounded-lg p-4 overflow-x-auto;
+    background-color: var(--bg-secondary);
+  }
+
+  .post-content pre code {
+    @apply p-0 bg-transparent;
+  }
+
+  .post-content ul,
+  .post-content ol {
+    color: var(--text-primary);
+  }
+
+  .post-content li::marker {
+    color: var(--text-secondary);
+  }
+
+  .post-content em,
+  .post-content i {
+    color: inherit;
+  }
+
+  .post-content blockquote {
+    border-left-color: var(--border);
+    color: var(--text-secondary);
+  }
+
+  .post-content hr {
+    border-color: var(--border);
+  }
+
+  .link-animated {
+    color: var(--accent);
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.3s ease;
+  }
+
+  .link-animated:hover {
+    color: var(--accent-hover);
+    background-size: 100% 1px;
+  }
+
+  .nav-link {
+    color: var(--text-secondary);
+    transition: color 0.2s;
+  }
+
+  .nav-link:hover {
+    color: var(--accent);
+  }
+
+  .date-mono {
+    @apply font-mono text-sm tracking-wide;
+    color: var(--text-secondary);
+  }
+
+  .tag-pill {
+    @apply font-mono text-xs px-2 py-1 transition-colors duration-200;
+    color: var(--text-secondary);
+    background-color: var(--bg-secondary);
+  }
+
+  .tag-pill:hover {
+    color: var(--accent);
+    background-color: var(--border);
+  }
+
+  .theme-switch {
+    @apply relative flex items-center w-10 h-6 rounded-full cursor-pointer transition-colors duration-200;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  }
+
+  .theme-switch.dark {
+    background: linear-gradient(135deg, #FAFAFA 0%, #E5E5E5 100%);
+  }
+
+  .theme-switch-icon {
+    @apply absolute left-1.5 text-xs;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .theme-switch.dark .theme-switch-icon {
+    @apply left-auto right-1.5;
+    color: #1A1A1A;
+  }
+
+  .theme-switch-knob {
+    @apply absolute w-4 h-4 rounded-full transition-transform duration-200;
+    background: linear-gradient(135deg, #cd5c2e 0%, #e8a87c 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    top: 4px;
+    left: 4px;
   }
 }
 
 @layer utilities {
+  /* HTMX page transitions */
   .htmx-swapping {
     opacity: 0;
     transition: opacity 150ms ease-out;
   }
 
   .htmx-settling {
-    opacity: 1;
-    transition: opacity 150ms ease-in;
+    animation: slideUp 0.3s ease-out;
   }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* CSS variable colors for Tailwind */
+  .bg-primary { background-color: var(--bg-primary); }
+  .bg-secondary { background-color: var(--bg-secondary); }
+  .text-primary { color: var(--text-primary); }
+  .text-secondary { color: var(--text-secondary); }
+  .text-accent { color: var(--accent); }
+  .border-border { border-color: var(--border); }
 }

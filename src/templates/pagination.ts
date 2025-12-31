@@ -12,15 +12,15 @@ export function pagination(info: PaginationInfo, basePath: string): string {
     const isCurrent = i === info.currentPage;
 
     pages.push(
-      `<a href="${url}" class="${isCurrent ? "bg-slate-900 text-white" : "bg-slate-100 hover:bg-slate-200"} px-3 py-1 rounded text-sm">${i}</a>`
+      `<a href="${url}" class="font-mono text-sm transition-colors" style="color: var(${isCurrent ? "--accent" : "--text-secondary"})">${i}</a>`
     );
   }
 
-  return `<nav class="flex items-center justify-center gap-2 mt-8">
-  ${info.hasPrev ? `<a href="${info.currentPage === 2 ? basePath : `${basePath}?page=${info.currentPage - 1}`}" class="text-sm text-slate-600 hover:text-slate-900">&larr; Prev</a>` : ""}
-  <div class="flex gap-1">
+  return `<nav class="flex items-center justify-center gap-6 mt-12 pt-8 border-t" style="border-color: var(--border)">
+  ${info.hasPrev ? `<a href="${info.currentPage === 2 ? basePath : `${basePath}?page=${info.currentPage - 1}`}" class="font-mono text-sm transition-colors" style="color: var(--text-secondary)">&larr; Prev</a>` : `<span class="font-mono text-sm" style="color: var(--text-secondary); opacity: 0.3">&larr; Prev</span>`}
+  <div class="flex gap-4">
     ${pages.join("")}
   </div>
-  ${info.hasNext ? `<a href="${basePath}?page=${info.currentPage + 1}" class="text-sm text-slate-600 hover:text-slate-900">Next &rarr;</a>` : ""}
+  ${info.hasNext ? `<a href="${basePath}?page=${info.currentPage + 1}" class="font-mono text-sm transition-colors" style="color: var(--text-secondary)">Next &rarr;</a>` : `<span class="font-mono text-sm" style="color: var(--text-secondary); opacity: 0.3">Next &rarr;</span>`}
 </nav>`;
 }

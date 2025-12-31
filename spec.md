@@ -4,6 +4,56 @@
 
 A personal blog powered by markdown files, hosted on Cloudflare Workers, using TypeScript, HTMX (for page transitions), and Tailwind CSS (compiled at build time).
 
+## Design
+
+### Aesthetic
+
+Swiss/Minimal design with distinctive but professional feel.
+
+### Typography
+
+- **Display/Headings**: JetBrains Mono (monospace)
+- **Body**: IBM Plex Sans
+- **Date format**: `YYYY.MM.DD` in monospace
+
+### Color Scheme
+
+CSS variables for theming, with dark mode support.
+
+| Element | Light Mode | Dark Mode |
+|---------|------------|-----------|
+| Background | #FAFAFA | #171717 |
+| Secondary BG | #F0F0F0 | #242424 |
+| Text | #1A1A1A | #FAFAFA |
+| Secondary text | #666666 | #999999 |
+| Accent | #cd5c2e | #cd5c2e |
+| Accent hover | #b34d22 | #e07040 |
+| Border | #E5E5E5 | #2A2A2A |
+
+### Dark Mode
+
+- System preference detection via `prefers-color-scheme`
+- Manual override stored in `localStorage`
+- Toggle switch in footer with sun/moon icons
+- CSS class strategy (`html.dark`)
+
+### Layout
+
+**Header:**
+- Site name "Sid" expands to "Siddhartha Reddy Kottakapu" on hover
+- Orange accent underline that expands on hover
+- Navigation: `Posts · Archive`
+
+**Footer:**
+- Copyright left, theme toggle right (desktop)
+- Toggle above copyright, centered (mobile)
+- Theme switch: dark background with sun icon (light mode), light background with moon icon (dark mode), orange gradient knob
+
+### Responsive Breakpoints
+
+- Mobile-first approach
+- `md` (768px+): Desktop layout with side-by-side header/footer elements
+
 ## Project Structure
 
 ```
@@ -24,8 +74,7 @@ sids.in/
 │       ├── page.ts           # Generic page template
 │       ├── post.ts           # Individual post template
 │       ├── post-list.ts      # /posts - cards with excerpts
-│       ├── archive.ts        # /archive - posts by year (titles only)
-│       ├── tags.ts           # /tags - all tags with counts
+│       ├── archive.ts        # /archive - tags + posts by year
 │       ├── tag.ts            # /tags/{tag} - posts with tag
 │       ├── pagination.ts     # Pagination component
 │       └── partials/
@@ -82,8 +131,7 @@ draft: false
 | `/posts` | post-list.ts | Paginated cards with excerpts |
 | `/posts?page=2` | post-list.ts | Pagination via query param |
 | `/posts/{slug}` | post.ts | Individual post |
-| `/archive` | archive.ts | Posts grouped by year, titles only |
-| `/tags` | tags.ts | All tags with post counts |
+| `/archive` | archive.ts | Tags + posts grouped by year |
 | `/tags/{tag}` | tag.ts | Paginated posts with tag |
 | `/css/*`, `/images/*` | - | Static assets |
 
@@ -139,6 +187,10 @@ export const allTags: { tag: string; count: number }[];  // sorted by count
 - Static assets served via Workers Static Assets binding
 - Tailwind v3 (v4 has Cloudflare compatibility issues)
 - HTMX loaded from CDN (unpkg)
+- CSS variables defined in `:root` and `:root.dark` for theming
+- Dark mode uses class strategy with JavaScript for localStorage persistence
+- Typography-aware content width: `min(70ch, 100% - 3rem)`
+- Google Fonts: IBM Plex Sans and JetBrains Mono loaded via CSS import
 
 ## Adding Content
 

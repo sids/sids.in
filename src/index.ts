@@ -6,7 +6,6 @@ import { pageTemplate } from "./templates/page.ts";
 import { postTemplate } from "./templates/post.ts";
 import { postListTemplate } from "./templates/post-list.ts";
 import { archiveTemplate } from "./templates/archive.ts";
-import { tagsTemplate } from "./templates/tags.ts";
 import { tagTemplate } from "./templates/tag.ts";
 
 const POSTS_PER_PAGE = 10;
@@ -76,14 +75,8 @@ function route(path: string, params: URLSearchParams, isHtmx: boolean): Response
 
   // Archive
   if (path === "/archive") {
-    const content = archiveTemplate(posts);
+    const content = archiveTemplate(posts, allTags);
     return html(content, "Archive", "All posts by date", isHtmx);
-  }
-
-  // Tags list
-  if (path === "/tags") {
-    const content = tagsTemplate(allTags);
-    return html(content, "Tags", "All tags", isHtmx);
   }
 
   // Individual tag
