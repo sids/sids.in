@@ -2,7 +2,7 @@
 title: "🔗 Speed matters: Why working quickly is more important than it seems"
 slug: "speed-matters-why-working-quickly-is-more-important-than-it-seems"
 date: "2025-01-26"
-description: "Speed matters: Why working quickly is more important than it seems James Somers: “The obvious benefit to working quickly is that you'll finish more stuff per unit time. But there's..."
+description: ""
 tags: ["link-log", "productivity"]
 draft: false
 ---

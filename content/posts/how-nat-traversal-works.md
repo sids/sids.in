@@ -2,7 +2,7 @@
 title: "🔗 How NAT Traversal Works"
 slug: "how-nat-traversal-works"
 date: "2025-03-30"
-description: "How NAT traversal works A Stratechery interview with the CEO of Tailscale dropped a few weeks ago. Tailscale is one of my favourite kinds of companies — focused on a..."
+description: ""
 tags: ["link-log"]
 draft: false
 ---

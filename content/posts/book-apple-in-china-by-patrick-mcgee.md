@@ -2,7 +2,7 @@
 title: "Book: Apple in China by Patrick McGee"
 slug: "book-apple-in-china-by-patrick-mcgee"
 date: "2025-07-27"
-description: "Apple in China: The Capture of the World’s Greatest Company Rating: ⭐️⭐️⭐️⭐️⭐️ I finished this book a couple of weeks ago. It was the first book I completed in 2025 (not the first one I read or started in 2025, just the only one I have finished so far). There was a good reason I stuck with it: it would have been difficult not to. Great writing. Captivating narrative. One of the most significant business and geopolitical stories of our time. Of course I read it at record speed."
+description: "A five-star review of Patrick McGee's account of how Apple became entangled with China—covering the manufacturing dependency, the unknown heroes who shaped both the company and its fate, and what led to where things stand today."
 tags: ["book"]
 draft: false
 ---

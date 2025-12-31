@@ -2,7 +2,7 @@
 title: "💬 Andrew Ng on why learning programming shouldn’t be discouraged"
 slug: "andrew-ng-on-why-learning-programming-shouldnt-be-discouraged"
 date: "2025-03-30"
-description: "Andrew Ng: Some people today are discouraging others from learning programming on the grounds AI will automate it. This advice will be seen as some of the worst career advice ever given. I disagree with the Turing Award and Nobel prize winner who wrote, “It is far more likely that the programming occupation will become extinct … than that it will become all-powerful. More and more, computers will program themselves.” Statements discouraging people from learning to code are harmful! In the 1960s, when programming moved from punchcards (where a programmer had to laboriously make holes in physical cards to write..."
+description: "Andrew Ng argues that telling people not to learn programming because AI will automate it is terrible advice—as coding becomes easier, more people should code, not fewer."
 tags: ["AI Coding", "quote"]
 draft: false
 ---
