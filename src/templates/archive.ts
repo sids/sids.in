@@ -24,7 +24,7 @@ function renderTags(tags: TagInfo[]): string {
     .join("");
 
   return `<section class="mb-12">
-    <h2 class="font-mono text-2xl font-medium mb-4" style="color: var(--text-primary)">Tags</h2>
+    <h2 class="font-mono text-2xl font-medium mb-4 text-primary">Tags</h2>
     <div class="flex flex-wrap gap-x-6 gap-y-1">
       ${tagLinks}
     </div>
@@ -33,7 +33,7 @@ function renderTags(tags: TagInfo[]): string {
 
 export function archiveTemplate(posts: PostMeta[], tags: TagInfo[]): string {
   if (posts.length === 0) {
-    return `<p style="color: var(--text-secondary)">No posts yet.</p>`;
+    return `<p class="text-secondary">No posts yet.</p>`;
   }
 
   const postsByYear: Record<string, PostMeta[]> = {};
@@ -53,14 +53,14 @@ export function archiveTemplate(posts: PostMeta[], tags: TagInfo[]): string {
     const items = yearPosts
       .map((post) => {
         return `<li class="flex gap-6 py-2 group">
-      <span class="font-mono text-sm w-12 shrink-0" style="color: var(--text-secondary)">${formatMonthDay(post.date)}</span>
-      <a href="/posts/${post.slug}" style="color: var(--text-primary); text-decoration: none;">${escapeHtml(post.title)}</a>
+      <span class="font-mono text-sm w-12 shrink-0 text-secondary">${formatMonthDay(post.date)}</span>
+      <a href="/posts/${post.slug}" class="text-primary no-underline">${escapeHtml(post.title)}</a>
     </li>`;
       })
       .join("");
 
     return `<section class="mb-12">
-    <h2 class="font-mono text-2xl font-medium mb-4" style="color: var(--text-primary)">${year}</h2>
+    <h2 class="font-mono text-2xl font-medium mb-4 text-primary">${year}</h2>
     <ul>
       ${items}
     </ul>
