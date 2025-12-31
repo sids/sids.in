@@ -1,6 +1,6 @@
 import type { Env, Post, PaginationInfo } from "./types.ts";
 import { parsePage, parsePost } from "./markdown.ts";
-import { pages, posts, postContent, tagIndex, allTags } from "./manifest.ts";
+import { pages, posts, postContent, tagIndex, allTags, contentVersion } from "./manifest.ts";
 import { layout, partial } from "./templates/layout.ts";
 import { pageTemplate } from "./templates/page.ts";
 import { postTemplate } from "./templates/post.ts";
@@ -10,6 +10,7 @@ import { tagTemplate } from "./templates/tag.ts";
 import { generateRssFeed } from "./rss.ts";
 
 const POSTS_PER_PAGE = 10;
+const CACHE_CONTROL = "public, max-age=0, s-maxage=86400, must-revalidate";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -23,7 +24,7 @@ export default {
     }
 
     try {
-      const response = route(path, url.searchParams, url.origin, isHtmx);
+      const response = route(path, url.searchParams, url.origin, isHtmx, request);
       if (response) {
         return response;
       }
@@ -36,7 +37,7 @@ export default {
   },
 };
 
-function route(path: string, params: URLSearchParams, origin: string, isHtmx: boolean): Response | null {
+function route(path: string, params: URLSearchParams, origin: string, isHtmx: boolean, request: Request): Response | null {
   // Main RSS feed
   if (path === "/posts/feed.xml") {
     const fullPosts = posts.map((meta) => {
@@ -50,7 +51,7 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
       feedUrl: `${origin}/posts/feed.xml`,
       siteUrl: origin,
     });
-    return xml(feed);
+    return xml(feed, request);
   }
 
   // Tag RSS feed
@@ -74,7 +75,7 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
         feedUrl: `${origin}/tags/${tag}/feed.xml`,
         siteUrl: origin,
       });
-      return xml(feed);
+      return xml(feed, request);
     }
     return null;
   }
@@ -85,7 +86,7 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
     if (pageData) {
       const page = parsePage(pageData.content, "home");
       const content = pageTemplate(page);
-      return html(content, page.title, page.description, isHtmx);
+      return html(content, page.title, page.description, isHtmx, request);
     }
     return null;
   }
@@ -100,7 +101,7 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
     }).filter((p): p is Post => p !== null);
 
     const content = postListTemplate(fullPosts, pagination);
-    return html(content, "Posts", "All blog posts", isHtmx);
+    return html(content, "Posts", "All blog posts", isHtmx, request);
   }
 
   // Individual post
@@ -111,7 +112,7 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
     if (raw) {
       const post = parsePost(raw);
       const content = postTemplate(post);
-      return html(content, post.title, post.description, isHtmx);
+      return html(content, post.title, post.description, isHtmx, request);
     }
     return null;
   }
@@ -119,7 +120,7 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
   // Archive
   if (path === "/archive") {
     const content = archiveTemplate(posts, allTags);
-    return html(content, "Archive", "All posts by date", isHtmx);
+    return html(content, "Archive", "All posts by date", isHtmx, request);
   }
 
   // Individual tag
@@ -141,7 +142,7 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
       }).filter((p): p is Post => p !== null);
 
       const content = tagTemplate(tag, fullPosts, pagination);
-      return html(content, `Tag: ${tag}`, `Posts tagged ${tag}`, isHtmx, tag);
+      return html(content, `Tag: ${tag}`, `Posts tagged ${tag}`, isHtmx, request, tag);
     }
     return null;
   }
@@ -152,23 +153,44 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
     const pageData = pages[pageSlug]!;
     const page = parsePage(pageData.content, pageSlug);
     const content = pageTemplate(page);
-    return html(content, page.title, page.description, isHtmx);
+    return html(content, page.title, page.description, isHtmx, request);
   }
 
   return null;
 }
 
-function html(content: string, title: string, description: string | undefined, isHtmx: boolean, tag?: string): Response {
-  const body = isHtmx ? partial(content, title) : layout(content, title, description, tag);
-  return new Response(body, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
-  });
+function cachedResponse(body: string, contentType: string, request: Request): Response {
+  const headers: Record<string, string> = {
+    "Content-Type": contentType,
+    "Cache-Control": CACHE_CONTROL,
+  };
+
+  if (contentVersion) {
+    const etag = `"${contentVersion}"`;
+    headers["ETag"] = etag;
+
+    const ifNoneMatch = request.headers.get("If-None-Match");
+    if (ifNoneMatch === etag) {
+      return new Response(null, {
+        status: 304,
+        headers: {
+          "ETag": etag,
+          "Cache-Control": CACHE_CONTROL,
+        },
+      });
+    }
+  }
+
+  return new Response(body, { headers });
 }
 
-function xml(content: string): Response {
-  return new Response(content, {
-    headers: { "Content-Type": "application/rss+xml; charset=utf-8" },
-  });
+function html(content: string, title: string, description: string | undefined, isHtmx: boolean, request: Request, tag?: string): Response {
+  const body = isHtmx ? partial(content, title) : layout(content, title, description, tag);
+  return cachedResponse(body, "text/html; charset=utf-8", request);
+}
+
+function xml(content: string, request: Request): Response {
+  return cachedResponse(content, "application/rss+xml; charset=utf-8", request);
 }
 
 function getPageNumber(params: URLSearchParams): number {
