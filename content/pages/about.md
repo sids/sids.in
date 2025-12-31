@@ -3,7 +3,9 @@ title: "About"
 description: "About Siddhartha Reddy Kothakapu and this blog"
 ---
 
-I’m _Siddhartha Reddy Kothakapu_, known to most as **Sid**.
+# About
+
+I'm _Siddhartha Reddy Kothakapu_, known to most as **Sid**.
 
 I’m a **Software Engineer** with interest in (consumer) _product development_, _system design/architecture_, _programming languages_ (currently: **Kotlin** & **Swift**), and _engineering culture_.
 
