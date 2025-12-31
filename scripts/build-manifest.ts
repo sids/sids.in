@@ -7,7 +7,7 @@ interface PostFrontmatter {
   title: string;
   slug: string;
   date: string;
-  description: string;
+  description?: string;
   tags: string[];
   draft?: boolean;
 }
@@ -35,6 +35,40 @@ async function getMarkdownFiles(dir: string): Promise<string[]> {
   } catch {
     return [];
   }
+}
+
+function extractDescriptionFromBody(body: string, maxLength: number = 300): string {
+  // Remove code blocks
+  let text = body.replace(/```[\s\S]*?```/g, "");
+
+  // Remove inline code (but preserve the text)
+  text = text.replace(/`([^`]+)`/g, "$1");
+
+  // Remove images
+  text = text.replace(/!\[([^\]]*)\]\([^\)]+\)/g, "");
+
+  // Remove heading markers but keep the text
+  text = text.replace(/^#+\s+/gm, "");
+
+  // Collapse multiple newlines into double newlines (preserve paragraphs)
+  text = text.replace(/\n{3,}/g, "\n\n");
+
+  // Trim each line but preserve line breaks
+  text = text.split("\n").map(line => line.trim()).join("\n");
+
+  // Remove leading/trailing whitespace
+  text = text.trim();
+
+  // Take first maxLength characters at word boundary, preserving structure
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  const truncated = text.slice(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(" ");
+  const lastNewline = truncated.lastIndexOf("\n");
+  const breakPoint = Math.max(lastSpace, lastNewline);
+  return (breakPoint > 0 ? truncated.slice(0, breakPoint) : truncated).trim() + "...";
 }
 
 async function buildManifest() {
@@ -73,13 +107,16 @@ async function buildManifest() {
     imports.push(`import ${varName} from "${relativePath}";`);
 
     const content = await readFile(join(postsDir, file), "utf-8");
-    const { attributes } = fm<PostFrontmatter>(content);
+    const { attributes, body } = fm<PostFrontmatter>(content);
 
     if (attributes.draft) {
       continue;
     }
 
-    postMetaEntries.push({ meta: attributes, varName });
+    // If no description in frontmatter, extract from body
+    const description = attributes.description || extractDescriptionFromBody(body);
+
+    postMetaEntries.push({ meta: { ...attributes, description }, varName });
     postContentEntries.push(`  "${attributes.slug}": ${varName}`);
   }
 

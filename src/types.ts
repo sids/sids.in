@@ -12,7 +12,7 @@ export interface PostMeta {
   title: string;
   slug: string;
   date: string;
-  description: string;
+  description?: string;
   tags: string[];
   draft?: boolean;
 }

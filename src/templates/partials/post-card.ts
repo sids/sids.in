@@ -11,7 +11,9 @@ function formatDate(dateStr: string): string {
 }
 
 export function postCard(post: PostMeta, excerpt: string): string {
-  const descriptionHtml = marked.parse(post.description, { async: false }) as string;
+  const descriptionHtml = post.description
+    ? marked.parse(post.description, { async: false, breaks: true }) as string
+    : "";
   const isTruncated = excerpt.endsWith("...");
 
   return `<article class="py-8 first:pt-0">
