@@ -3,6 +3,7 @@ import { escapeHtml } from "../../markdown.ts";
 import { postCard } from "./post-card.ts";
 import { pagination } from "../pagination.ts";
 import type { PostFilterType } from "./post-filter.ts";
+import { formatPostDate } from "../format-date.ts";
 
 function formatMonthDay(dateStr: string): string {
   const date = new Date(dateStr);
@@ -57,7 +58,7 @@ export function postsListCompact(
   const items = posts
     .map((post) => {
       return `<li class="flex gap-6 py-2 group">
-      <span class="font-mono text-sm w-12 shrink-0 text-secondary">${formatMonthDay(post.date)}</span>
+      <span class="font-mono text-sm w-24 shrink-0 text-secondary">${formatPostDate(post.date)}</span>
       <a href="/posts/${post.slug}" class="text-primary">${escapeHtml(post.title)}</a>
     </li>`;
     })

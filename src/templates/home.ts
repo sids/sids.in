@@ -10,7 +10,7 @@ export function homeTemplate(
   const recentPostsSection = `
   <section class="mt-12">
     <h2 class="font-mono text-2xl font-medium mb-4">
-      <a href="/posts" class="link-accent">Recent Posts</a>
+      Recent Posts
     </h2>
     ${postFilter("/", currentFilter)}
     ${postsListCompact(recentPosts, currentFilter)}
