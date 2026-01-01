@@ -42,7 +42,7 @@ CSS variables for theming, with dark mode support.
 **Header:**
 - Site name "Sid" expands to "Siddhartha Reddy Kottakapu" on hover
 - Orange accent underline that expands on hover
-- Navigation: `Posts · Archive`
+- Navigation: `About · Posts · Archive`
 
 **Footer:**
 - Copyright left, theme toggle right (desktop)
@@ -72,14 +72,17 @@ sids.in/
 │   ├── types.ts              # TypeScript interfaces
 │   └── templates/
 │       ├── layout.ts         # Base HTML layout with HTMX
+│       ├── home.ts           # Home page (home.md + recent posts)
 │       ├── page.ts           # Generic page template
 │       ├── post.ts           # Individual post template
-│       ├── post-list.ts      # /posts - cards with excerpts
+│       ├── post-list.ts      # /posts - cards with descriptions or full content
 │       ├── archive.ts        # /archive - tags + posts by year
 │       ├── tag.ts            # /tags/{tag} - posts with tag
 │       ├── pagination.ts     # Pagination component
 │       └── partials/
-│           └── post-card.ts  # Card with title, date, description, excerpt
+│           ├── post-card.ts  # Card with title, date, description/content
+│           ├── post-filter.ts # Filter controls for post type
+│           └── posts-list.ts # List renderers (cards, compact, archive)
 ├── public/                   # Static assets (served by Workers)
 │   ├── css/styles.css        # Compiled Tailwind (generated)
 │   └── images/
@@ -120,16 +123,21 @@ date: "2024-12-29"
 description: "Brief description for cards and SEO"
 tags: ["typescript", "cloudflare"]
 draft: false
+link: "https://example.com" # Optional; marks link-log posts
 ---
 ```
+
+**Post types:**
+- Posts with `link` are treated as `link-log` entries; otherwise they are `essay` posts.
+- Link-log titles in list views point to the external URL (with icon), while the date and "Read Now →" link to the local post page.
 
 ## URL Routes
 
 | Route | Template | Description |
 |-------|----------|-------------|
-| `/` | page.ts | Home page (from home.md) |
+| `/` | home.ts | Home page (from home.md + recent posts) |
 | `/{page}` | page.ts | Static pages (about, contact, etc.) |
-| `/posts` | post-list.ts | Paginated cards with excerpts |
+| `/posts` | post-list.ts | Paginated cards with descriptions or full content |
 | `/posts?page=2` | post-list.ts | Pagination via query param |
 | `/posts/{slug}` | post.ts | Individual post |
 | `/archive` | archive.ts | Tags + posts grouped by year |
@@ -144,6 +152,12 @@ draft: false
 - Query param: `?page=N`
 - Shows: prev/next links, page numbers
 - Applied to: `/posts`, `/tags/{tag}`
+
+## Post Filtering
+
+- Filter query param: `?type=essay` or `?type=link-log`
+- Available on `/`, `/posts`, `/archive`, and `/tags/{tag}` via the filter UI
+- HTMX updates swap `#posts-list` and update the filter nav out-of-band
 
 ## RSS Feeds
 
@@ -193,7 +207,7 @@ export const allTags: { tag: string; count: number }[];  // sorted by count
 
 - Markdown files bundled at build time via Wrangler's `rules: [{ type: "Text", globs: ["**/*.md"] }]`
 - Content lives in `content/` (outside `src/`) for clean separation
-- Excerpt: first ~150 chars of rendered content (stripped of HTML)
+- Excerpt: first ~150 chars of rendered content (stripped of HTML); currently unused in templates
 - Static assets served via Workers Static Assets binding
 - Tailwind v3 (v4 has Cloudflare compatibility issues)
 - HTMX loaded from CDN (unpkg)
