@@ -35,6 +35,18 @@ bun run build:manifest  # Regenerate content manifest only
 2. `scripts/build-manifest.ts` generates `src/manifest.ts` with pre-processed metadata
 3. Worker (`src/index.ts`) serves content by parsing markdown on request
 
+## Link Handling
+
+**Link log posts:**
+- Use the `link` frontmatter field to mark a post as a "link log" entry.
+- `scripts/build-manifest.ts` and `src/markdown.ts` derive `postType: "link-log"` when `link` is present (otherwise `postType: "essay"`).
+- In list views (`src/templates/partials/post-card.ts`), link-log titles point to the external URL and include the external-link icon, while the date and "Read Now →" link point to the local post page.
+- Link-log filtering is supported via the `type=link-log` query param on `/posts`, `/archive`, and tag pages.
+
+**Internal vs. external links:**
+- Default links inherit text color with underline styling from `styles/input.css`.
+- Use `.link-accent` for emphasized internal navigation links (e.g., pagination, archive/home CTAs).
+
 **Key Files:**
 - `src/index.ts` - Worker entry point and router
 - `src/manifest.ts` - Auto-generated content index (do not edit manually)
