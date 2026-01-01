@@ -181,6 +181,7 @@
     content: "↩︎";
     font-size: 1.5rem;
     color: var(--accent);
+    vertical-align: text-bottom;
   }
 
   .post-content .footnotes [data-footnote-backref]:hover::after {
