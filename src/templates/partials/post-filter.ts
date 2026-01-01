@@ -1,7 +1,7 @@
-type PostFilter = "all" | "essay" | "link-log";
+export type PostFilterType = "all" | "essay" | "link-log";
 
-export function postFilter(basePath: string, currentFilter: PostFilter = "all"): string {
-  const filters: { id: PostFilter; label: string }[] = [
+export function postFilter(basePath: string, currentFilter: PostFilterType = "all", oob: boolean = false): string {
+  const filters: { id: PostFilterType; label: string }[] = [
     { id: "all", label: "All Posts" },
     { id: "essay", label: "Essays" },
     { id: "link-log", label: "Link Log" },
@@ -11,13 +11,16 @@ export function postFilter(basePath: string, currentFilter: PostFilter = "all"):
     .map((f) => {
       const href = f.id === "all" ? basePath : `${basePath}?type=${f.id}`;
       const isActive = f.id === currentFilter;
-      return `<a href="${href}" hx-target="#posts-list" hx-swap="outerHTML" hx-push-url="true" class="px-3 py-1 font-mono text-sm no-underline transition-colors ${
-        isActive ? "text-accent" : "text-secondary hover:text-primary"
+      const activeClass = "bg-accent/15 text-accent";
+      const inactiveClass = "text-secondary hover:text-primary hover:bg-primary/5";
+      return `<a href="${href}" hx-target="#posts-list" hx-swap="outerHTML" hx-push-url="true" class="px-3 py-1.5 rounded-md font-mono text-sm no-underline transition-colors ${
+        isActive ? activeClass : inactiveClass
       }">${f.label}</a>`;
     })
     .join("");
 
-  return `<nav class="post-filter flex gap-1 mb-6" role="navigation" aria-label="Filter posts">
+  const oobAttr = oob ? ' hx-swap-oob="true"' : '';
+  return `<nav id="post-filter" class="flex gap-1 mb-6" role="navigation" aria-label="Filter posts"${oobAttr}>
   ${links}
 </nav>`;
 }

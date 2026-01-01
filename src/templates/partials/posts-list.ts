@@ -2,8 +2,7 @@ import type { Post, PostMeta, PaginationInfo } from "../../types.ts";
 import { escapeHtml } from "../../markdown.ts";
 import { postCard } from "./post-card.ts";
 import { pagination } from "../pagination.ts";
-
-type PostFilterType = "all" | "essay" | "link-log";
+import type { PostFilterType } from "./post-filter.ts";
 
 function formatMonthDay(dateStr: string): string {
   const date = new Date(dateStr);

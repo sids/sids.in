@@ -1,9 +1,7 @@
 import type { PostMeta, TagInfo } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
-import { postFilter } from "./partials/post-filter.ts";
+import { postFilter, type PostFilterType } from "./partials/post-filter.ts";
 import { postsListArchive } from "./partials/posts-list.ts";
-
-type PostFilterType = "all" | "essay" | "link-log";
 
 function renderTags(tags: TagInfo[]): string {
   if (tags.length === 0) {
@@ -41,10 +39,11 @@ export function archiveTemplate(
 </div>`;
 }
 
-// Returns just the posts list for HTMX partial updates
+// Returns posts list + filter with OOB swap for HTMX partial updates
 export function archivePartial(
   posts: PostMeta[],
   currentFilter: PostFilterType = "all"
 ): string {
-  return postsListArchive(posts, currentFilter);
+  return postsListArchive(posts, currentFilter) +
+    postFilter("/archive", currentFilter, true);
 }

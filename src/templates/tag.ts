@@ -1,9 +1,7 @@
 import type { Post, PaginationInfo } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
-import { postFilter } from "./partials/post-filter.ts";
+import { postFilter, type PostFilterType } from "./partials/post-filter.ts";
 import { postsListCards } from "./partials/posts-list.ts";
-
-type PostFilterType = "all" | "essay" | "link-log";
 
 export function tagTemplate(
   tag: string,
@@ -28,7 +26,7 @@ export function tagTemplate(
 </div>`;
 }
 
-// Returns just the posts list for HTMX partial updates
+// Returns posts list + filter with OOB swap for HTMX partial updates
 export function tagPartial(
   tag: string,
   posts: Post[],
@@ -40,5 +38,6 @@ export function tagPartial(
     ? "No posts with this tag."
     : `No ${currentFilter === "essay" ? "essays" : "link log posts"} with this tag.`;
 
-  return postsListCards(posts, paginationInfo, basePath, currentFilter, emptyMessage);
+  return postsListCards(posts, paginationInfo, basePath, currentFilter, emptyMessage) +
+    postFilter(basePath, currentFilter, true);
 }

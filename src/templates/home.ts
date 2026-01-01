@@ -1,8 +1,6 @@
 import type { Page, PostMeta } from "../types.ts";
-import { postFilter } from "./partials/post-filter.ts";
+import { postFilter, type PostFilterType } from "./partials/post-filter.ts";
 import { postsListCompact } from "./partials/posts-list.ts";
-
-type PostFilterType = "all" | "essay" | "link-log";
 
 export function homeTemplate(
   page: Page,
@@ -27,10 +25,11 @@ export function homeTemplate(
 ${recentPostsSection}`;
 }
 
-// Returns just the posts list for HTMX partial updates
+// Returns posts list + filter with OOB swap for HTMX partial updates
 export function homePartial(
   recentPosts: PostMeta[],
   currentFilter: PostFilterType = "all"
 ): string {
-  return postsListCompact(recentPosts, currentFilter);
+  return postsListCompact(recentPosts, currentFilter) +
+    postFilter("/", currentFilter, true);
 }
