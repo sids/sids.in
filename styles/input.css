@@ -137,6 +137,26 @@
     border-color: var(--border);
   }
 
+  /* Footnotes styling */
+  .post-content .footnotes {
+    @apply mt-12 pt-6 text-sm;
+    border-top: 1px solid var(--border);
+  }
+
+  .post-content .footnotes h2 {
+    @apply text-sm font-normal mb-4;
+    color: var(--text-secondary);
+  }
+
+  .post-content .footnotes ol {
+    @apply pl-4;
+    color: var(--text-secondary);
+  }
+
+  .post-content .footnotes li {
+    @apply mb-2;
+  }
+
   .date-mono {
     @apply font-mono text-sm tracking-wide;
     color: var(--text-secondary);
