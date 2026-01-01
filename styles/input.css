@@ -172,6 +172,21 @@
     @apply inline m-0;
   }
 
+  .post-content .footnotes [data-footnote-backref] {
+    @apply text-xs no-underline ml-1;
+    font-size: 0;
+  }
+
+  .post-content .footnotes [data-footnote-backref]::after {
+    content: "↑";
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .post-content .footnotes [data-footnote-backref]:hover::after {
+    color: var(--accent);
+  }
+
   .date-mono {
     @apply font-mono text-sm tracking-wide;
     color: var(--text-secondary);
