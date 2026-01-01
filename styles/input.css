@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,300;0,400;0,500;1,300&family=Overpass+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -96,7 +96,7 @@
   .post-content strong,
   .post-content b {
     color: var(--text-primary);
-    font-weight: 600;
+    font-weight: 500;
   }
 
   .post-content code {
@@ -144,7 +144,7 @@
   }
 
   .post-content .footnotes h2 {
-    @apply text-sm font-normal mb-4;
+    @apply text-sm font-light mb-4;
     color: var(--text-primary);
   }
 
@@ -195,7 +195,7 @@
   }
 
   .tag-pill {
-    @apply font-mono text-xs px-2 py-1 transition-colors duration-200;
+    @apply font-mono text-xs px-2 py-1 rounded-full transition-colors duration-200;
     color: var(--text-secondary);
     background-color: var(--bg-secondary);
     text-decoration: none;
