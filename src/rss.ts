@@ -22,7 +22,7 @@ export function generateRssFeed(posts: Post[], options: FeedOptions): string {
       <link>${postUrl}</link>
       <guid isPermaLink="true">${postUrl}</guid>
       <pubDate>${pubDate}</pubDate>
-      <description>${escapeHtml(post.description)}</description>
+      <description>${escapeHtml(post.description || "")}</description>
       <content:encoded><![CDATA[${post.html}]]></content:encoded>
     </item>`;
     })

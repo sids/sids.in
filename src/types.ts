@@ -15,6 +15,7 @@ export interface PostMeta {
   description?: string;
   tags: string[];
   draft?: boolean;
+  link?: string;
 }
 
 export interface Post extends PostMeta {

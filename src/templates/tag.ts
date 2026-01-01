@@ -12,7 +12,7 @@ export function tagTemplate(
     return `<p style="color: var(--text-secondary)">No posts with this tag.</p>`;
   }
 
-  const cards = posts.map((post) => postCard(post, post.excerpt)).join("");
+  const cards = posts.map((post) => postCard(post)).join("");
 
   return `<div>
   <div class="flex items-center justify-between mb-8">
