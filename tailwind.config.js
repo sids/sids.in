@@ -31,8 +31,14 @@ export default {
             a: {
               color: "#cd5c2e",
               textDecoration: "none",
+              backgroundImage: "linear-gradient(#cd5c2e, #cd5c2e)",
+              backgroundSize: "0% 1px",
+              backgroundPosition: "0 100%",
+              backgroundRepeat: "no-repeat",
+              transition: "background-size 0.3s ease, color 0.2s ease",
               "&:hover": {
                 color: "#b34d22",
+                backgroundSize: "100% 1px",
               },
             },
             h1: {

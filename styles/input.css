@@ -35,6 +35,20 @@
     color: var(--text-primary);
   }
 
+  /* Default link styling: inherit color, underlined, orange on hover */
+  a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: currentColor;
+    text-underline-offset: 4px;
+    transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  }
+
+  a:hover {
+    color: var(--accent);
+    text-decoration-color: var(--accent);
+  }
+
   /* Responsive media */
   img, svg, video {
     max-width: 100%;
@@ -56,17 +70,18 @@
     color: var(--text-primary);
   }
 
-  .post-content a {
+  /* Accented links: orange, animated underline on hover */
+  .link-accent {
     color: var(--accent);
     text-decoration: none;
-    background-image: linear-gradient(currentColor, currentColor);
+    background-image: linear-gradient(var(--accent), var(--accent));
     background-size: 0% 1px;
     background-position: 0 100%;
     background-repeat: no-repeat;
-    transition: background-size 0.3s ease;
+    transition: background-size 0.3s ease, color 0.2s ease;
   }
 
-  .post-content a:hover {
+  .link-accent:hover {
     color: var(--accent-hover);
     background-size: 100% 1px;
   }
@@ -122,30 +137,6 @@
     border-color: var(--border);
   }
 
-  .link-animated {
-    color: var(--accent);
-    text-decoration: none;
-    background-image: linear-gradient(currentColor, currentColor);
-    background-size: 0% 1px;
-    background-position: 0 100%;
-    background-repeat: no-repeat;
-    transition: background-size 0.3s ease;
-  }
-
-  .link-animated:hover {
-    color: var(--accent-hover);
-    background-size: 100% 1px;
-  }
-
-  .nav-link {
-    color: var(--text-secondary);
-    transition: color 0.2s;
-  }
-
-  .nav-link:hover {
-    color: var(--accent);
-  }
-
   .date-mono {
     @apply font-mono text-sm tracking-wide;
     color: var(--text-secondary);
@@ -155,6 +146,7 @@
     @apply font-mono text-xs px-2 py-1 transition-colors duration-200;
     color: var(--text-secondary);
     background-color: var(--bg-secondary);
+    text-decoration: none;
   }
 
   .tag-pill:hover {
