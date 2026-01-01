@@ -137,6 +137,58 @@
     border-color: var(--border);
   }
 
+  /* Footnotes styling */
+  .post-content .footnotes {
+    @apply mt-12 pt-6 text-sm;
+    border-top: 1px solid var(--border);
+  }
+
+  .post-content .footnotes h2 {
+    @apply text-sm font-normal mb-4;
+    color: var(--text-primary);
+  }
+
+  .post-content .footnotes ol {
+    @apply pl-0 ml-0;
+    color: var(--text-primary);
+    list-style: none;
+    counter-reset: footnote;
+  }
+
+  .post-content .footnotes li {
+    @apply mb-2 pl-6;
+    counter-increment: footnote;
+    position: relative;
+  }
+
+  .post-content .footnotes li::before {
+    content: counter(footnote) ".";
+    position: absolute;
+    left: 0;
+    color: var(--text-secondary);
+  }
+
+  .post-content .footnotes li p {
+    @apply inline m-0;
+  }
+
+  .post-content .footnotes [data-footnote-backref] {
+    @apply no-underline ml-1;
+    font-size: 0;
+  }
+
+  .post-content .footnotes [data-footnote-backref]::after {
+    content: "↩︎";
+    font-size: 1.5rem;
+    color: var(--accent);
+    position: relative;
+    top: 0.25rem;
+  }
+
+  .post-content .footnotes [data-footnote-backref]:hover::after {
+    color: var(--accent-hover);
+  }
+
   .date-mono {
     @apply font-mono text-sm tracking-wide;
     color: var(--text-secondary);
