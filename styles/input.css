@@ -157,6 +157,10 @@
     @apply mb-2;
   }
 
+  .post-content .footnotes li p {
+    @apply inline;
+  }
+
   .date-mono {
     @apply font-mono text-sm tracking-wide;
     color: var(--text-secondary);
