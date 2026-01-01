@@ -65,11 +65,11 @@ export function layout(content: string, title: string, description?: string, tag
         <div class="h-0.5 w-full bg-accent mt-2" style="background-color: var(--accent)"></div>
       </a>
       <div class="flex items-center gap-2 font-mono text-sm md:flex-col md:items-end md:gap-1">
-        <a href="/about" class="link-simple text-secondary">About</a>
+        <a href="/about" class="text-secondary">About</a>
         <span class="text-secondary md:hidden">·</span>
-        <a href="/posts" class="link-simple text-secondary">Posts</a>
+        <a href="/posts" class="text-secondary">Posts</a>
         <span class="text-secondary md:hidden">·</span>
-        <a href="/archive" class="link-simple text-secondary">Archive</a>
+        <a href="/archive" class="text-secondary">Archive</a>
       </div>
     </nav>
   </header>
@@ -79,7 +79,7 @@ export function layout(content: string, title: string, description?: string, tag
   <footer class="border-t border-border mt-8">
     <div class="content-width py-8 flex flex-col items-center gap-4 md:flex-row md:justify-between">
       <div class="flex items-center gap-4 md:order-2">
-        <a href="/posts/feed.xml" hx-boost="false" class="link-simple font-mono text-xs text-secondary" aria-label="RSS Feed">RSS</a>
+        <a href="/posts/feed.xml" hx-boost="false" class="font-mono text-xs text-secondary" aria-label="RSS Feed">RSS</a>
         <button onclick="toggleTheme()" class="theme-switch" id="theme-switch" aria-label="Toggle theme">
           <span class="theme-switch-icon" id="theme-icon">☀</span>
           <span class="theme-switch-knob" id="theme-knob"></span>

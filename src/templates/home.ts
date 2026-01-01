@@ -13,7 +13,7 @@ export function homeTemplate(page: Page, recentPosts: PostMeta[]): string {
     .map((post) => {
       return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-12 shrink-0 text-secondary">${formatMonthDay(post.date)}</span>
-      <a href="/posts/${post.slug}" class="link-simple text-primary">${escapeHtml(post.title)}</a>
+      <a href="/posts/${post.slug}" class="text-primary">${escapeHtml(post.title)}</a>
     </li>`;
     })
     .join("");
@@ -27,7 +27,7 @@ export function homeTemplate(page: Page, recentPosts: PostMeta[]): string {
       ${postItems}
     </ul>
     <p class="mt-6 text-primary">
-      Browse the <a href="/archive" class="link-simple">archive</a> or subscribe to the <a href="/posts/feed.xml" class="link-simple">RSS feed</a>.
+      Browse the <a href="/archive">archive</a> or subscribe to the <a href="/posts/feed.xml">RSS feed</a>.
     </p>
   </section>` : "";
 

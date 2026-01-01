@@ -25,10 +25,10 @@ export function pagination(info: PaginationInfo, basePath: string): string {
   }
 
   return `<nav class="flex items-center justify-center gap-6 mt-12 pt-8 border-t border-border">
-  ${info.hasPrev ? `<a href="${info.currentPage === 2 ? basePath : `${basePath}?page=${info.currentPage - 1}`}" class="link-simple font-mono text-sm text-secondary">&larr; Prev</a>` : `<span class="font-mono text-sm text-secondary" style="opacity: 0.3">&larr; Prev</span>`}
+  ${info.hasPrev ? `<a href="${info.currentPage === 2 ? basePath : `${basePath}?page=${info.currentPage - 1}`}" class="font-mono text-sm text-secondary">&larr; Prev</a>` : `<span class="font-mono text-sm text-secondary" style="opacity: 0.3">&larr; Prev</span>`}
   <div class="flex gap-4">
     ${pages.join("")}
   </div>
-  ${info.hasNext ? `<a href="${basePath}?page=${info.currentPage + 1}" class="link-simple font-mono text-sm text-secondary">Next &rarr;</a>` : `<span class="font-mono text-sm text-secondary" style="opacity: 0.3">Next &rarr;</span>`}
+  ${info.hasNext ? `<a href="${basePath}?page=${info.currentPage + 1}" class="font-mono text-sm text-secondary">Next &rarr;</a>` : `<span class="font-mono text-sm text-secondary" style="opacity: 0.3">Next &rarr;</span>`}
 </nav>`;
 }

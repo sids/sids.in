@@ -18,7 +18,7 @@ export function postCard(post: PostMeta, excerpt: string): string {
 
   return `<article class="py-8 first:pt-0">
   <time class="date-mono block mb-2">${formatDate(post.date)}</time>
-  <a href="/posts/${post.slug}" class="link-simple text-primary">
+  <a href="/posts/${post.slug}" class="text-primary">
     <h2 class="font-mono text-xl font-medium mb-2">${escapeHtml(post.title)}</h2>
   </a>
   <div class="leading-relaxed prose-sm text-secondary">${descriptionHtml}</div>
