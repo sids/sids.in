@@ -145,6 +145,7 @@
     @apply font-mono text-xs px-2 py-1 transition-colors duration-200;
     color: var(--text-secondary);
     background-color: var(--bg-secondary);
+    text-decoration: none;
   }
 
   .tag-pill:hover {

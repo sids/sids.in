@@ -16,7 +16,7 @@ function renderTags(tags: TagInfo[]): string {
   const tagLinks = tags
     .map(
       ({ tag, count }) =>
-        `<a href="/tags/${tag}" class="no-underline inline-flex items-center gap-2 font-mono text-sm py-2 text-secondary">
+        `<a href="/tags/${tag}" class="tag-pill inline-flex items-center gap-1">
       <span>${escapeHtml(tag)}</span>
       <span style="opacity: 0.5">${count}</span>
     </a>`
@@ -25,7 +25,7 @@ function renderTags(tags: TagInfo[]): string {
 
   return `<section class="mb-12">
     <h2 class="font-mono text-2xl font-medium mb-4 text-primary">Tags</h2>
-    <div class="flex flex-wrap gap-x-6 gap-y-1">
+    <div class="flex flex-wrap gap-2">
       ${tagLinks}
     </div>
   </section>`;
