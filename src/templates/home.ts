@@ -27,7 +27,7 @@ export function homeTemplate(page: Page, recentPosts: PostMeta[]): string {
       ${postItems}
     </ul>
     <p class="mt-6 text-primary">
-      Browse the <a href="/archive">archive</a> or subscribe to the <a href="/posts/feed.xml">RSS feed</a>.
+      Browse the <a href="/archive" class="link-accent">archive</a> or subscribe to the <a href="/posts/feed.xml" class="link-accent">RSS feed</a>.
     </p>
   </section>` : "";
 
