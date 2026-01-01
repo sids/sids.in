@@ -14,13 +14,26 @@ export function parsePage(rawMarkdown: string, slug: string): Page {
   };
 }
 
+interface PostFrontmatter {
+  title: string;
+  slug: string;
+  date: string;
+  description?: string;
+  tags?: string[];
+  draft?: boolean;
+  link?: string;
+}
+
 export function parsePost(rawMarkdown: string): Post {
-  const { attributes, body } = fm<PostMeta>(rawMarkdown);
+  const { attributes, body } = fm<PostFrontmatter>(rawMarkdown);
   const html = marked.parse(body, { async: false }) as string;
   const excerpt = extractExcerpt(html, 150);
 
-  // If no description in frontmatter, extract from body
-  const description = attributes.description || extractDescriptionFromBody(body);
+  // Only use explicit frontmatter description (don't auto-generate)
+  const description = attributes.description;
+
+  // Determine post type based on whether link exists
+  const postType = attributes.link ? "link-log" : "essay";
 
   return {
     title: attributes.title,
@@ -29,6 +42,8 @@ export function parsePost(rawMarkdown: string): Post {
     description,
     tags: attributes.tags || [],
     draft: attributes.draft,
+    link: attributes.link,
+    postType,
     html,
     excerpt,
   };
@@ -47,40 +62,6 @@ function extractExcerpt(html: string, maxLength: number): string {
   const truncated = text.slice(0, maxLength);
   const lastSpace = truncated.lastIndexOf(" ");
   return (lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated) + "...";
-}
-
-function extractDescriptionFromBody(body: string, maxLength: number = 300): string {
-  // Remove code blocks
-  let text = body.replace(/```[\s\S]*?```/g, "");
-
-  // Remove inline code (but preserve the text)
-  text = text.replace(/`([^`]+)`/g, "$1");
-
-  // Remove images
-  text = text.replace(/!\[([^\]]*)\]\([^\)]+\)/g, "");
-
-  // Remove heading markers but keep the text
-  text = text.replace(/^#+\s+/gm, "");
-
-  // Collapse multiple newlines into double newlines (preserve paragraphs)
-  text = text.replace(/\n{3,}/g, "\n\n");
-
-  // Trim each line but preserve line breaks
-  text = text.split("\n").map(line => line.trim()).join("\n");
-
-  // Remove leading/trailing whitespace
-  text = text.trim();
-
-  // Take first maxLength characters at word boundary, preserving structure
-  if (text.length <= maxLength) {
-    return text;
-  }
-
-  const truncated = text.slice(0, maxLength);
-  const lastSpace = truncated.lastIndexOf(" ");
-  const lastNewline = truncated.lastIndexOf("\n");
-  const breakPoint = Math.max(lastSpace, lastNewline);
-  return (breakPoint > 0 ? truncated.slice(0, breakPoint) : truncated).trim() + "...";
 }
 
 export function escapeHtml(text: string): string {

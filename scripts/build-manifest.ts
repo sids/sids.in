@@ -10,6 +10,7 @@ interface PostFrontmatter {
   description?: string;
   tags: string[];
   draft?: boolean;
+  link?: string;
 }
 
 interface PageFrontmatter {
@@ -35,40 +36,6 @@ async function getMarkdownFiles(dir: string): Promise<string[]> {
   } catch {
     return [];
   }
-}
-
-function extractDescriptionFromBody(body: string, maxLength: number = 300): string {
-  // Remove code blocks
-  let text = body.replace(/```[\s\S]*?```/g, "");
-
-  // Remove inline code (but preserve the text)
-  text = text.replace(/`([^`]+)`/g, "$1");
-
-  // Remove images
-  text = text.replace(/!\[([^\]]*)\]\([^\)]+\)/g, "");
-
-  // Remove heading markers but keep the text
-  text = text.replace(/^#+\s+/gm, "");
-
-  // Collapse multiple newlines into double newlines (preserve paragraphs)
-  text = text.replace(/\n{3,}/g, "\n\n");
-
-  // Trim each line but preserve line breaks
-  text = text.split("\n").map(line => line.trim()).join("\n");
-
-  // Remove leading/trailing whitespace
-  text = text.trim();
-
-  // Take first maxLength characters at word boundary, preserving structure
-  if (text.length <= maxLength) {
-    return text;
-  }
-
-  const truncated = text.slice(0, maxLength);
-  const lastSpace = truncated.lastIndexOf(" ");
-  const lastNewline = truncated.lastIndexOf("\n");
-  const breakPoint = Math.max(lastSpace, lastNewline);
-  return (breakPoint > 0 ? truncated.slice(0, breakPoint) : truncated).trim() + "...";
 }
 
 async function buildManifest() {
@@ -113,10 +80,8 @@ async function buildManifest() {
       continue;
     }
 
-    // If no description in frontmatter, extract from body
-    const description = attributes.description || extractDescriptionFromBody(body);
-
-    postMetaEntries.push({ meta: { ...attributes, description }, varName });
+    // Only use explicit frontmatter description (don't auto-generate)
+    postMetaEntries.push({ meta: { ...attributes }, varName });
     postContentEntries.push(`  "${attributes.slug}": ${varName}`);
   }
 
@@ -141,10 +106,10 @@ async function buildManifest() {
     .map(([tag, slugs]) => ({ tag, count: slugs.length }))
     .sort((a, b) => b.count - a.count);
 
-  const postMetaArray = postMetaEntries.map(
-    ({ meta }) =>
-      `  { title: ${JSON.stringify(meta.title)}, slug: ${JSON.stringify(meta.slug)}, date: ${JSON.stringify(meta.date)}, description: ${JSON.stringify(meta.description)}, tags: ${JSON.stringify(meta.tags || [])} }`
-  );
+  const postMetaArray = postMetaEntries.map(({ meta }) => {
+    const postType = meta.link ? "link-log" : "essay";
+    return `  { title: ${JSON.stringify(meta.title)}, slug: ${JSON.stringify(meta.slug)}, date: ${JSON.stringify(meta.date)}${meta.description ? `, description: ${JSON.stringify(meta.description)}` : ""}, tags: ${JSON.stringify(meta.tags || [])}${meta.link ? `, link: ${JSON.stringify(meta.link)}` : ""}, postType: ${JSON.stringify(postType)} }`;
+  });
 
   const contentVersion = getGitCommitHash();
 

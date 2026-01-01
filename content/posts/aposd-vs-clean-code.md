@@ -1,13 +1,12 @@
 ---
-title: "🔗 APOSD vs Clean Code"
+title: "APOSD vs Clean Code"
 slug: "aposd-vs-clean-code"
 date: "2025-03-03"
 description: ""
-tags: ["book", "link-log", "programming"]
+tags: ["book", "programming"]
+link: "https://github.com/johnousterhout/aposd-vs-clean-code/blob/main/README.md"
 draft: false
 ---
-
-[APOSD vs Clean Code](https://github.com/johnousterhout/aposd-vs-clean-code/blob/main/README.md)
 
 > _This document is the result of a series of discussions, some online and some in person, held between Robert "Uncle Bob" Martin and John Ousterhout between September 2024 and February 2025._
 
