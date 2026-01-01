@@ -149,7 +149,7 @@
   }
 
   .post-content .footnotes ol {
-    @apply pl-0;
+    @apply pl-0 list-inside;
     color: var(--text-primary);
   }
 
