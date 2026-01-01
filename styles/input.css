@@ -149,8 +149,8 @@
   }
 
   .post-content .footnotes ol {
-    @apply pl-4;
-    color: var(--text-secondary);
+    @apply pl-0;
+    color: var(--text-primary);
   }
 
   .post-content .footnotes li {
