@@ -1,20 +1,23 @@
 import type { Post, PaginationInfo } from "../types.ts";
-import { postCard } from "./partials/post-card.ts";
-import { pagination } from "./pagination.ts";
+import { postFilter, type PostFilterType } from "./partials/post-filter.ts";
+import { postsListCards } from "./partials/posts-list.ts";
 
 export function postListTemplate(
   posts: Post[],
-  paginationInfo: PaginationInfo
+  paginationInfo: PaginationInfo,
+  currentFilter: PostFilterType = "all"
 ): string {
-  if (posts.length === 0) {
-    return `<p style="color: var(--text-secondary)">No posts yet.</p>`;
-  }
-
-  const cards = posts.map((post) => postCard(post, post.excerpt)).join("");
-
   return `<h1 class="font-mono text-3xl font-medium mb-8 text-secondary">Posts</h1>
-<div class="divide-y" style="border-color: var(--border)">
-  ${cards}
-</div>
-${pagination(paginationInfo, "/posts")}`;
+${postFilter("/posts", currentFilter)}
+${postsListCards(posts, paginationInfo, "/posts", currentFilter)}`;
+}
+
+// Returns posts list + filter with OOB swap for HTMX partial updates
+export function postListPartial(
+  posts: Post[],
+  paginationInfo: PaginationInfo,
+  currentFilter: PostFilterType = "all"
+): string {
+  return postsListCards(posts, paginationInfo, "/posts", currentFilter) +
+    postFilter("/posts", currentFilter, true);
 }

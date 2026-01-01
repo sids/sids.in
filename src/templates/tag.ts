@@ -1,18 +1,18 @@
 import type { Post, PaginationInfo } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
-import { postCard } from "./partials/post-card.ts";
-import { pagination } from "./pagination.ts";
+import { postFilter, type PostFilterType } from "./partials/post-filter.ts";
+import { postsListCards } from "./partials/posts-list.ts";
 
 export function tagTemplate(
   tag: string,
   posts: Post[],
-  paginationInfo: PaginationInfo
+  paginationInfo: PaginationInfo,
+  currentFilter: PostFilterType = "all"
 ): string {
-  if (posts.length === 0) {
-    return `<p style="color: var(--text-secondary)">No posts with this tag.</p>`;
-  }
-
-  const cards = posts.map((post) => postCard(post, post.excerpt)).join("");
+  const basePath = `/tags/${tag}`;
+  const emptyMessage = currentFilter === "all"
+    ? "No posts with this tag."
+    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} with this tag.`;
 
   return `<div>
   <div class="flex items-center justify-between mb-8">
@@ -21,9 +21,23 @@ export function tagTemplate(
     </h1>
     <a href="/tags/${tag}/feed.xml" hx-boost="false" class="font-mono text-xs text-secondary">RSS</a>
   </div>
-  <div class="divide-y" style="border-color: var(--border)">
-    ${cards}
-  </div>
-  ${pagination(paginationInfo, `/tags/${tag}`)}
+  ${postFilter(basePath, currentFilter)}
+  ${postsListCards(posts, paginationInfo, basePath, currentFilter, emptyMessage)}
 </div>`;
+}
+
+// Returns posts list + filter with OOB swap for HTMX partial updates
+export function tagPartial(
+  tag: string,
+  posts: Post[],
+  paginationInfo: PaginationInfo,
+  currentFilter: PostFilterType = "all"
+): string {
+  const basePath = `/tags/${tag}`;
+  const emptyMessage = currentFilter === "all"
+    ? "No posts with this tag."
+    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} with this tag.`;
+
+  return postsListCards(posts, paginationInfo, basePath, currentFilter, emptyMessage) +
+    postFilter(basePath, currentFilter, true);
 }
