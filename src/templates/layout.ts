@@ -56,7 +56,7 @@ export function layout(content: string, title: string, description?: string, tag
 <body hx-ext="head-support" hx-boost="true" hx-target="#content" hx-swap="innerHTML" class="min-h-screen">
   <header class="border-b border-border">
     <nav class="content-width py-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-      <a href="/" class="group inline-flex flex-col">
+      <a href="/" hx-swap="innerHTML show:none" class="group inline-flex flex-col">
         <span class="font-mono text-sm tracking-widest uppercase text-primary group-hover:text-accent transition-colors flex items-center gap-2">
           <img src="/images/s.png" alt="" class="w-5 h-5 rounded">
           <span class="group-hover:hidden">Sid</span>
@@ -65,11 +65,11 @@ export function layout(content: string, title: string, description?: string, tag
         <div class="h-0.5 w-full bg-accent mt-2" style="background-color: var(--accent)"></div>
       </a>
       <div class="flex items-center gap-2 font-mono text-sm md:flex-col md:items-end md:gap-1">
-        <a href="/about" class="text-secondary">About</a>
+        <a href="/about" hx-swap="innerHTML show:none" class="text-secondary">About</a>
         <span class="text-secondary md:hidden">·</span>
-        <a href="/posts" class="text-secondary">Posts</a>
+        <a href="/posts" hx-swap="innerHTML show:none" class="text-secondary">Posts</a>
         <span class="text-secondary md:hidden">·</span>
-        <a href="/archive" class="text-secondary">Archive</a>
+        <a href="/archive" hx-swap="innerHTML show:none" class="text-secondary">Archive</a>
       </div>
     </nav>
   </header>
