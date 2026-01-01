@@ -149,16 +149,27 @@
   }
 
   .post-content .footnotes ol {
-    @apply pl-6 ml-0;
+    @apply pl-0 ml-0;
     color: var(--text-primary);
+    list-style: none;
+    counter-reset: footnote;
   }
 
   .post-content .footnotes li {
-    @apply mb-2 pl-0 ml-0;
+    @apply mb-2 pl-6;
+    counter-increment: footnote;
+    position: relative;
+  }
+
+  .post-content .footnotes li::before {
+    content: counter(footnote) ".";
+    position: absolute;
+    left: 0;
+    color: var(--text-secondary);
   }
 
   .post-content .footnotes li p {
-    @apply inline;
+    @apply inline m-0;
   }
 
   .date-mono {
