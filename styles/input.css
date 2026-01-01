@@ -173,18 +173,12 @@
   }
 
   .post-content .footnotes [data-footnote-backref] {
-    @apply text-xs no-underline ml-1;
-    font-size: 0;
-  }
-
-  .post-content .footnotes [data-footnote-backref]::after {
-    content: "↑";
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-  }
-
-  .post-content .footnotes [data-footnote-backref]:hover::after {
+    @apply no-underline ml-1;
     color: var(--accent);
+  }
+
+  .post-content .footnotes [data-footnote-backref]:hover {
+    color: var(--accent-hover);
   }
 
   .date-mono {
