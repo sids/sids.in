@@ -8,6 +8,8 @@ export interface Page extends PageMeta {
   html: string;
 }
 
+export type PostType = "essay" | "link-log";
+
 export interface PostMeta {
   title: string;
   slug: string;
@@ -16,6 +18,7 @@ export interface PostMeta {
   tags: string[];
   draft?: boolean;
   link?: string;
+  postType: PostType;
 }
 
 export interface Post extends PostMeta {

@@ -1,9 +1,9 @@
 ---
-title: "🔗 The End of Programming as We Know It"
+title: "The End of Programming as We Know It"
 slug: "the-end-of-programming-as-we-know-it"
 date: "2025-03-30"
 description: ""
-tags: ["AI Coding", "link-log"]
+tags: ["AI Coding"]
 link: "https://www.oreilly.com/radar/the-end-of-programming-as-we-know-it/"
 draft: false
 ---

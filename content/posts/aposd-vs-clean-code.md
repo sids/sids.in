@@ -1,9 +1,9 @@
 ---
-title: "🔗 APOSD vs Clean Code"
+title: "APOSD vs Clean Code"
 slug: "aposd-vs-clean-code"
 date: "2025-03-03"
 description: ""
-tags: ["book", "link-log", "programming"]
+tags: ["book", "programming"]
 link: "https://github.com/johnousterhout/aposd-vs-clean-code/blob/main/README.md"
 draft: false
 ---

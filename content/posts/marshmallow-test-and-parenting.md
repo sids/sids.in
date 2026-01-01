@@ -1,9 +1,9 @@
 ---
-title: "🔗 Marshmallow Test and Parenting"
+title: "Marshmallow Test and Parenting"
 slug: "marshmallow-test-and-parenting"
 date: "2025-02-23"
 description: ""
-tags: ["link-log", "parenting"]
+tags: ["parenting"]
 link: "https://desunit.com/blog/marshmallow-test-and-parenting/"
 draft: false
 ---

@@ -1,9 +1,9 @@
 ---
-title: "🔗 AI adoption is a UX problem"
+title: "AI adoption is a UX problem"
 slug: "ai-adoption-is-a-ux-problem"
 date: "2025-04-13"
 description: ""
-tags: ["ai", "link-log", "llm"]
+tags: ["ai", "llm"]
 link: "https://thenanyu.com/ux.html"
 draft: false
 ---

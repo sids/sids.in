@@ -1,9 +1,9 @@
 ---
-title: "🔗 Humanity's Last Exam"
+title: "Humanity's Last Exam"
 slug: "humanitys-last-exam"
 date: "2025-01-26"
 description: ""
-tags: ["ai", "link-log", "llm"]
+tags: ["ai", "llm"]
 link: "https://agi.safe.ai/"
 draft: false
 ---

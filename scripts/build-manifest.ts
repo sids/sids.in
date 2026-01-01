@@ -106,10 +106,10 @@ async function buildManifest() {
     .map(([tag, slugs]) => ({ tag, count: slugs.length }))
     .sort((a, b) => b.count - a.count);
 
-  const postMetaArray = postMetaEntries.map(
-    ({ meta }) =>
-      `  { title: ${JSON.stringify(meta.title)}, slug: ${JSON.stringify(meta.slug)}, date: ${JSON.stringify(meta.date)}${meta.description ? `, description: ${JSON.stringify(meta.description)}` : ""}, tags: ${JSON.stringify(meta.tags || [])}${meta.link ? `, link: ${JSON.stringify(meta.link)}` : ""} }`
-  );
+  const postMetaArray = postMetaEntries.map(({ meta }) => {
+    const postType = meta.link ? "link-log" : "essay";
+    return `  { title: ${JSON.stringify(meta.title)}, slug: ${JSON.stringify(meta.slug)}, date: ${JSON.stringify(meta.date)}${meta.description ? `, description: ${JSON.stringify(meta.description)}` : ""}, tags: ${JSON.stringify(meta.tags || [])}${meta.link ? `, link: ${JSON.stringify(meta.link)}` : ""}, postType: ${JSON.stringify(postType)} }`;
+  });
 
   const contentVersion = getGitCommitHash();
 

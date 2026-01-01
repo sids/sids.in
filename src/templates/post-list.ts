@@ -1,5 +1,6 @@
 import type { Post, PaginationInfo } from "../types.ts";
 import { postCard } from "./partials/post-card.ts";
+import { postFilter } from "./partials/post-filter.ts";
 import { pagination } from "./pagination.ts";
 
 export function postListTemplate(
@@ -13,6 +14,7 @@ export function postListTemplate(
   const cards = posts.map((post) => postCard(post)).join("");
 
   return `<h1 class="font-mono text-3xl font-medium mb-8 text-secondary">Posts</h1>
+${postFilter()}
 <div class="divide-y" style="border-color: var(--border)">
   ${cards}
 </div>

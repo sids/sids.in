@@ -1,9 +1,9 @@
 ---
-title: "🔗 The Bitter Lesson versus The Garbage Can"
+title: "The Bitter Lesson versus The Garbage Can"
 slug: "the-bitter-lesson-versus-the-garbage-can"
 date: "2025-08-02"
 description: ""
-tags: ["ai", "link-log"]
+tags: ["ai"]
 link: "https://www.oneusefulthing.org/p/the-bitter-lesson-versus-the-garbage"
 draft: false
 ---

@@ -1,9 +1,9 @@
 ---
-title: "🔗 How NAT Traversal Works"
+title: "How NAT Traversal Works"
 slug: "how-nat-traversal-works"
 date: "2025-03-30"
 description: ""
-tags: ["link-log"]
+tags: []
 link: "https://tailscale.com/blog/how-nat-traversal-works"
 draft: false
 ---

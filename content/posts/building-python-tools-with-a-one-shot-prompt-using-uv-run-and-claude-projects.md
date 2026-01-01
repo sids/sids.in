@@ -1,9 +1,9 @@
 ---
-title: "🔗 Building Python tools with a one-shot prompt using uv run and Claude Projects"
+title: "Building Python tools with a one-shot prompt using uv run and Claude Projects"
 slug: "building-python-tools-with-a-one-shot-prompt-using-uv-run-and-claude-projects"
 date: "2025-04-06"
 description: ""
-tags: ["ai", "AI Coding", "link-log", "llm"]
+tags: ["ai", "AI Coding", "llm"]
 link: "https://simonwillison.net/2024/Dec/19/one-shot-python-tools/"
 draft: false
 ---

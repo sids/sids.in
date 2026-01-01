@@ -1,9 +1,9 @@
 ---
-title: "🔗 Book: AI Engineering by Chip Huyen"
+title: "Book: AI Engineering by Chip Huyen"
 slug: "book-ai-engineering-by-chip-huyen"
 date: "2025-01-12"
 description: ""
-tags: ["ai", "book", "link-log", "llm"]
+tags: ["ai", "book", "llm"]
 link: "https://www.oreilly.com/library/view/ai-engineering/9781098166298/"
 draft: false
 ---

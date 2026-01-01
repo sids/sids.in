@@ -1,9 +1,9 @@
 ---
-title: "🔗 Things we learned about LLMs in 2024"
+title: "Things we learned about LLMs in 2024"
 slug: "things-we-learned-about-llms-in-2024"
 date: "2025-01-11"
 description: ""
-tags: ["ai", "link-log", "llm"]
+tags: ["ai", "llm"]
 link: "https://simonwillison.net/2024/Dec/31/llms-in-2024/"
 draft: false
 ---

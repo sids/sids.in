@@ -14,13 +14,26 @@ export function parsePage(rawMarkdown: string, slug: string): Page {
   };
 }
 
+interface PostFrontmatter {
+  title: string;
+  slug: string;
+  date: string;
+  description?: string;
+  tags?: string[];
+  draft?: boolean;
+  link?: string;
+}
+
 export function parsePost(rawMarkdown: string): Post {
-  const { attributes, body } = fm<PostMeta>(rawMarkdown);
+  const { attributes, body } = fm<PostFrontmatter>(rawMarkdown);
   const html = marked.parse(body, { async: false }) as string;
   const excerpt = extractExcerpt(html, 150);
 
   // Only use explicit frontmatter description (don't auto-generate)
   const description = attributes.description;
+
+  // Determine post type based on whether link exists
+  const postType = attributes.link ? "link-log" : "essay";
 
   return {
     title: attributes.title,
@@ -30,6 +43,7 @@ export function parsePost(rawMarkdown: string): Post {
     tags: attributes.tags || [],
     draft: attributes.draft,
     link: attributes.link,
+    postType,
     html,
     excerpt,
   };

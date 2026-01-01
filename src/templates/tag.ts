@@ -1,6 +1,7 @@
 import type { Post, PaginationInfo } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
 import { postCard } from "./partials/post-card.ts";
+import { postFilter } from "./partials/post-filter.ts";
 import { pagination } from "./pagination.ts";
 
 export function tagTemplate(
@@ -21,6 +22,7 @@ export function tagTemplate(
     </h1>
     <a href="/tags/${tag}/feed.xml" hx-boost="false" class="font-mono text-xs text-secondary">RSS</a>
   </div>
+  ${postFilter()}
   <div class="divide-y" style="border-color: var(--border)">
     ${cards}
   </div>
