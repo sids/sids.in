@@ -1,7 +1,6 @@
 import type { Post, PaginationInfo } from "../types.ts";
-import { postCard } from "./partials/post-card.ts";
 import { postFilter } from "./partials/post-filter.ts";
-import { pagination } from "./pagination.ts";
+import { postsListCards } from "./partials/posts-list.ts";
 
 type PostFilterType = "all" | "essay" | "link-log";
 
@@ -10,17 +9,16 @@ export function postListTemplate(
   paginationInfo: PaginationInfo,
   currentFilter: PostFilterType = "all"
 ): string {
-  const cards = posts.map((post) => postCard(post)).join("");
-  const noPostsMessage = currentFilter === "all"
-    ? "No posts yet."
-    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} found.`;
-
   return `<h1 class="font-mono text-3xl font-medium mb-8 text-secondary">Posts</h1>
 ${postFilter("/posts", currentFilter)}
-${posts.length === 0
-  ? `<p class="text-secondary">${noPostsMessage}</p>`
-  : `<div class="divide-y" style="border-color: var(--border)">
-  ${cards}
-</div>
-${pagination(paginationInfo, "/posts", currentFilter)}`}`;
+${postsListCards(posts, paginationInfo, "/posts", currentFilter)}`;
+}
+
+// Returns just the posts list for HTMX partial updates
+export function postListPartial(
+  posts: Post[],
+  paginationInfo: PaginationInfo,
+  currentFilter: PostFilterType = "all"
+): string {
+  return postsListCards(posts, paginationInfo, "/posts", currentFilter);
 }

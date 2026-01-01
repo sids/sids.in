@@ -3,11 +3,11 @@ import { parsePage, parsePost } from "./markdown.ts";
 import { pages, posts, postContent, tagIndex, allTags, contentVersion } from "./manifest.ts";
 import { layout, partial } from "./templates/layout.ts";
 import { pageTemplate } from "./templates/page.ts";
-import { homeTemplate } from "./templates/home.ts";
+import { homeTemplate, homePartial } from "./templates/home.ts";
 import { postTemplate } from "./templates/post.ts";
-import { postListTemplate } from "./templates/post-list.ts";
-import { archiveTemplate } from "./templates/archive.ts";
-import { tagTemplate } from "./templates/tag.ts";
+import { postListTemplate, postListPartial } from "./templates/post-list.ts";
+import { archiveTemplate, archivePartial } from "./templates/archive.ts";
+import { tagTemplate, tagPartial } from "./templates/tag.ts";
 import { generateRssFeed } from "./rss.ts";
 
 const POSTS_PER_PAGE = 10;
@@ -35,6 +35,7 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     const isHtmx = request.headers.get("HX-Request") === "true";
+    const hxTarget = request.headers.get("HX-Target");
 
     // Static assets
     if (path.startsWith("/css/") || path.startsWith("/images/") || path === "/favicon.ico") {
@@ -42,7 +43,7 @@ export default {
     }
 
     try {
-      const response = route(path, url.searchParams, url.origin, isHtmx, request);
+      const response = route(path, url.searchParams, url.origin, isHtmx, hxTarget, request);
       if (response) {
         return response;
       }
@@ -55,7 +56,9 @@ export default {
   },
 };
 
-function route(path: string, params: URLSearchParams, origin: string, isHtmx: boolean, request: Request): Response | null {
+function route(path: string, params: URLSearchParams, origin: string, isHtmx: boolean, hxTarget: string | null, request: Request): Response | null {
+  const isPostsListTarget = hxTarget === "posts-list";
+
   // Main RSS feed
   if (path === "/posts/feed.xml") {
     const fullPosts = posts.map((meta) => {
@@ -106,6 +109,11 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
       const filter = getPostFilter(params);
       const filteredPosts = filterPosts(posts, filter);
       const recentPosts = filteredPosts.slice(0, 10);
+
+      if (isPostsListTarget) {
+        return htmlPartial(homePartial(recentPosts, filter), request);
+      }
+
       const content = homeTemplate(page, recentPosts, filter);
       return html(content, page.title, page.description, isHtmx, request);
     }
@@ -122,6 +130,10 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
       const raw = postContent[meta.slug];
       return raw ? parsePost(raw) : null;
     }).filter((p): p is Post => p !== null);
+
+    if (isPostsListTarget) {
+      return htmlPartial(postListPartial(fullPosts, pagination, filter), request);
+    }
 
     const content = postListTemplate(fullPosts, pagination, filter);
     return html(content, "Posts", "All blog posts", isHtmx, request);
@@ -144,6 +156,11 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
   if (path === "/archive") {
     const filter = getPostFilter(params);
     const filteredPosts = filterPosts(posts, filter);
+
+    if (isPostsListTarget) {
+      return htmlPartial(archivePartial(filteredPosts, filter), request);
+    }
+
     const content = archiveTemplate(filteredPosts, allTags, filter);
     return html(content, "Archive", "All posts by date", isHtmx, request);
   }
@@ -167,6 +184,10 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
         const raw = postContent[meta.slug];
         return raw ? parsePost(raw) : null;
       }).filter((p): p is Post => p !== null);
+
+      if (isPostsListTarget) {
+        return htmlPartial(tagPartial(tag, fullPosts, pagination, filter), request);
+      }
 
       const content = tagTemplate(tag, fullPosts, pagination, filter);
       return html(content, `Tag: ${tag}`, `Posts tagged ${tag}`, isHtmx, request, tag);
@@ -214,6 +235,10 @@ function cachedResponse(body: string, contentType: string, request: Request): Re
 function html(content: string, title: string, description: string | undefined, isHtmx: boolean, request: Request, tag?: string): Response {
   const body = isHtmx ? partial(content, title) : layout(content, title, description, tag);
   return cachedResponse(body, "text/html; charset=utf-8", request);
+}
+
+function htmlPartial(content: string, request: Request): Response {
+  return cachedResponse(content, "text/html; charset=utf-8", request);
 }
 
 function xml(content: string, request: Request): Response {

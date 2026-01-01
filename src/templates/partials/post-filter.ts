@@ -11,7 +11,7 @@ export function postFilter(basePath: string, currentFilter: PostFilter = "all"):
     .map((f) => {
       const href = f.id === "all" ? basePath : `${basePath}?type=${f.id}`;
       const isActive = f.id === currentFilter;
-      return `<a href="${href}" class="px-3 py-1 font-mono text-sm no-underline transition-colors ${
+      return `<a href="${href}" hx-target="#posts-list" hx-swap="outerHTML" hx-push-url="true" class="px-3 py-1 font-mono text-sm no-underline transition-colors ${
         isActive ? "text-accent" : "text-secondary hover:text-primary"
       }">${f.label}</a>`;
     })
