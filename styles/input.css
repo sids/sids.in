@@ -174,10 +174,16 @@
 
   .post-content .footnotes [data-footnote-backref] {
     @apply no-underline ml-1;
+    font-size: 0;
+  }
+
+  .post-content .footnotes [data-footnote-backref]::after {
+    content: "↩︎";
+    font-size: 0.875rem;
     color: var(--accent);
   }
 
-  .post-content .footnotes [data-footnote-backref]:hover {
+  .post-content .footnotes [data-footnote-backref]:hover::after {
     color: var(--accent-hover);
   }
 
