@@ -179,7 +179,7 @@
 
   .post-content .footnotes [data-footnote-backref]::after {
     content: "↩︎";
-    font-size: 0.875rem;
+    font-size: 1rem;
     color: var(--accent);
   }
 
