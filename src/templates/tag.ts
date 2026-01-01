@@ -4,16 +4,19 @@ import { postCard } from "./partials/post-card.ts";
 import { postFilter } from "./partials/post-filter.ts";
 import { pagination } from "./pagination.ts";
 
+type PostFilterType = "all" | "essay" | "link-log";
+
 export function tagTemplate(
   tag: string,
   posts: Post[],
-  paginationInfo: PaginationInfo
+  paginationInfo: PaginationInfo,
+  currentFilter: PostFilterType = "all"
 ): string {
-  if (posts.length === 0) {
-    return `<p style="color: var(--text-secondary)">No posts with this tag.</p>`;
-  }
-
   const cards = posts.map((post) => postCard(post)).join("");
+  const basePath = `/tags/${tag}`;
+  const noPostsMessage = currentFilter === "all"
+    ? "No posts with this tag."
+    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} with this tag.`;
 
   return `<div>
   <div class="flex items-center justify-between mb-8">
@@ -22,10 +25,12 @@ export function tagTemplate(
     </h1>
     <a href="/tags/${tag}/feed.xml" hx-boost="false" class="font-mono text-xs text-secondary">RSS</a>
   </div>
-  ${postFilter()}
-  <div class="divide-y" style="border-color: var(--border)">
+  ${postFilter(basePath, currentFilter)}
+  ${posts.length === 0
+    ? `<p class="text-secondary">${noPostsMessage}</p>`
+    : `<div class="divide-y" style="border-color: var(--border)">
     ${cards}
   </div>
-  ${pagination(paginationInfo, `/tags/${tag}`)}
+  ${pagination(paginationInfo, basePath, currentFilter)}`}
 </div>`;
 }

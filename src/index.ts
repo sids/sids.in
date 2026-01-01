@@ -1,4 +1,4 @@
-import type { Env, Post, PaginationInfo } from "./types.ts";
+import type { Env, Post, PostMeta, PaginationInfo, PostType } from "./types.ts";
 import { parsePage, parsePost } from "./markdown.ts";
 import { pages, posts, postContent, tagIndex, allTags, contentVersion } from "./manifest.ts";
 import { layout, partial } from "./templates/layout.ts";
@@ -12,6 +12,23 @@ import { generateRssFeed } from "./rss.ts";
 
 const POSTS_PER_PAGE = 10;
 const CACHE_CONTROL = "public, max-age=0, s-maxage=86400, must-revalidate";
+
+type PostFilter = "all" | PostType;
+
+function getPostFilter(params: URLSearchParams): PostFilter {
+  const type = params.get("type");
+  if (type === "essay" || type === "link-log") {
+    return type;
+  }
+  return "all";
+}
+
+function filterPosts<T extends PostMeta>(items: T[], filter: PostFilter): T[] {
+  if (filter === "all") {
+    return items;
+  }
+  return items.filter((post) => post.postType === filter);
+}
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -86,8 +103,10 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
     const pageData = pages["home"];
     if (pageData) {
       const page = parsePage(pageData.content, "home");
-      const recentPosts = posts.slice(0, 10);
-      const content = homeTemplate(page, recentPosts);
+      const filter = getPostFilter(params);
+      const filteredPosts = filterPosts(posts, filter);
+      const recentPosts = filteredPosts.slice(0, 10);
+      const content = homeTemplate(page, recentPosts, filter);
       return html(content, page.title, page.description, isHtmx, request);
     }
     return null;
@@ -95,14 +114,16 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
 
   // Posts list
   if (path === "/posts") {
+    const filter = getPostFilter(params);
+    const filteredPosts = filterPosts(posts, filter);
     const page = getPageNumber(params);
-    const { items, pagination } = paginate(posts, page, POSTS_PER_PAGE);
+    const { items, pagination } = paginate(filteredPosts, page, POSTS_PER_PAGE);
     const fullPosts = items.map((meta) => {
       const raw = postContent[meta.slug];
       return raw ? parsePost(raw) : null;
     }).filter((p): p is Post => p !== null);
 
-    const content = postListTemplate(fullPosts, pagination);
+    const content = postListTemplate(fullPosts, pagination, filter);
     return html(content, "Posts", "All blog posts", isHtmx, request);
   }
 
@@ -121,7 +142,9 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
 
   // Archive
   if (path === "/archive") {
-    const content = archiveTemplate(posts, allTags);
+    const filter = getPostFilter(params);
+    const filteredPosts = filterPosts(posts, filter);
+    const content = archiveTemplate(filteredPosts, allTags, filter);
     return html(content, "Archive", "All posts by date", isHtmx, request);
   }
 
@@ -135,15 +158,17 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
         .map((slug) => posts.find((p) => p.slug === slug))
         .filter((p) => p !== undefined);
 
+      const filter = getPostFilter(params);
+      const filteredTagPosts = filterPosts(tagPosts, filter);
       const page = getPageNumber(params);
-      const { items, pagination } = paginate(tagPosts, page, POSTS_PER_PAGE);
+      const { items, pagination } = paginate(filteredTagPosts, page, POSTS_PER_PAGE);
 
       const fullPosts = items.map((meta) => {
         const raw = postContent[meta.slug];
         return raw ? parsePost(raw) : null;
       }).filter((p): p is Post => p !== null);
 
-      const content = tagTemplate(tag, fullPosts, pagination);
+      const content = tagTemplate(tag, fullPosts, pagination, filter);
       return html(content, `Tag: ${tag}`, `Posts tagged ${tag}`, isHtmx, request, tag);
     }
     return null;

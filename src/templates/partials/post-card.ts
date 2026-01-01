@@ -43,7 +43,7 @@ export function postCard(post: Post): string {
     contentHtml = `<div class="post-content">${post.html}</div>`;
   }
 
-  return `<article class="py-8 first:pt-0" data-post-type="${post.postType}">
+  return `<article class="py-8 first:pt-0">
   ${dateLink}
   ${titleHtml}
   ${contentHtml}
