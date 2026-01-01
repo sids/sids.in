@@ -19,7 +19,7 @@ export function tagTemplate(
     <h1 class="font-mono text-sm tracking-widest uppercase" style="color: var(--text-secondary)">
       Tagged: <span style="color: var(--accent)">${escapeHtml(tag)}</span>
     </h1>
-    <a href="/tags/${tag}/feed.xml" hx-boost="false" class="font-mono text-xs text-secondary hover:text-accent transition-colors">RSS</a>
+    <a href="/tags/${tag}/feed.xml" hx-boost="false" class="font-mono text-xs text-secondary">RSS</a>
   </div>
   <div class="divide-y" style="border-color: var(--border)">
     ${cards}
