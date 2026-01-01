@@ -144,7 +144,7 @@
   }
 
   .post-content .footnotes h2 {
-    @apply text-sm font-normal mb-4 pl-6;
+    @apply text-sm font-normal mb-4;
     color: var(--text-primary);
   }
 
