@@ -4,10 +4,9 @@ slug: "the-end-of-programming-as-we-know-it"
 date: "2025-03-30"
 description: ""
 tags: ["AI Coding", "link-log"]
+link: "https://www.oreilly.com/radar/the-end-of-programming-as-we-know-it/"
 draft: false
 ---
-
-[The End of Programming as We Know It](https://www.oreilly.com/radar/the-end-of-programming-as-we-know-it/) by Tim O’Reilly
 
 > It is not the end of programming. _It is the end of programming as we know it today_. That is not new. The first programmers connected physical circuits to perform each calculation. They were succeeded by programmers writing machine instructions as binary code to be input one bit at a time by flipping switches on the front of a computer. Assembly language programming then put an end to that. It lets a programmer use a human-like language to tell the computer to move data to locations in memory and perform calculations on it. Then, development of even higher-level compiled languages like Fortran, COBOL, and their successors C, C++, and Java meant that most programmers no longer wrote assembly code. Instead, they could express their wishes to the computer using higher level abstractions.
 > 

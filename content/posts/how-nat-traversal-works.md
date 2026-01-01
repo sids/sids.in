@@ -4,10 +4,9 @@ slug: "how-nat-traversal-works"
 date: "2025-03-30"
 description: ""
 tags: ["link-log"]
+link: "https://tailscale.com/blog/how-nat-traversal-works"
 draft: false
 ---
-
-[How NAT traversal works](https://tailscale.com/blog/how-nat-traversal-works)
 
 A [Stratechery interview with the CEO of Tailscale](https://stratechery.com/2025/an-interview-with-tailscale-co-founder-and-ceo-avery-pennarun/) dropped a few weeks ago. Tailscale is one of my favourite kinds of companies — focused on a single product that’s deeply technical and yet simple and delightful to use. I’m a longtime user and love the product. The interview is fun to listen to.
 

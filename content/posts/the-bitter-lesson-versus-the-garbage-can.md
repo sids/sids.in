@@ -4,10 +4,9 @@ slug: "the-bitter-lesson-versus-the-garbage-can"
 date: "2025-08-02"
 description: ""
 tags: ["ai", "link-log"]
+link: "https://www.oneusefulthing.org/p/the-bitter-lesson-versus-the-garbage"
 draft: false
 ---
-
-[The Bitter Lesson versus The Garbage Can](https://www.oneusefulthing.org/p/the-bitter-lesson-versus-the-garbage) by Ethan Mollick
 
 A thought-provoking article that, on the surface, explores which modality of AI agent deployment is more likely to succeed in a large organisation — agents carefully designed around organisational processes, or general-purpose agents trained to seek successful outcomes (RL, for example).
 

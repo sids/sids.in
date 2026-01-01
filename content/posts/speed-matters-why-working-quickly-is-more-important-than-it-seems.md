@@ -4,10 +4,9 @@ slug: "speed-matters-why-working-quickly-is-more-important-than-it-seems"
 date: "2025-01-26"
 description: ""
 tags: ["link-log", "productivity"]
+link: "https://jsomers.net/blog/speed-matters"
 draft: false
 ---
-
-[Speed matters: Why working quickly is more important than it seems](https://jsomers.net/blog/speed-matters)
 
 James Somers:
 

@@ -4,10 +4,9 @@ slug: "ai-adoption-is-a-ux-problem"
 date: "2025-04-13"
 description: ""
 tags: ["ai", "link-log", "llm"]
+link: "https://thenanyu.com/ux.html"
 draft: false
 ---
-
-[AI adoption is a UX problem](https://thenanyu.com/ux.html)
 
 Nan Yu:
 

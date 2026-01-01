@@ -4,10 +4,9 @@ slug: "ship-software-that-does-nothing"
 date: "2025-04-25"
 description: ""
 tags: ["entrepreneurship", "link-log", "product building"]
+link: "https://kerrick.blog/articles/2025/ship-software-that-does-nothing/"
 draft: false
 ---
-
-[Ship Software That Does Nothing](https://kerrick.blog/articles/2025/ship-software-that-does-nothing/ "Ship Software That Does Nothing | Kerrick Long’s Blog")
 
 Kerrick Long:
 
