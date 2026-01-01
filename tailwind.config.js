@@ -5,8 +5,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        mono: ["JetBrains Mono", "monospace"],
-        sans: ["IBM Plex Sans", "system-ui", "-apple-system", "sans-serif"],
+        mono: ["Overpass Mono", "monospace"],
+        sans: ["Overpass", "system-ui", "-apple-system", "sans-serif"],
       },
       colors: {
         bg: {
@@ -42,19 +42,19 @@ export default {
               },
             },
             h1: {
-              fontFamily: "JetBrains Mono, monospace",
+              fontFamily: "Overpass Mono, monospace",
               fontWeight: "500",
             },
             h2: {
-              fontFamily: "JetBrains Mono, monospace",
+              fontFamily: "Overpass Mono, monospace",
               fontWeight: "500",
             },
             h3: {
-              fontFamily: "JetBrains Mono, monospace",
+              fontFamily: "Overpass Mono, monospace",
               fontWeight: "500",
             },
             code: {
-              fontFamily: "JetBrains Mono, monospace",
+              fontFamily: "Overpass Mono, monospace",
             },
           },
         },
