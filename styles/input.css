@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,400;0,500;0,600;1,400&family=Overpass+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -195,7 +195,7 @@
   }
 
   .tag-pill {
-    @apply font-mono text-xs px-2 py-1 transition-colors duration-200;
+    @apply font-mono text-xs px-2 py-1 rounded-full transition-colors duration-200;
     color: var(--text-secondary);
     background-color: var(--bg-secondary);
     text-decoration: none;
