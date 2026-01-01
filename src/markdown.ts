@@ -1,6 +1,9 @@
 import { marked } from "marked";
+import markedFootnote from "marked-footnote";
 import fm from "front-matter";
 import type { PageMeta, PostMeta, Page, Post } from "./types.ts";
+
+marked.use(markedFootnote());
 
 export function parsePage(rawMarkdown: string, slug: string): Page {
   const { attributes, body } = fm<PageMeta>(rawMarkdown);

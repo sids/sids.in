@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "front-matter": "^4.0.2",
-    "marked": "^17.0.1"
+    "marked": "^17.0.1",
+    "marked-footnote": "^1.4.0"
   }
 }
