@@ -144,12 +144,12 @@
   }
 
   .post-content .footnotes h2 {
-    @apply text-sm font-normal mb-4;
+    @apply text-sm font-normal mb-4 pl-6;
     color: var(--text-primary);
   }
 
   .post-content .footnotes ol {
-    @apply pl-0 ml-0 list-inside;
+    @apply pl-6 ml-0;
     color: var(--text-primary);
   }
 
