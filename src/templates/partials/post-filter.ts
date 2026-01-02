@@ -4,7 +4,7 @@ export function postFilter(basePath: string, currentFilter: PostFilterType = "al
   const filters: { id: PostFilterType; label: string }[] = [
     { id: "all", label: "All Posts" },
     { id: "essay", label: "Essays" },
-    { id: "link-log", label: "Link Log" },
+    { id: "link-log", label: "↗ Link Log" },
   ];
 
   const links = filters
