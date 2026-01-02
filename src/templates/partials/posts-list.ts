@@ -5,6 +5,9 @@ import { pagination } from "../pagination.ts";
 import type { PostFilterType } from "./post-filter.ts";
 import { formatPostDate } from "../format-date.ts";
 
+// External link icon SVG
+const externalLinkIcon = `<svg class="inline-block w-5 h-5 mr-1 align-middle" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>`;
+
 function formatMonthDay(dateStr: string): string {
   const date = new Date(dateStr);
   const month = date.toLocaleString("en-US", { month: "short" }).toUpperCase();
@@ -57,9 +60,10 @@ export function postsListCompact(
 
   const items = posts
     .map((post) => {
+      const titleWithIcon = post.link ? `${externalLinkIcon}${escapeHtml(post.title)}` : escapeHtml(post.title);
       return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-24 shrink-0 text-secondary">${formatPostDate(post.date)}</span>
-      <a href="/posts/${post.slug}" class="text-primary">${escapeHtml(post.title)}</a>
+      <a href="/posts/${post.slug}" class="text-primary">${titleWithIcon}</a>
     </li>`;
     })
     .join("");
@@ -100,9 +104,10 @@ export function postsListArchive(
     const yearPosts = postsByYear[year]!;
     const items = yearPosts
       .map((post) => {
+        const titleWithIcon = post.link ? `${externalLinkIcon}${escapeHtml(post.title)}` : escapeHtml(post.title);
         return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-12 shrink-0 text-secondary">${formatMonthDay(post.date)}</span>
-      <a href="/posts/${post.slug}" class="text-primary">${escapeHtml(post.title)}</a>
+      <a href="/posts/${post.slug}" class="text-primary">${titleWithIcon}</a>
     </li>`;
       })
       .join("");

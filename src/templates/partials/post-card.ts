@@ -4,7 +4,7 @@ import { marked } from "marked";
 import { formatPostDate } from "../format-date.ts";
 
 // External link icon SVG
-const externalLinkIcon = `<svg class="inline-block w-5 h-5 ml-1 align-text-bottom" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>`;
+const externalLinkIcon = `<svg class="inline-block w-5 h-5 mr-1 align-middle" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>`;
 
 export function postCard(post: Post): string {
   const hasExternalLink = !!post.link;
@@ -18,7 +18,7 @@ export function postCard(post: Post): string {
   let titleHtml: string;
   if (hasExternalLink) {
     titleHtml = `<a href="${escapeHtml(post.link!)}" class="text-primary" target="_blank" rel="noopener noreferrer">
-    <h2 class="font-mono text-xl font-medium mb-2">${escapeHtml(post.title)}${externalLinkIcon}</h2>
+    <h2 class="font-mono text-xl font-medium mb-2">${externalLinkIcon}${escapeHtml(post.title)}</h2>
   </a>`;
   } else {
     titleHtml = `<a href="/posts/${post.slug}" class="text-primary">
