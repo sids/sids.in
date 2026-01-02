@@ -57,10 +57,10 @@ export function postsListCompact(
 
   const items = posts
     .map((post) => {
-      const titleWithIcon = post.link ? `↗ ${escapeHtml(post.title)}` : escapeHtml(post.title);
+      const indicator = post.link ? '↗ ' : '';
       return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-24 shrink-0 text-secondary">${formatPostDate(post.date)}</span>
-      <a href="/posts/${post.slug}" class="text-primary">${titleWithIcon}</a>
+      ${indicator}<a href="/posts/${post.slug}" class="text-primary">${escapeHtml(post.title)}</a>
     </li>`;
     })
     .join("");
@@ -101,10 +101,10 @@ export function postsListArchive(
     const yearPosts = postsByYear[year]!;
     const items = yearPosts
       .map((post) => {
-        const titleWithIcon = post.link ? `↗ ${escapeHtml(post.title)}` : escapeHtml(post.title);
+        const indicator = post.link ? '↗ ' : '';
         return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-12 shrink-0 text-secondary">${formatMonthDay(post.date)}</span>
-      <a href="/posts/${post.slug}" class="text-primary">${titleWithIcon}</a>
+      ${indicator}<a href="/posts/${post.slug}" class="text-primary">${escapeHtml(post.title)}</a>
     </li>`;
       })
       .join("");
