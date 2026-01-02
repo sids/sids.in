@@ -4,7 +4,6 @@ import { postCard } from "./post-card.ts";
 import { pagination } from "../pagination.ts";
 import type { PostFilterType } from "./post-filter.ts";
 import { formatPostDate } from "../format-date.ts";
-import { externalLinkIcon } from "../icons.ts";
 
 function formatMonthDay(dateStr: string): string {
   const date = new Date(dateStr);
@@ -58,7 +57,7 @@ export function postsListCompact(
 
   const items = posts
     .map((post) => {
-      const titleWithIcon = post.link ? `${externalLinkIcon}${escapeHtml(post.title)}` : escapeHtml(post.title);
+      const titleWithIcon = post.link ? `↗ ${escapeHtml(post.title)}` : escapeHtml(post.title);
       return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-24 shrink-0 text-secondary">${formatPostDate(post.date)}</span>
       <a href="/posts/${post.slug}" class="text-primary">${titleWithIcon}</a>
@@ -102,7 +101,7 @@ export function postsListArchive(
     const yearPosts = postsByYear[year]!;
     const items = yearPosts
       .map((post) => {
-        const titleWithIcon = post.link ? `${externalLinkIcon}${escapeHtml(post.title)}` : escapeHtml(post.title);
+        const titleWithIcon = post.link ? `↗ ${escapeHtml(post.title)}` : escapeHtml(post.title);
         return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-12 shrink-0 text-secondary">${formatMonthDay(post.date)}</span>
       <a href="/posts/${post.slug}" class="text-primary">${titleWithIcon}</a>
