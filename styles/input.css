@@ -131,6 +131,7 @@
   .post-content blockquote {
     border-left-color: var(--border);
     color: var(--text-secondary);
+    font-style: normal;
   }
 
   .post-content hr {
