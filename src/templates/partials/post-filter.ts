@@ -13,7 +13,7 @@ export function postFilter(basePath: string, currentFilter: PostFilterType = "al
       const isActive = f.id === currentFilter;
       const activeClass = "bg-accent/15 text-accent";
       const inactiveClass = "text-secondary hover:text-primary hover:bg-primary/5";
-      return `<a href="${href}" hx-target="#posts-list" hx-swap="outerHTML show:none" hx-push-url="true" class="px-3 py-1.5 rounded-md font-mono text-sm no-underline transition-colors ${
+      return `<a href="${href}" hx-target="#posts-list" hx-swap="outerHTML show:none" hx-push-url="true" class="px-3 py-1.5 rounded-md text-sm no-underline transition-colors ${
         isActive ? activeClass : inactiveClass
       }">${f.label}</a>`;
     })
