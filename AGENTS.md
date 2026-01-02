@@ -54,8 +54,8 @@ bun run build:manifest  # Regenerate content manifest only
 - `src/templates/` - HTML templates (layout, page, post, archive, tags)
 
 **Content Structure:**
-- `content/pages/*.md` → Static pages (e.g., `home.md` → `/`, `about.md` → `/about`)
-- `content/posts/*.md` → Blog posts (e.g., `my-post.md` → `/posts/my-post`)
+- `content/pages/**/*.md` → Static pages (e.g., `home.md` → `/`, `about.md` → `/about`)
+- `content/posts/**/*.md` → Blog posts (e.g., `my-post.md` → `/posts/my-post`); supports nested directories for organization
 
 **HTMX Partial Rendering:**
 The worker detects `HX-Request` header and returns partial HTML (content only) instead of full page. See `isHtmx` handling in `src/index.ts`.
