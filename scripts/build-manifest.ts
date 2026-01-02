@@ -31,7 +31,7 @@ function getGitCommitHash(): string | null {
 
 async function getMarkdownFiles(dir: string): Promise<string[]> {
   try {
-    const files = await readdir(dir);
+    const files = await readdir(dir, { recursive: true });
     return files.filter((f) => f.endsWith(".md"));
   } catch {
     return [];
@@ -53,7 +53,7 @@ async function buildManifest() {
   // Process pages
   for (const file of pageFiles) {
     const slug = basename(file, ".md");
-    const varName = `page_${slug.replace(/-/g, "_")}`;
+    const varName = `page_${file.replace(/\.md$/, "").replace(/[\/-]/g, "_")}`;
     const relativePath = `../content/pages/${file}`;
 
     imports.push(`import ${varName} from "${relativePath}";`);
@@ -68,7 +68,7 @@ async function buildManifest() {
 
   // Process posts
   for (const file of postFiles) {
-    const varName = `post_${basename(file, ".md").replace(/-/g, "_")}`;
+    const varName = `post_${file.replace(/\.md$/, "").replace(/[\/-]/g, "_")}`;
     const relativePath = `../content/posts/${file}`;
 
     imports.push(`import ${varName} from "${relativePath}";`);
