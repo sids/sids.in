@@ -18,11 +18,11 @@ export function generateRssFeed(posts: Post[], options: FeedOptions): string {
       const pubDate = formatRssDate(post.date);
 
       // Add external link indicator for link-log posts
-      const titleWithIndicator = post.link ? `↗ ${escapeHtml(post.title)}` : escapeHtml(post.title);
+      const titleWithIndicator = post.link ? `🔗 ${escapeHtml(post.title)}` : escapeHtml(post.title);
 
       // For link-log posts, prepend the external link at the top of content
       const content = post.link
-        ? `<p><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">Link</a></p>${post.html}`
+        ? `<p><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">Link 🔗</a></p>${post.html}`
         : post.html;
 
       return `    <item>
