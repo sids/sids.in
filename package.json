@@ -7,10 +7,10 @@
     "build:manifest": "bun run scripts/build-manifest.ts",
     "build": "bun run build:css && bun run build:manifest",
     "dev:css": "tailwindcss -i ./styles/input.css -o ./public/css/styles.css --watch",
-    "dev:worker": "wrangler dev",
+    "dev:worker": "bun run build:manifest && bunx wrangler dev",
     "dev": "concurrently \"bun run dev:css\" \"bun run dev:worker\"",
-    "deploy": "bun run build && wrangler deploy",
-    "types": "wrangler types",
+    "deploy": "bun run build && bunx wrangler deploy",
+    "types": "bunx wrangler types",
     "test": "bun test"
   },
   "devDependencies": {
