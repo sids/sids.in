@@ -8,6 +8,7 @@ import { postTemplate } from "./templates/post.ts";
 import { postListTemplate, postListPartial } from "./templates/post-list.ts";
 import { archiveTemplate, archivePartial } from "./templates/archive.ts";
 import { tagTemplate, tagPartial } from "./templates/tag.ts";
+import { linkSubmitPage } from "./templates/link-submit.ts";
 import { generateRssFeed } from "./rss.ts";
 
 const POSTS_PER_PAGE = 10;
@@ -193,6 +194,12 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
       return html(content, `Tag: ${tag}`, `Posts tagged ${tag}`, isHtmx, request, tag);
     }
     return null;
+  }
+
+  // Link submit page
+  if (path === "/link-submit") {
+    const content = linkSubmitPage();
+    return html(content, "New Link Log", "Create a new link log post", isHtmx, request);
   }
 
   // Static pages (e.g., /about)
