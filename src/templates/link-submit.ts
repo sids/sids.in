@@ -32,15 +32,6 @@ export function linkSubmitTemplate(): string {
     </div>
   </details>
 
-  <div id="auth-section" class="mb-6 p-4 border border-border rounded-lg bg-secondary">
-    <label class="block text-sm font-medium mb-2">GitHub Token</label>
-    <div class="flex gap-2">
-      <input type="password" id="github-token" placeholder="ghp_..." class="flex-1 px-3 py-2 border border-border rounded bg-primary text-primary font-mono text-sm" />
-      <button onclick="saveToken()" class="px-4 py-2 bg-accent text-white rounded hover:opacity-90">Save</button>
-    </div>
-    <p class="text-xs text-secondary mt-2">Token is stored locally. Needs <code>repo</code> scope. <a href="https://github.com/settings/tokens/new?scopes=repo&description=sids.in%20link%20bookmarklet" target="_blank" class="text-accent underline">Create token</a></p>
-  </div>
-
   <form id="link-form" class="space-y-4">
     <div>
       <label class="block text-sm font-medium mb-1">URL *</label>
@@ -89,9 +80,6 @@ export function linkSubmitTemplate(): string {
 
 <script>
 (function() {
-  const REPO_OWNER = 'sids';
-  const REPO_NAME = 'sids.in';
-  const BRANCH = 'main';
   const ALL_TAGS = ${tagsJson};
 
   let selectedTags = [];
@@ -100,28 +88,10 @@ export function linkSubmitTemplate(): string {
   document.addEventListener('DOMContentLoaded', init);
 
   function init() {
-    loadToken();
     parseUrlParams();
     setupTagInput();
     setupForm();
   }
-
-  function loadToken() {
-    const token = localStorage.getItem('github_token');
-    if (token) {
-      document.getElementById('github-token').value = token;
-      document.getElementById('auth-section').classList.add('border-green-500');
-    }
-  }
-
-  window.saveToken = function() {
-    const token = document.getElementById('github-token').value.trim();
-    if (token) {
-      localStorage.setItem('github_token', token);
-      document.getElementById('auth-section').classList.add('border-green-500');
-      alert('Token saved!');
-    }
-  };
 
   function parseUrlParams() {
     const params = new URLSearchParams(window.location.search);
@@ -235,7 +205,7 @@ export function linkSubmitTemplate(): string {
       .slice(0, 60);
   }
 
-  function generatePost() {
+  function generatePreview() {
     const url = document.getElementById('link-url').value.trim();
     const title = document.getElementById('link-title').value.trim();
     const content = document.getElementById('link-content').value;
@@ -256,19 +226,11 @@ export function linkSubmitTemplate(): string {
       '---'
     ].join('\\n');
 
-    return {
-      frontmatter,
-      content: content.trim(),
-      fullContent: frontmatter + '\\n\\n' + content.trim() + '\\n',
-      slug,
-      date,
-      year: now.getFullYear().toString()
-    };
+    return frontmatter + '\\n\\n' + content.trim() + '\\n';
   }
 
   window.previewPost = function() {
-    const post = generatePost();
-    document.getElementById('preview-content').textContent = post.fullContent;
+    document.getElementById('preview-content').textContent = generatePreview();
     document.getElementById('preview-section').classList.remove('hidden');
   };
 
@@ -280,45 +242,35 @@ export function linkSubmitTemplate(): string {
   }
 
   async function submitPost() {
-    const token = localStorage.getItem('github_token');
-    if (!token) {
-      showResult('Please save your GitHub token first.', true);
-      return;
-    }
-
     const btn = document.getElementById('submit-btn');
     btn.disabled = true;
     btn.textContent = 'Creating...';
 
     try {
-      const post = generatePost();
-      const month = post.date.split('-')[1];
-      const day = post.date.split('-')[2];
-      const filename = month + '-' + day + '-' + post.slug + '.md';
-      const filepath = 'content/posts/' + post.year + '/' + filename;
+      const url = document.getElementById('link-url').value.trim();
+      const title = document.getElementById('link-title').value.trim();
+      const content = document.getElementById('link-content').value;
 
-      // Check if year directory needs to be created (GitHub API creates it automatically)
-      const response = await fetch('https://api.github.com/repos/' + REPO_OWNER + '/' + REPO_NAME + '/contents/' + filepath, {
-        method: 'PUT',
+      const response = await fetch('/link-submit', {
+        method: 'POST',
         headers: {
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json',
-          'Accept': 'application/vnd.github.v3+json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          message: 'Add link log: ' + post.slug,
-          content: btoa(unescape(encodeURIComponent(post.fullContent))),
-          branch: BRANCH
+          url,
+          title,
+          content,
+          tags: selectedTags
         })
       });
 
+      const result = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create post');
+        throw new Error(result.error || 'Failed to create post');
       }
 
-      const result = await response.json();
-      showResult('Post created successfully! <a href="' + result.content.html_url + '" target="_blank" class="underline text-accent">View on GitHub</a>', false);
+      showResult('Post created successfully! <a href="' + result.url + '" target="_blank" class="underline text-accent">View on GitHub</a>', false);
 
       // Clear form
       document.getElementById('link-form').reset();

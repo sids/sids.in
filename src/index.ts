@@ -13,8 +13,32 @@ import { generateRssFeed } from "./rss.ts";
 
 const POSTS_PER_PAGE = 10;
 const CACHE_CONTROL = "public, max-age=0, s-maxage=86400, must-revalidate";
+const REPO_OWNER = "sids";
+const REPO_NAME = "sids.in";
+const REPO_BRANCH = "main";
 
 type PostFilter = "all" | PostType;
+
+function checkBasicAuth(request: Request, password: string): boolean {
+  const authHeader = request.headers.get("Authorization");
+  if (!authHeader?.startsWith("Basic ")) {
+    return false;
+  }
+  const base64Credentials = authHeader.slice(6);
+  const credentials = atob(base64Credentials);
+  // Accept any username, just check password
+  const [, pwd] = credentials.split(":");
+  return pwd === password;
+}
+
+function basicAuthResponse(): Response {
+  return new Response("Unauthorized", {
+    status: 401,
+    headers: {
+      "WWW-Authenticate": 'Basic realm="Link Submit"',
+    },
+  });
+}
 
 function getPostFilter(params: URLSearchParams): PostFilter {
   const type = params.get("type");
@@ -43,6 +67,23 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
+    // Link submit page - requires authentication
+    if (path === "/link-submit") {
+      if (env.LINK_SUBMIT_PASSWORD && !checkBasicAuth(request, env.LINK_SUBMIT_PASSWORD)) {
+        return basicAuthResponse();
+      }
+
+      if (request.method === "POST") {
+        return handleLinkSubmitPost(request, env);
+      }
+
+      const content = linkSubmitPage();
+      const body = isHtmx ? partial(content, "New Link Log") : layout(content, "New Link Log", "Create a new link log post");
+      return new Response(body, {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    }
+
     try {
       const response = route(path, url.searchParams, url.origin, isHtmx, hxTarget, request);
       if (response) {
@@ -56,6 +97,111 @@ export default {
     return new Response("Not Found", { status: 404 });
   },
 };
+
+interface LinkSubmitData {
+  url: string;
+  title: string;
+  content: string;
+  tags: string[];
+}
+
+async function handleLinkSubmitPost(request: Request, env: Env): Promise<Response> {
+  if (!env.GITHUB_TOKEN) {
+    return new Response(JSON.stringify({ error: "GitHub token not configured" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const data: LinkSubmitData = await request.json();
+    const { url, title, content, tags } = data;
+
+    if (!url || !title) {
+      return new Response(JSON.stringify({ error: "URL and title are required" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Generate slug and file path
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 60);
+
+    const now = new Date();
+    const date = now.toISOString().split("T")[0];
+    const year = now.getFullYear().toString();
+    const month = date.split("-")[1];
+    const day = date.split("-")[2];
+    const filename = `${month}-${day}-${slug}.md`;
+    const filepath = `content/posts/${year}/${filename}`;
+
+    // Generate markdown content
+    const frontmatter = [
+      "---",
+      `title: "${title.replace(/"/g, '\\"')}"`,
+      `slug: "${slug}"`,
+      `date: "${date}"`,
+      `description: ""`,
+      `tags: ${JSON.stringify(tags || [])}`,
+      `link: "${url}"`,
+      `draft: false`,
+      "---",
+    ].join("\n");
+
+    const fullContent = `${frontmatter}\n\n${content.trim()}\n`;
+
+    // Create file via GitHub API
+    const response = await fetch(
+      `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filepath}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+          "Content-Type": "application/json",
+          Accept: "application/vnd.github.v3+json",
+          "User-Agent": "sids.in-link-submit",
+        },
+        body: JSON.stringify({
+          message: `Add link log: ${slug}`,
+          content: btoa(unescape(encodeURIComponent(fullContent))),
+          branch: REPO_BRANCH,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      return new Response(JSON.stringify({ error: error.message || "Failed to create post" }), {
+        status: response.status,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const result = await response.json();
+    return new Response(
+      JSON.stringify({
+        success: true,
+        url: result.content.html_url,
+        slug,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  } catch (e) {
+    console.error(e);
+    return new Response(JSON.stringify({ error: "Invalid request" }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}
 
 function route(path: string, params: URLSearchParams, origin: string, isHtmx: boolean, hxTarget: string | null, request: Request): Response | null {
   const isPostsListTarget = hxTarget === "posts-list";
@@ -194,12 +340,6 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
       return html(content, `Tag: ${tag}`, `Posts tagged ${tag}`, isHtmx, request, tag);
     }
     return null;
-  }
-
-  // Link submit page
-  if (path === "/link-submit") {
-    const content = linkSubmitPage();
-    return html(content, "New Link Log", "Create a new link log post", isHtmx, request);
   }
 
   // Static pages (e.g., /about)

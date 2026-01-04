@@ -41,4 +41,6 @@ export interface PaginationInfo {
 
 export interface Env {
   ASSETS: Fetcher;
+  LINK_SUBMIT_PASSWORD?: string;
+  GITHUB_TOKEN?: string;
 }
