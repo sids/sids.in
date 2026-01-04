@@ -1,7 +1,3 @@
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
 A personal blog (sids.in) built as a Cloudflare Worker. Markdown content is bundled at build time and served with HTMX for smooth page transitions. Uses Tailwind CSS for styling.
@@ -21,6 +17,7 @@ These classes are defined in `styles/input.css` and automatically adapt to light
 ## Commands
 
 ```bash
+bun install          # Install dependencies
 bun run dev          # Start dev server (CSS watch + Wrangler dev)
 bun run build        # Build CSS + generate manifest
 bun run deploy       # Build and deploy to Cloudflare
@@ -83,6 +80,7 @@ draft: false
 - Tailwind v3 (v4 has Cloudflare compatibility issues)
 - Static assets served via Workers Static Assets binding (`env.ASSETS`)
 - CSS compiled to `public/css/styles.css` - don't edit directly
+- Run Wrangler via `bunx wrangler` (see scripts in `package.json`)
 
 ## Documentation
 
