@@ -9,6 +9,7 @@ import { postListTemplate, postListPartial } from "./templates/post-list.ts";
 import { archiveTemplate, archivePartial } from "./templates/archive.ts";
 import { tagTemplate, tagPartial } from "./templates/tag.ts";
 import { generateRssFeed } from "./rss.ts";
+import { linkLogTemplate } from "./templates/link-log.ts";
 
 const POSTS_PER_PAGE = 10;
 const CACHE_CONTROL = "public, max-age=0, s-maxage=86400, must-revalidate";
@@ -43,6 +44,23 @@ export default {
     }
 
     try {
+      if (path === "/api/link-log" && request.method === "POST") {
+        return handleLinkLogSubmission(request, env);
+      }
+
+      if (path === "/api/link-log/metadata" && request.method === "GET") {
+        return handleLinkLogMetadata(request, env);
+      }
+
+      if (path === "/link-log") {
+        const authResponse = requireBasicAuth(request, env);
+        if (authResponse) {
+          return authResponse;
+        }
+        const content = linkLogTemplate(url.origin, allTags);
+        return html(content, "New Link Log", "Create a link log entry", isHtmx, request);
+      }
+
       const response = route(path, url.searchParams, url.origin, isHtmx, hxTarget, request);
       if (response) {
         return response;
@@ -205,6 +223,222 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
   }
 
   return null;
+}
+
+function requireBasicAuth(request: Request, env: Env): Response | null {
+  const authHeader = request.headers.get("Authorization") || "";
+  const [scheme, encoded] = authHeader.split(" ");
+  if (scheme !== "Basic" || !encoded) {
+    return unauthorizedResponse();
+  }
+
+  const decoded = atob(encoded);
+  const separatorIndex = decoded.indexOf(":");
+  if (separatorIndex === -1) {
+    return unauthorizedResponse();
+  }
+
+  const username = decoded.slice(0, separatorIndex);
+  const password = decoded.slice(separatorIndex + 1);
+  const expectedUser = env.BASIC_AUTH_USER || "sid";
+
+  if (username !== expectedUser || password !== env.BASIC_AUTH_PASSWORD) {
+    return unauthorizedResponse();
+  }
+
+  return null;
+}
+
+function unauthorizedResponse(): Response {
+  return new Response("Unauthorized", {
+    status: 401,
+    headers: {
+      "WWW-Authenticate": "Basic realm=\"Link Log\"",
+    },
+  });
+}
+
+async function handleLinkLogMetadata(request: Request, env: Env): Promise<Response> {
+  const authResponse = requireBasicAuth(request, env);
+  if (authResponse) {
+    return authResponse;
+  }
+
+  const url = new URL(request.url);
+  const target = url.searchParams.get("url");
+  if (!target) {
+    return json({ error: "Missing url parameter" }, 400);
+  }
+
+  let response: Response;
+  try {
+    response = await fetch(target, {
+      headers: {
+        "User-Agent": "sids.in link log bot",
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return json({ error: "Failed to fetch URL" }, 502);
+  }
+
+  if (!response.ok) {
+    return json({ error: "Failed to fetch URL" }, 502);
+  }
+
+  const htmlText = await response.text();
+  const title = extractTitle(htmlText);
+
+  return json({ title });
+}
+
+function extractTitle(htmlText: string): string | null {
+  const ogTitleMatch = htmlText.match(/<meta[^>]+property=[\"']og:title[\"'][^>]+content=[\"']([^\"']+)[\"'][^>]*>/i);
+  if (ogTitleMatch?.[1]) {
+    return ogTitleMatch[1].trim();
+  }
+
+  const titleMatch = htmlText.match(/<title[^>]*>([^<]+)<\/title>/i);
+  if (titleMatch?.[1]) {
+    return titleMatch[1].trim();
+  }
+
+  return null;
+}
+
+async function handleLinkLogSubmission(request: Request, env: Env): Promise<Response> {
+  const authResponse = requireBasicAuth(request, env);
+  if (authResponse) {
+    return authResponse;
+  }
+
+  if (!env.GITHUB_TOKEN || !env.GITHUB_OWNER || !env.GITHUB_REPO) {
+    return json({ error: "Missing GitHub configuration" }, 500);
+  }
+
+  const payload = await request.json<{
+    url?: string;
+    title?: string;
+    description?: string;
+    tags?: string | string[];
+    content?: string;
+  }>();
+
+  if (!payload.url || !payload.title) {
+    return json({ error: "Missing url or title" }, 400);
+  }
+
+  const tags = normalizeTags(payload.tags);
+  const date = new Date().toISOString().slice(0, 10);
+  const slug = slugify(payload.title);
+  const filePath = buildPostPath(date, slug);
+  const markdown = buildLinkLogMarkdown({
+    title: payload.title,
+    slug,
+    date,
+    description: payload.description,
+    tags,
+    link: payload.url,
+    content: payload.content || "",
+  });
+
+  const branch = env.GITHUB_BRANCH || "main";
+
+  const createResponse = await fetch(`https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/${filePath}`, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+      "Accept": "application/vnd.github+json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      message: `Add link log: ${payload.title}`,
+      content: btoa(markdown),
+      branch,
+      committer: {
+        name: "Link Log Bot",
+        email: "link-log@users.noreply.github.com",
+      },
+    }),
+  });
+
+  if (!createResponse.ok) {
+    const errorText = await createResponse.text();
+    console.error(errorText);
+    return json({ error: "Failed to create post" }, 502);
+  }
+
+  const result = await createResponse.json<{ content?: { path?: string } }>();
+
+  return json({
+    path: result.content?.path || filePath,
+    slug,
+    date,
+  });
+}
+
+function normalizeTags(input?: string | string[]): string[] {
+  if (!input) {
+    return [];
+  }
+
+  if (Array.isArray(input)) {
+    return input.map((tag) => tag.trim()).filter(Boolean);
+  }
+
+  return input
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
+
+function slugify(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function buildPostPath(date: string, slug: string): string {
+  const [year, month, day] = date.split("-");
+  return `content/posts/${year}/${month}-${day}-${slug}.md`;
+}
+
+function buildLinkLogMarkdown(input: {
+  title: string;
+  slug: string;
+  date: string;
+  description?: string;
+  tags: string[];
+  link: string;
+  content: string;
+}): string {
+  const descriptionLine = input.description ? `description: "${escapeYaml(input.description)}"\n` : "";
+  const tagsLine = input.tags.length ? `tags: [${input.tags.map((tag) => `"${escapeYaml(tag)}"`).join(", ")}]\n` : "tags: []\n";
+
+  return `---\n` +
+    `title: "${escapeYaml(input.title)}"\n` +
+    `slug: "${escapeYaml(input.slug)}"\n` +
+    `date: "${input.date}"\n` +
+    descriptionLine +
+    tagsLine +
+    `link: "${escapeYaml(input.link)}"\n` +
+    `draft: false\n` +
+    `---\n\n` +
+    `${input.content.trim()}\n`;
+}
+
+function escapeYaml(value: string): string {
+  return value.replace(/"/g, "\\\"");
+}
+
+function json(payload: Record<string, unknown>, status = 200): Response {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+    },
+  });
 }
 
 function cachedResponse(body: string, contentType: string, request: Request): Response {
