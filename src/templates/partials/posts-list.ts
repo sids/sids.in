@@ -12,6 +12,19 @@ function formatMonthDay(dateStr: string): string {
   return `${month}.${day}`;
 }
 
+function describeFilter(filter: PostFilterType): string {
+  switch (filter) {
+    case "essay":
+      return "essays";
+    case "brief":
+      return "briefs";
+    case "link-log":
+      return "link log posts";
+    default:
+      return "posts";
+  }
+}
+
 // Full post cards with content (for /posts and /tags pages)
 export function postsListCards(
   posts: Post[],
@@ -22,7 +35,7 @@ export function postsListCards(
 ): string {
   const noPostsMessage = emptyMessage ?? (currentFilter === "all"
     ? "No posts yet."
-    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} found.`);
+    : `No ${describeFilter(currentFilter)} found.`);
 
   if (posts.length === 0) {
     return `<div id="posts-list">
@@ -47,7 +60,7 @@ export function postsListCompact(
 ): string {
   const noPostsMessage = currentFilter === "all"
     ? ""
-    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} found.`;
+    : `No ${describeFilter(currentFilter)} found.`;
 
   if (posts.length === 0) {
     return `<div id="posts-list">
@@ -77,7 +90,7 @@ export function postsListArchive(
 ): string {
   const noPostsMessage = currentFilter === "all"
     ? "No posts yet."
-    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} found.`;
+    : `No ${describeFilter(currentFilter)} found.`;
 
   if (posts.length === 0) {
     return `<div id="posts-list">
