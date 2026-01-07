@@ -4,8 +4,8 @@ import { escapeHtml } from "../markdown.ts";
 export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
   const bookmarklet = buildBookmarklet(origin);
   const tagOptions = tags
-    .map((tag) => `<option value="${escapeHtml(tag.tag)}"></option>`)
-    .join("");
+    .map((tag) => `"${escapeHtml(tag.tag)}"`)
+    .join(", ");
 
   return `
   <section class="flex flex-col gap-8">
@@ -36,10 +36,11 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
 
       <div class="flex flex-col gap-2">
         <label for="tags" class="font-mono text-xs uppercase text-secondary">Tags</label>
-        <input id="tags" name="tags" type="text" list="tag-suggestions" class="w-full rounded border border-border bg-primary px-3 py-2 text-primary" placeholder="Comma-separated tags">
-        <datalist id="tag-suggestions">
-          ${tagOptions}
-        </datalist>
+        <div id="tag-chips" class="flex flex-wrap gap-2"></div>
+        <input id="tags" name="tags" type="text" class="w-full rounded border border-border bg-primary px-3 py-2 text-primary" placeholder="Comma-separated tags">
+        <div id="tag-suggestions" class="relative">
+          <div id="tag-suggestions-list" class="absolute z-10 mt-2 hidden w-full rounded border border-border bg-primary shadow-sm"></div>
+        </div>
       </div>
 
       <div class="flex flex-col gap-2">
@@ -62,6 +63,10 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     const contentInput = document.getElementById('content');
 
     const params = new URLSearchParams(window.location.search);
+    const tagChips = document.getElementById('tag-chips');
+    const tagSuggestionsList = document.getElementById('tag-suggestions-list');
+    const tagInput = document.getElementById('tags');
+    const allTags = [${tagOptions}];
     if (params.get('url')) {
       urlInput.value = params.get('url');
     }
@@ -72,6 +77,66 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
       const selection = params.get('selection');
       const quoted = selection.split(/\\r?\\n/).map(line => '> ' + line).join('\\n');
       contentInput.value = quoted + '\\n\\n';
+    }
+
+    function parseTags(value) {
+      return value.split(',').map(tag => tag.trim()).filter(Boolean);
+    }
+
+    function renderTagChips(tags) {
+      tagChips.innerHTML = tags.map(tag => (
+        '<span class="tag-pill bg-secondary flex items-center gap-1">' +
+          '<span>' + tag + '</span>' +
+          '<button type="button" data-tag="' + tag + '" class="text-secondary hover:text-accent">×</button>' +
+        '</span>'
+      )).join('');
+      tagChips.querySelectorAll('button[data-tag]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const nextTags = parseTags(tagInput.value).filter(item => item !== button.dataset.tag);
+          tagInput.value = nextTags.join(', ');
+          renderTagChips(nextTags);
+          renderTagSuggestions(tagInput.value);
+        });
+      });
+    }
+
+    function renderTagSuggestions(inputValue) {
+      const currentTags = parseTags(inputValue);
+      const fragment = inputValue.split(',');
+      const currentQuery = (fragment[fragment.length - 1] || '').trim().toLowerCase();
+
+      if (!currentQuery) {
+        tagSuggestionsList.classList.add('hidden');
+        tagSuggestionsList.innerHTML = '';
+        return;
+      }
+
+      const matches = allTags
+        .filter(tag => tag.toLowerCase().includes(currentQuery))
+        .filter(tag => !currentTags.includes(tag))
+        .slice(0, 6);
+
+      if (!matches.length) {
+        tagSuggestionsList.classList.add('hidden');
+        tagSuggestionsList.innerHTML = '';
+        return;
+      }
+
+      tagSuggestionsList.innerHTML = matches.map(tag => (
+        '<button type="button" class="block w-full px-3 py-2 text-left text-sm text-primary hover:bg-secondary" data-tag="' + tag + '">' +
+          tag +
+        '</button>'
+      )).join('');
+      tagSuggestionsList.classList.remove('hidden');
+      tagSuggestionsList.querySelectorAll('button[data-tag]').forEach((button) => {
+        button.addEventListener('click', () => {
+          const nextTags = [...currentTags, button.dataset.tag];
+          tagInput.value = nextTags.join(', ') + ', ';
+          renderTagChips(nextTags);
+          renderTagSuggestions(tagInput.value);
+          tagInput.focus();
+        });
+      });
     }
 
     async function hydrateTitleFromUrl() {
@@ -94,6 +159,19 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     }
 
     urlInput.addEventListener('blur', hydrateTitleFromUrl);
+    tagInput.addEventListener('input', () => {
+      renderTagChips(parseTags(tagInput.value));
+      renderTagSuggestions(tagInput.value);
+    });
+    tagInput.addEventListener('focus', () => {
+      renderTagSuggestions(tagInput.value);
+    });
+    document.addEventListener('click', (event) => {
+      if (!tagSuggestionsList.contains(event.target) && event.target !== tagInput) {
+        tagSuggestionsList.classList.add('hidden');
+      }
+    });
+    renderTagChips(parseTags(tagInput.value));
 
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
