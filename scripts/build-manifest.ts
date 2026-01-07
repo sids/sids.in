@@ -20,6 +20,8 @@ interface PageFrontmatter {
 
 const CONTENT_DIR = join(import.meta.dir, "..", "content");
 const OUTPUT_FILE = join(import.meta.dir, "..", "src", "manifest.ts");
+const SITEMAP_FILE = join(import.meta.dir, "..", "public", "sitemap.xml");
+const SITE_URL = "https://sids.in";
 
 function getGitCommitHash(): string | null {
   try {
@@ -36,6 +38,71 @@ async function getMarkdownFiles(dir: string): Promise<string[]> {
   } catch {
     return [];
   }
+}
+
+function generateSitemap(
+  pageFiles: string[],
+  postMetaEntries: { meta: PostFrontmatter }[],
+  tagIndex: Record<string, string[]>
+): string {
+  const urls: string[] = [];
+
+  // Homepage
+  urls.push(`  <url>
+    <loc>${SITE_URL}/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>`);
+
+  // Static pages
+  for (const file of pageFiles) {
+    const slug = basename(file, ".md");
+    if (slug !== "home") {
+      urls.push(`  <url>
+    <loc>${SITE_URL}/${slug}</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`);
+    }
+  }
+
+  // Posts list page
+  urls.push(`  <url>
+    <loc>${SITE_URL}/posts</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>`);
+
+  // Archive page
+  urls.push(`  <url>
+    <loc>${SITE_URL}/archive</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>`);
+
+  // Individual posts
+  for (const { meta } of postMetaEntries) {
+    urls.push(`  <url>
+    <loc>${SITE_URL}/posts/${meta.slug}</loc>
+    <lastmod>${meta.date}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>`);
+  }
+
+  // Tag pages
+  for (const tag of Object.keys(tagIndex)) {
+    urls.push(`  <url>
+    <loc>${SITE_URL}/tags/${tag}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>`);
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.join("\n")}
+</urlset>`;
 }
 
 async function buildManifest() {
@@ -142,6 +209,11 @@ export const allTags: TagInfo[] = ${JSON.stringify(allTags, null, 2)};
   console.log(`  Pages: ${pageFiles.length}`);
   console.log(`  Posts: ${postMetaEntries.length}`);
   console.log(`  Tags: ${allTags.length}`);
+
+  // Generate sitemap
+  const sitemap = generateSitemap(pageFiles, postMetaEntries, tagIndex);
+  await writeFile(SITEMAP_FILE, sitemap);
+  console.log(`Sitemap generated: ${SITEMAP_FILE}`);
 }
 
 buildManifest().catch(console.error);
