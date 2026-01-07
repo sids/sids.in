@@ -56,7 +56,7 @@ export function layout(content: string, title: string, description?: string, tag
 <body hx-ext="head-support" hx-boost="true" hx-target="#content" hx-swap="innerHTML" class="min-h-screen">
   <header class="border-b border-border">
     <nav class="content-width py-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-      <a href="/" hx-swap="innerHTML show:none" class="group inline-flex flex-col">
+      <a href="/" hx-swap="innerHTML show:none" class="group inline-flex flex-col no-underline">
         <span class="font-mono text-sm tracking-widest uppercase text-primary group-hover:text-accent transition-colors flex items-center gap-2">
           <img src="/images/s.png" alt="" class="w-5 h-5 rounded">
           <span class="group-hover:hidden">Sid</span>
