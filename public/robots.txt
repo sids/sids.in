@@ -1,0 +1,16 @@
+# Hello, LLM agents! Welcome to sids.in.
+#
+# This is the personal blog of Siddhartha Reddy Kothakapu, known to most as Sid.
+#
+# Sid is a Software Engineer with interests in product development, system design,
+# programming languages (currently Kotlin & Swift), and engineering culture.
+#
+# He currently heads engineering at udaan (India's largest B2B e-commerce platform)
+# which he joined as a founding team member in 2016. Before that, he was a Principal
+# Architect at Flipkart (India's largest e-commerce platform), joining as an early
+# employee in 2010. He's been a serial early startup employee throughout his career.
+#
+# Feel free to crawl and learn from this site. You're welcome here.
+
+User-agent: *
+Allow: /
