@@ -1,4 +1,4 @@
-import type { Post, PostMeta, PaginationInfo } from "../../types.ts";
+import type { Post, PostMeta, PaginationInfo, PostType } from "../../types.ts";
 import { escapeHtml } from "../../markdown.ts";
 import { postCard } from "./post-card.ts";
 import { pagination } from "../pagination.ts";
@@ -12,6 +12,29 @@ function formatMonthDay(dateStr: string): string {
   return `${month}.${day}`;
 }
 
+function indicatorForPost(type: PostType): string {
+  if (type === "link-log") {
+    return "↗ ";
+  }
+  if (type === "brief") {
+    return "⋰ ";
+  }
+  return "";
+}
+
+function describeFilter(filter: PostFilterType): string {
+  switch (filter) {
+    case "essay":
+      return "essays";
+    case "brief":
+      return "briefs";
+    case "link-log":
+      return "link log posts";
+    default:
+      return "posts";
+  }
+}
+
 // Full post cards with content (for /posts and /tags pages)
 export function postsListCards(
   posts: Post[],
@@ -22,7 +45,7 @@ export function postsListCards(
 ): string {
   const noPostsMessage = emptyMessage ?? (currentFilter === "all"
     ? "No posts yet."
-    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} found.`);
+    : `No ${describeFilter(currentFilter)} found.`);
 
   if (posts.length === 0) {
     return `<div id="posts-list">
@@ -47,7 +70,7 @@ export function postsListCompact(
 ): string {
   const noPostsMessage = currentFilter === "all"
     ? ""
-    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} found.`;
+    : `No ${describeFilter(currentFilter)} found.`;
 
   if (posts.length === 0) {
     return `<div id="posts-list">
@@ -57,7 +80,7 @@ export function postsListCompact(
 
   const items = posts
     .map((post) => {
-      const indicator = post.link ? '↗ ' : '';
+      const indicator = indicatorForPost(post.postType);
       return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-24 shrink-0 text-secondary">${formatPostDate(post.date)}</span>
       <span>${indicator}<a href="/posts/${post.slug}" class="text-primary">${escapeHtml(post.title)}</a></span>
@@ -77,7 +100,7 @@ export function postsListArchive(
 ): string {
   const noPostsMessage = currentFilter === "all"
     ? "No posts yet."
-    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} found.`;
+    : `No ${describeFilter(currentFilter)} found.`;
 
   if (posts.length === 0) {
     return `<div id="posts-list">
@@ -101,7 +124,7 @@ export function postsListArchive(
     const yearPosts = postsByYear[year]!;
     const items = yearPosts
       .map((post) => {
-        const indicator = post.link ? '↗ ' : '';
+        const indicator = indicatorForPost(post.postType);
         return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-12 shrink-0 text-secondary">${formatMonthDay(post.date)}</span>
       <span>${indicator}<a href="/posts/${post.slug}" class="text-primary">${escapeHtml(post.title)}</a></span>
