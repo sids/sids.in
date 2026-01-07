@@ -22,5 +22,10 @@
       "globs": ["**/*.md"],
       "fallthrough": false
     }
-  ]
+  ],
+
+  "vars": {
+    "GITHUB_OWNER": "",
+    "GITHUB_REPO": ""
+  }
 }

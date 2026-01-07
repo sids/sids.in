@@ -144,6 +144,9 @@ link: "https://example.com" # Optional; marks link-log posts
 | `/tags/{tag}` | tag.ts | Paginated posts with tag |
 | `/posts/feed.xml` | rss.ts | RSS feed for all posts |
 | `/tags/{tag}/feed.xml` | rss.ts | RSS feed for tag |
+| `/link-log` | link-log.ts | Authenticated link log submission form |
+| `/api/link-log` | index.ts | Authenticated API endpoint that creates link log posts in GitHub |
+| `/api/link-log/metadata` | index.ts | Authenticated metadata fetch for auto-titling |
 | `/css/*`, `/images/*` | - | Static assets |
 
 ## Pagination
@@ -215,6 +218,10 @@ export const allTags: { tag: string; count: number }[];  // sorted by count
 - Dark mode uses class strategy with JavaScript for localStorage persistence
 - Typography-aware content width: `min(70ch, 100% - 3rem)`
 - Google Fonts: IBM Plex Sans and JetBrains Mono loaded via CSS import
+- Link log submission is protected with HTTP Basic Auth and uses GitHub's Contents API to create new markdown files.
+- Link log secrets are stored as Cloudflare Worker environment variables:
+  - `BASIC_AUTH_PASSWORD` (required) + optional `BASIC_AUTH_USER`
+  - `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO`, optional `GITHUB_BRANCH`
 
 ## Adding Content
 
