@@ -14,3 +14,5 @@
 
 User-agent: *
 Allow: /
+
+Sitemap: https://sids.in/sitemap.xml
