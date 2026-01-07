@@ -207,6 +207,22 @@
     background-color: var(--border);
   }
 
+  .alert {
+    @apply rounded border border-border bg-secondary px-3 py-2 text-sm;
+  }
+
+  .alert-info {
+    @apply text-secondary;
+  }
+
+  .alert-success {
+    @apply text-primary;
+  }
+
+  .alert-error {
+    @apply text-accent;
+  }
+
   .theme-switch {
     @apply relative flex items-center w-10 h-6 rounded-full cursor-pointer transition-colors duration-200;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
