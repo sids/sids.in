@@ -1,7 +1,7 @@
 import { marked } from "marked";
 import markedFootnote from "marked-footnote";
 import fm from "front-matter";
-import type { PageMeta, PostMeta, Page, Post } from "./types.ts";
+import type { PageMeta, PostMeta, Page, Post, PostType } from "./types.ts";
 
 marked.use(markedFootnote());
 
@@ -27,7 +27,7 @@ interface PostFrontmatter {
   link?: string;
 }
 
-export function parsePost(rawMarkdown: string): Post {
+export function parsePost(rawMarkdown: string, postTypeOverride?: PostType): Post {
   const { attributes, body } = fm<PostFrontmatter>(rawMarkdown);
   const html = marked.parse(body, { async: false }) as string;
   const excerpt = extractExcerpt(html, 150);
@@ -35,8 +35,8 @@ export function parsePost(rawMarkdown: string): Post {
   // Only use explicit frontmatter description (don't auto-generate)
   const description = attributes.description;
 
-  // Determine post type based on whether link exists
-  const postType = attributes.link ? "link-log" : "essay";
+  // Determine post type based on optional override or whether link exists
+  const postType = postTypeOverride ?? (attributes.link ? "link-log" : "brief");
 
   return {
     title: attributes.title,

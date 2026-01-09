@@ -3,6 +3,19 @@ import { escapeHtml } from "../markdown.ts";
 import { postFilter, type PostFilterType } from "./partials/post-filter.ts";
 import { postsListCards } from "./partials/posts-list.ts";
 
+function describeFilter(filter: PostFilterType): string {
+  switch (filter) {
+    case "essay":
+      return "essays";
+    case "brief":
+      return "asides";
+    case "link-log":
+      return "link log posts";
+    default:
+      return "posts";
+  }
+}
+
 export function tagTemplate(
   tag: string,
   posts: Post[],
@@ -12,7 +25,7 @@ export function tagTemplate(
   const basePath = `/tags/${tag}`;
   const emptyMessage = currentFilter === "all"
     ? "No posts with this tag."
-    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} with this tag.`;
+    : `No ${describeFilter(currentFilter)} with this tag.`;
 
   return `<div>
   <div class="flex items-center justify-between mb-8">
@@ -36,7 +49,7 @@ export function tagPartial(
   const basePath = `/tags/${tag}`;
   const emptyMessage = currentFilter === "all"
     ? "No posts with this tag."
-    : `No ${currentFilter === "essay" ? "essays" : "link log posts"} with this tag.`;
+    : `No ${describeFilter(currentFilter)} with this tag.`;
 
   return postsListCards(posts, paginationInfo, basePath, currentFilter, emptyMessage) +
     postFilter(basePath, currentFilter, true);
