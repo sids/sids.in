@@ -9,7 +9,7 @@ function isPartialHtmxRequest(request: Request): boolean {
   return headers.get("Sec-Fetch-Dest") !== "document" && headers.get("Sec-Fetch-Mode") !== "navigate";
 }
 
-const STATIC_PATHS = ["/css/", "/images/", "/favicon.ico", "/robots.txt", "/sitemap.xml"];
+const STATIC_PATHS = ["/css/", "/images/", "/robots.txt", "/sitemap.xml"];
 const isStaticAsset = (path: string) => STATIC_PATHS.some((p) => path.startsWith(p));
 
 export default {
