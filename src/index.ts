@@ -9,6 +9,9 @@ function isPartialHtmxRequest(request: Request): boolean {
   return headers.get("Sec-Fetch-Dest") !== "document" && headers.get("Sec-Fetch-Mode") !== "navigate";
 }
 
+const STATIC_PATHS = ["/css/", "/images/", "/favicon.ico"];
+const isStaticAsset = (path: string) => STATIC_PATHS.some((p) => path.startsWith(p));
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -16,8 +19,7 @@ export default {
     const isPartialRequest = isPartialHtmxRequest(request);
     const hxTarget = request.headers.get("HX-Target");
 
-    // Static assets
-    if (path.startsWith("/css/") || path.startsWith("/images/") || path === "/favicon.ico") {
+    if (isStaticAsset(path)) {
       return env.ASSETS.fetch(request);
     }
 
