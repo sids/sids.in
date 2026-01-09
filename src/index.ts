@@ -2,16 +2,18 @@ import type { Env } from "./types.ts";
 import { routeLinkLog } from "./routes/link-log.ts";
 import { routePages } from "./routes/pages.ts";
 
+// HTMX partial unless it's a full navigation (back/forward, direct URL)
+function isPartialHtmxRequest(request: Request): boolean {
+  const headers = request.headers;
+  if (headers.get("HX-Request") !== "true") return false;
+  return headers.get("Sec-Fetch-Dest") !== "document" && headers.get("Sec-Fetch-Mode") !== "navigate";
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
-    const isHtmx = request.headers.get("HX-Request") === "true";
-    const fetchDest = request.headers.get("Sec-Fetch-Dest");
-    const fetchMode = request.headers.get("Sec-Fetch-Mode");
-    const isDocumentRequest = fetchDest === "document" || fetchMode === "navigate";
-    // HTMX partial unless it's a full navigation (back/forward, direct URL)
-    const isPartialRequest = isHtmx && !isDocumentRequest;
+    const isPartialRequest = isPartialHtmxRequest(request);
     const hxTarget = request.headers.get("HX-Target");
 
     // Static assets
