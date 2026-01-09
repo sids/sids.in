@@ -2,42 +2,37 @@ import type { Env } from "./types.ts";
 import { routeLinkLog } from "./routes/link-log.ts";
 import { routePages } from "./routes/pages.ts";
 
-type RouteHandler = (request: Request, env: Env, url: URL, isPartialRequest: boolean, hxTarget: string | null) => Promise<Response | null>;
+// HTMX partial unless it's a full navigation (back/forward, direct URL)
+function isPartialHtmxRequest(request: Request): boolean {
+  const headers = request.headers;
+  if (headers.get("HX-Request") !== "true") return false;
+  return headers.get("Sec-Fetch-Dest") !== "document" && headers.get("Sec-Fetch-Mode") !== "navigate";
+}
 
-const routeHandlers: RouteHandler[] = [
-  (request, env, url, isPartialRequest) => routeLinkLog(url.pathname, request, env, url.origin, isPartialRequest),
-  (request, _env, url, isPartialRequest, hxTarget) =>
-    Promise.resolve(routePages(url.pathname, url.searchParams, url.origin, isPartialRequest, hxTarget, request)),
-];
+const STATIC_PATHS = ["/css/", "/images/", "/robots.txt", "/sitemap.xml"];
+const isStaticAsset = (path: string) => STATIC_PATHS.some((p) => path.startsWith(p));
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const path = url.pathname;
-    const isHtmx = request.headers.get("HX-Request") === "true";
-    const fetchDest = request.headers.get("Sec-Fetch-Dest");
-    const fetchMode = request.headers.get("Sec-Fetch-Mode");
-    const isDocumentRequest = fetchDest === "document" || fetchMode === "navigate";
-    const isPartialRequest = isHtmx && !isDocumentRequest;
+    const isPartialRequest = isPartialHtmxRequest(request);
     const hxTarget = request.headers.get("HX-Target");
 
-    // Static assets
-    if (path.startsWith("/css/") || path.startsWith("/images/") || path === "/favicon.ico") {
+    if (isStaticAsset(path)) {
       return env.ASSETS.fetch(request);
     }
 
     try {
-      for (const handler of routeHandlers) {
-        const response = await handler(request, env, url, isPartialRequest, hxTarget);
-        if (response) {
-          return response;
-        }
+      const linkLogResponse = await routeLinkLog(path, request, env, url.origin, isPartialRequest);
+      if (linkLogResponse) {
+        return linkLogResponse;
       }
+
+      return routePages(path, url.searchParams, url.origin, isPartialRequest, hxTarget, request);
     } catch (e) {
       console.error(e);
       return new Response("Internal Server Error", { status: 500 });
     }
-
-    return new Response("Not Found", { status: 404 });
   },
 };
