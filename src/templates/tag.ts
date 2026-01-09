@@ -8,7 +8,7 @@ function describeFilter(filter: PostFilterType): string {
     case "essay":
       return "essays";
     case "brief":
-      return "briefs";
+      return "asides";
     case "link-log":
       return "link log posts";
     default:
