@@ -1,5 +1,5 @@
 ---
-title: "💬 Barrels & Ammunition"
+title: "Barrels & Ammunition"
 slug: "barrels-ammunition"
 date: "2025-03-02"
 description: "Keith Rabois' mental model for thinking about people in organizations: barrels can take an idea from conception to completion on their own, ammunition can't. The number of barrels limits how many things you can do at once."

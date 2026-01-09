@@ -1,5 +1,5 @@
 ---
-title: "💬 How to Stop Worrying and Learn to Love the Internet"
+title: "How to Stop Worrying and Learn to Love the Internet"
 slug: "how-to-stop-worrying-and-learn-to-love-the-internet"
 date: "2025-03-02"
 description: "Douglas Adams wrote about technology adoption in 1999, and his observations hold up remarkably well when applied to how people react to AI today."
