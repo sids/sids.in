@@ -42,7 +42,7 @@ export function routePages(
   isHtmx: boolean,
   hxTarget: string | null,
   request: Request,
-): Response | null {
+): Response {
   const context: RouteContext = {
     path,
     params,
@@ -59,7 +59,7 @@ export function routePages(
     }
   }
 
-  return null;
+  return new Response("Not Found", { status: 404 });
 }
 
 function handleMainFeed({ path, origin, request }: RouteContext): Response | null {
