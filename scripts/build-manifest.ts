@@ -114,7 +114,7 @@ async function buildManifest() {
 
   const imports: string[] = [];
   const pageEntries: string[] = [];
-  const postMetaEntries: { meta: PostFrontmatter; varName: string }[] = [];
+  const postMetaEntries: { meta: PostFrontmatter; varName: string; file: string }[] = [];
   const postContentEntries: string[] = [];
 
   // Process pages
@@ -148,7 +148,7 @@ async function buildManifest() {
     }
 
     // Only use explicit frontmatter description (don't auto-generate)
-    postMetaEntries.push({ meta: { ...attributes }, varName });
+    postMetaEntries.push({ meta: { ...attributes }, varName, file });
     postContentEntries.push(`  "${attributes.slug}": ${varName}`);
   }
 
@@ -173,8 +173,10 @@ async function buildManifest() {
     .map(([tag, slugs]) => ({ tag, count: slugs.length }))
     .sort((a, b) => b.count - a.count);
 
-  const postMetaArray = postMetaEntries.map(({ meta }) => {
-    const postType = meta.link ? "link-log" : "essay";
+  const postMetaArray = postMetaEntries.map(({ meta, file }) => {
+    const [topLevelDir] = file.split("/");
+    const isEssay = topLevelDir === "essays";
+    const postType = isEssay ? "essay" : meta.link ? "link-log" : "brief";
     return `  { title: ${JSON.stringify(meta.title)}, slug: ${JSON.stringify(meta.slug)}, date: ${JSON.stringify(meta.date)}${meta.description ? `, description: ${JSON.stringify(meta.description)}` : ""}, tags: ${JSON.stringify(meta.tags || [])}${meta.link ? `, link: ${JSON.stringify(meta.link)}` : ""}, postType: ${JSON.stringify(postType)} }`;
   });
 

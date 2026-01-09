@@ -63,7 +63,9 @@ sids.in/
 │   │   ├── home.md           # → /
 │   │   └── about.md          # → /about
 │   └── posts/                # Blog posts
-│       └── *.md              # → /posts/{slug}
+│       ├── essays/            # Essay posts
+│       ├── 2025/              # Dated posts (briefs + link logs)
+│       └── *.md               # → /posts/{slug}
 ├── src/
 │   ├── index.ts              # Worker entry point and router
 │   ├── markdown.ts           # Markdown parsing with frontmatter
@@ -128,7 +130,8 @@ link: "https://example.com" # Optional; marks link-log posts
 ```
 
 **Post types:**
-- Posts with `link` are treated as `link-log` entries; otherwise they are `essay` posts.
+- Posts under `content/posts/essays/` are treated as `essay` entries.
+- Posts outside `essays/` are treated as `link-log` when `link` is present; otherwise they are `brief` posts.
 - Link-log titles in list views point to the external URL (with icon), while the date and "Read Now →" link to the local post page.
 
 ## URL Routes
@@ -158,7 +161,7 @@ link: "https://example.com" # Optional; marks link-log posts
 
 ## Post Filtering
 
-- Filter query param: `?type=essay` or `?type=link-log`
+- Filter query param: `?type=essay`, `?type=brief`, or `?type=link-log`
 - Available on `/`, `/posts`, `/archive`, and `/tags/{tag}` via the filter UI
 - HTMX updates swap `#posts-list` and update the filter nav out-of-band
 

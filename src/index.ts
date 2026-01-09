@@ -18,7 +18,7 @@ type PostFilter = "all" | PostType;
 
 function getPostFilter(params: URLSearchParams): PostFilter {
   const type = params.get("type");
-  if (type === "essay" || type === "link-log") {
+  if (type === "essay" || type === "brief" || type === "link-log") {
     return type;
   }
   return "all";
@@ -85,7 +85,7 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
   if (path === "/posts/feed.xml") {
     const fullPosts = posts.map((meta) => {
       const raw = postContent[meta.slug];
-      return raw ? parsePost(raw) : null;
+      return raw ? parsePost(raw, meta.postType) : null;
     }).filter((p): p is Post => p !== null);
 
     const feed = generateRssFeed(fullPosts, {
@@ -109,7 +109,7 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
 
       const fullPosts = tagPosts.map((meta) => {
         const raw = postContent[meta.slug];
-        return raw ? parsePost(raw) : null;
+        return raw ? parsePost(raw, meta.postType) : null;
       }).filter((p): p is Post => p !== null);
 
       const feed = generateRssFeed(fullPosts, {
@@ -150,7 +150,7 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
     const { items, pagination } = paginate(filteredPosts, page, POSTS_PER_PAGE);
     const fullPosts = items.map((meta) => {
       const raw = postContent[meta.slug];
-      return raw ? parsePost(raw) : null;
+      return raw ? parsePost(raw, meta.postType) : null;
     }).filter((p): p is Post => p !== null);
 
     if (isPostsListTarget) {
@@ -167,7 +167,8 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
     const slug = postMatch[1]!;
     const raw = postContent[slug];
     if (raw) {
-      const post = parsePost(raw);
+      const postMeta = posts.find((meta) => meta.slug === slug);
+      const post = parsePost(raw, postMeta?.postType);
       const content = postTemplate(post);
       return html(content, post.title, post.description, isHtmx, request);
     }
@@ -204,7 +205,7 @@ function route(path: string, params: URLSearchParams, origin: string, isHtmx: bo
 
       const fullPosts = items.map((meta) => {
         const raw = postContent[meta.slug];
-        return raw ? parsePost(raw) : null;
+        return raw ? parsePost(raw, meta.postType) : null;
       }).filter((p): p is Post => p !== null);
 
       if (isPostsListTarget) {
