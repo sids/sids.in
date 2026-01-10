@@ -3,7 +3,6 @@ import { escapeHtml } from "../../markdown.ts";
 
 export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
   const bookmarklet = buildBookmarklet(origin);
-  const bookmarkletValue = JSON.stringify(bookmarklet);
   const tagOptions = tags
     .map((tag) => `"${escapeHtml(tag.tag)}"`)
     .join(", ");
@@ -55,10 +54,10 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     <section class="flex flex-col gap-2">
       <p class="text-secondary">Save this bookmarklet in Safari or Chrome:</p>
       <div class="flex flex-wrap items-center gap-2">
-        <button type="button" id="bookmarklet-copy" class="rounded border border-border bg-secondary px-3 py-1.5 font-mono text-xs text-primary transition hover:text-accent">Copy bookmarklet</button>
-        <span id="bookmarklet-copy-status" class="text-xs text-secondary"></span>
+        <button type="button" id="bookmarklet-copy" data-bookmarklet="${escapeHtml(bookmarklet)}" class="rounded border border-border bg-secondary px-3 py-1.5 font-mono text-xs text-primary transition hover:text-accent">Copy bookmarklet</button>
+        <span id="bookmarklet-copy-status" role="status" aria-live="polite" class="min-h-[1rem] text-xs text-secondary"></span>
       </div>
-      <input id="bookmarklet-value" type="text" readonly class="hidden" value="${escapeHtml(bookmarklet)}">
+      <input id="bookmarklet-value" type="text" readonly class="sr-only w-full rounded border border-border bg-primary px-2 py-1 font-mono text-xs text-primary" value="${escapeHtml(bookmarklet)}">
     </section>
   </section>
 
@@ -68,16 +67,14 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     const urlInput = document.getElementById('url');
     const titleInput = document.getElementById('title');
     const contentInput = document.getElementById('link-log-content');
-    const bookmarkletValue = ${bookmarkletValue};
-    const bookmarkletInput = document.getElementById('bookmarklet-value');
-    const bookmarkletCopy = document.getElementById('bookmarklet-copy');
-    const bookmarkletCopyStatus = document.getElementById('bookmarklet-copy-status');
-
     const params = new URLSearchParams(window.location.search);
     const tagChips = document.getElementById('tag-chips');
     const tagSuggestionsList = document.getElementById('tag-suggestions-list');
     const tagInput = document.getElementById('tags');
     const allTags = [${tagOptions}];
+    const bookmarkletCopy = document.getElementById('bookmarklet-copy');
+    const bookmarkletCopyStatus = document.getElementById('bookmarklet-copy-status');
+    const bookmarkletInput = document.getElementById('bookmarklet-value');
     if (params.get('url')) {
       urlInput.value = params.get('url');
     }
@@ -89,38 +86,90 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
       const quoted = selection.split(/\r?\n/).map(line => '> ' + line).join('\n');
       contentInput.value = quoted + '\n\n';
     }
-    if (bookmarkletInput) {
-      bookmarkletInput.value = bookmarkletValue;
-    }
-    if (bookmarkletCopy) {
-      bookmarkletCopy.addEventListener('click', async () => {
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(bookmarkletValue);
-          } else {
-            const temp = document.createElement('textarea');
-            temp.value = bookmarkletValue;
-            temp.setAttribute('readonly', 'true');
-            temp.style.position = 'absolute';
-            temp.style.left = '-9999px';
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand('copy');
-            document.body.removeChild(temp);
-          }
-          if (bookmarkletCopyStatus) {
-            bookmarkletCopyStatus.textContent = 'Copied.';
-          }
-        } catch (error) {
-          if (bookmarkletCopyStatus) {
-            bookmarkletCopyStatus.textContent = 'Copy failed.';
-          }
-        }
-      });
-    }
-
     function parseTags(value) {
       return value.split(',').map(tag => tag.trim()).filter(Boolean);
+    }
+
+    function setBookmarkletStatus(message, tone) {
+      if (!bookmarkletCopyStatus) {
+        return;
+      }
+      bookmarkletCopyStatus.textContent = message;
+      bookmarkletCopyStatus.classList.remove('text-secondary', 'text-accent');
+      bookmarkletCopyStatus.classList.add(tone || 'text-secondary');
+    }
+
+    function revealBookmarkletInput() {
+      if (!bookmarkletInput) {
+        return;
+      }
+      bookmarkletInput.classList.remove('sr-only');
+      bookmarkletInput.focus();
+      bookmarkletInput.select();
+      bookmarkletInput.setSelectionRange(0, bookmarkletInput.value.length);
+    }
+
+    async function tryClipboardWrite(value) {
+      if (!navigator.clipboard || !navigator.clipboard.writeText) {
+        return false;
+      }
+      try {
+        await navigator.clipboard.writeText(value);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function tryExecCommandCopy(value) {
+      const temp = document.createElement('textarea');
+      temp.value = value;
+      temp.setAttribute('readonly', 'true');
+      temp.style.position = 'fixed';
+      temp.style.top = '0';
+      temp.style.left = '0';
+      temp.style.opacity = '0';
+      document.body.appendChild(temp);
+      temp.focus();
+      temp.select();
+      temp.setSelectionRange(0, temp.value.length);
+      const succeeded = document.execCommand('copy');
+      document.body.removeChild(temp);
+      return succeeded;
+    }
+
+    async function handleBookmarkletCopy() {
+      if (!bookmarkletCopy) {
+        return;
+      }
+      const value = (bookmarkletCopy.getAttribute('data-bookmarklet') || '').trim();
+      if (!value) {
+        setBookmarkletStatus('Nothing to copy.', 'text-secondary');
+        return;
+      }
+      setBookmarkletStatus('Copying…', 'text-secondary');
+      const clipboardSucceeded = await tryClipboardWrite(value);
+      if (clipboardSucceeded) {
+        setBookmarkletStatus('Copied.', 'text-accent');
+        return;
+      }
+      const execSucceeded = tryExecCommandCopy(value);
+      if (execSucceeded) {
+        setBookmarkletStatus('Copied.', 'text-accent');
+        return;
+      }
+      if (bookmarkletInput) {
+        bookmarkletInput.value = value;
+      }
+      revealBookmarkletInput();
+      setBookmarkletStatus('Copy failed. Tap and hold to copy.', 'text-secondary');
+    }
+
+    if (bookmarkletCopy) {
+      bookmarkletCopy.addEventListener('click', (event) => {
+        event.preventDefault();
+        handleBookmarkletCopy();
+      });
     }
 
     function setStatus(type, message, isHtml) {
