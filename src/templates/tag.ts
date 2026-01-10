@@ -7,10 +7,10 @@ function describeFilter(filter: PostFilterType): string {
   switch (filter) {
     case "essay":
       return "essays";
-    case "brief":
+    case "aside":
       return "asides";
-    case "link-log":
-      return "link log posts";
+    case "link":
+      return "links";
     default:
       return "posts";
   }

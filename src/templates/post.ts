@@ -1,11 +1,11 @@
 import type { Post } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
 import { formatPostDate } from "./format-date.ts";
-import { briefIcon, externalLinkIcon } from "./icons.ts";
+import { asideIcon, externalLinkIcon } from "./icons.ts";
 
 export function postTemplate(post: Post): string {
   // Title: links to external URL with icon if link exists, otherwise just plain text
-  const titlePrefix = post.postType === "brief" ? briefIcon : "";
+  const titlePrefix = post.postType === "aside" ? asideIcon : "";
   const titleHtml = post.link
     ? `<a href="${escapeHtml(post.link)}" class="text-primary" target="_blank" rel="noopener noreferrer">
       <h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-4" style="color: var(--text-primary)">${externalLinkIcon}${escapeHtml(post.title)}</h1>

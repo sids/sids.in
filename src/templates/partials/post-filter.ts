@@ -1,11 +1,11 @@
-export type PostFilterType = "all" | "essay" | "brief" | "link-log";
+export type PostFilterType = "all" | "essay" | "aside" | "link";
 
 export function postFilter(basePath: string, currentFilter: PostFilterType = "all", oob: boolean = false): string {
   const filters: { id: PostFilterType; label: string }[] = [
     { id: "all", label: "All Posts" },
     { id: "essay", label: "Essays" },
-    { id: "brief", label: "💬 Asides" },
-    { id: "link-log", label: "↗ Link Log" },
+    { id: "aside", label: "💬 Asides" },
+    { id: "link", label: "↗ Links" },
   ];
 
   const links = filters

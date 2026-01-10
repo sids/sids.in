@@ -1,6 +1,6 @@
 import type { PaginationInfo } from "../types.ts";
 
-type PostFilterType = "all" | "essay" | "brief" | "link-log";
+type PostFilterType = "all" | "essay" | "aside" | "link";
 
 function buildUrl(basePath: string, page: number, filter: PostFilterType): string {
   const params = new URLSearchParams();
