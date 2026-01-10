@@ -35,6 +35,7 @@ function updateToggle() {
 document.addEventListener('DOMContentLoaded', updateToggle);
 `;
 
+
 export function layout(content: string, title: string, description?: string, tag?: string): string {
   const tagFeedLink = tag
     ? `\n  <link rel="alternate" type="application/rss+xml" title="Posts tagged ${escapeHtml(tag)}" href="/tags/${tag}/feed.xml">`
