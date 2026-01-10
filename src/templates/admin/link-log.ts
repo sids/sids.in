@@ -58,7 +58,6 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
         <button type="button" id="bookmarklet-copy" class="rounded border border-border bg-secondary px-3 py-1.5 font-mono text-xs text-primary transition hover:text-accent">Copy bookmarklet</button>
         <span id="bookmarklet-copy-status" class="text-xs text-secondary"></span>
       </div>
-      <input id="bookmarklet-value" type="text" readonly class="hidden" value="${escapeHtml(bookmarklet)}">
     </section>
   </section>
 
@@ -69,9 +68,48 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     const titleInput = document.getElementById('title');
     const contentInput = document.getElementById('link-log-content');
     const bookmarkletValue = ${bookmarkletValue};
-    const bookmarkletInput = document.getElementById('bookmarklet-value');
     const bookmarkletCopy = document.getElementById('bookmarklet-copy');
     const bookmarkletCopyStatus = document.getElementById('bookmarklet-copy-status');
+
+    function copyText(text) {
+      var textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      textarea.style.top = '0';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+
+      var isiOS = /ipad|iphone|ipod/i.test(navigator.userAgent);
+      if (isiOS) {
+        textarea.contentEditable = true;
+        textarea.readOnly = false;
+        var range = document.createRange();
+        range.selectNodeContents(textarea);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        textarea.setSelectionRange(0, text.length);
+      } else {
+        textarea.select();
+      }
+
+      var success = false;
+      try {
+        success = document.execCommand('copy');
+      } catch (err) {
+        success = false;
+      }
+      document.body.removeChild(textarea);
+      return success;
+    }
+
+    if (bookmarkletCopy) {
+      bookmarkletCopy.addEventListener('click', function() {
+        var success = copyText(bookmarkletValue);
+        bookmarkletCopyStatus.textContent = success ? 'Copied!' : 'Copy failed.';
+      });
+    }
 
     const params = new URLSearchParams(window.location.search);
     const tagChips = document.getElementById('tag-chips');
@@ -88,35 +126,6 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
       const selection = params.get('selection');
       const quoted = selection.split(/\r?\n/).map(line => '> ' + line).join('\n');
       contentInput.value = quoted + '\n\n';
-    }
-    if (bookmarkletInput) {
-      bookmarkletInput.value = bookmarkletValue;
-    }
-    if (bookmarkletCopy) {
-      bookmarkletCopy.addEventListener('click', async () => {
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(bookmarkletValue);
-          } else {
-            const temp = document.createElement('textarea');
-            temp.value = bookmarkletValue;
-            temp.setAttribute('readonly', 'true');
-            temp.style.position = 'absolute';
-            temp.style.left = '-9999px';
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand('copy');
-            document.body.removeChild(temp);
-          }
-          if (bookmarkletCopyStatus) {
-            bookmarkletCopyStatus.textContent = 'Copied.';
-          }
-        } catch (error) {
-          if (bookmarkletCopyStatus) {
-            bookmarkletCopyStatus.textContent = 'Copy failed.';
-          }
-        }
-      });
     }
 
     function parseTags(value) {
