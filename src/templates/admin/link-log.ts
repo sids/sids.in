@@ -58,7 +58,7 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
         <button type="button" id="bookmarklet-copy" class="rounded border border-border bg-secondary px-3 py-1.5 font-mono text-xs text-primary transition hover:text-accent">Copy bookmarklet</button>
         <span id="bookmarklet-copy-status" class="text-xs text-secondary"></span>
       </div>
-      <input id="bookmarklet-value" type="text" readonly class="sr-only" value="${escapeHtml(bookmarklet)}">
+      <input id="bookmarklet-value" type="text" readonly class="sr-only w-full rounded border border-border bg-primary px-2 py-1 font-mono text-xs text-primary" value="${escapeHtml(bookmarklet)}">
     </section>
   </section>
 
@@ -100,8 +100,12 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
 
     async function copyBookmarklet() {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        await navigator.clipboard.writeText(bookmarkletValue);
-        return;
+        try {
+          await navigator.clipboard.writeText(bookmarkletValue);
+          return;
+        } catch (error) {
+          // Fall back to legacy copy paths below.
+        }
       }
 
       if (bookmarkletInput) {
@@ -133,13 +137,20 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
       }
     }
 
+    function revealBookmarkletInput() {
+      if (bookmarkletInput) {
+        bookmarkletInput.classList.remove('sr-only');
+      }
+    }
+
     if (bookmarkletCopy) {
       bookmarkletCopy.addEventListener('click', async () => {
         try {
           await copyBookmarklet();
           setCopyStatus('Copied.');
         } catch (error) {
-          setCopyStatus('Copy failed.');
+          revealBookmarkletInput();
+          setCopyStatus('Copy failed. Tap and hold to copy.');
         }
       });
     }
