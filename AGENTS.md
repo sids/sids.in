@@ -30,7 +30,7 @@ bun run build:manifest  # Regenerate content manifest only
 **Content Flow:**
 1. Markdown files in `content/` are bundled at build time via Wrangler's `rules` config
 2. `scripts/build-manifest.ts` generates `src/manifest.ts` with pre-processed metadata
-3. Worker (`src/index.ts`) dispatches to route handlers for pages and link log
+3. Worker (`src/index.ts`) dispatches to route handlers for pages and admin tools
 4. `scripts/build-manifest.ts` also generates `public/sitemap.xml` during builds
 
 ## Link Handling
@@ -46,11 +46,16 @@ bun run build:manifest  # Regenerate content manifest only
 - Default links inherit text color with underline styling from `styles/input.css`.
 - Use `.link-accent` for emphasized internal navigation links (e.g., pagination, archive/home CTAs).
 
+**Admin Section:**
+- `/admin` contains password-protected tools for authoring content (link log + asides).
+- `src/routes/admin.ts` defines admin routes and API endpoints.
+- Basic auth is enforced for all `/admin` and `/admin/api/*` routes.
+
 **Key Files:**
 - `src/index.ts` - Worker entry point and router (dispatches to routes)
 - `src/manifest.ts` - Auto-generated content index (do not edit manually)
 - `src/markdown.ts` - Frontmatter parsing using `front-matter` and `marked`
-- `src/routes/` - Route handlers for pages and link log endpoints
+- `src/routes/` - Route handlers for pages and admin endpoints
 - `src/templates/` - HTML templates (layout, page, post, archive, tags)
 
 **Content Structure:**

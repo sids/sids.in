@@ -1,5 +1,5 @@
 import type { Env } from "./types.ts";
-import { routeLinkLog } from "./routes/link-log.ts";
+import { routeAdmin } from "./routes/admin.ts";
 import { routePages } from "./routes/pages.ts";
 
 // HTMX partial unless it's a full navigation (back/forward, direct URL)
@@ -24,9 +24,9 @@ export default {
     }
 
     try {
-      const linkLogResponse = await routeLinkLog(path, request, env, url.origin, isPartialRequest);
-      if (linkLogResponse) {
-        return linkLogResponse;
+      const adminResponse = await routeAdmin(path, request, env, url.origin, isPartialRequest);
+      if (adminResponse) {
+        return adminResponse;
       }
 
       return routePages(path, url.searchParams, url.origin, isPartialRequest, hxTarget, request);

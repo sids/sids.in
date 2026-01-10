@@ -1,5 +1,5 @@
-import type { TagInfo } from "../types.ts";
-import { escapeHtml } from "../markdown.ts";
+import type { TagInfo } from "../../types.ts";
+import { escapeHtml } from "../../markdown.ts";
 
 export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
   const bookmarklet = buildBookmarklet(origin);
@@ -11,6 +11,7 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
   return `
   <section class="flex flex-col gap-8">
     <header class="flex flex-col gap-3">
+      <a href="/admin" class="font-mono text-xs uppercase text-secondary link-accent">Admin home</a>
       <p class="font-mono text-sm text-secondary">Link Log</p>
       <h1 class="text-3xl font-mono text-primary">New link log entry</h1>
     </header>
@@ -85,8 +86,8 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     }
     if (params.get('selection')) {
       const selection = params.get('selection');
-      const quoted = selection.split(/\\r?\\n/).map(line => '> ' + line).join('\\n');
-      contentInput.value = quoted + '\\n\\n';
+      const quoted = selection.split(/\r?\n/).map(line => '> ' + line).join('\n');
+      contentInput.value = quoted + '\n\n';
     }
     if (bookmarkletInput) {
       bookmarkletInput.value = bookmarkletValue;
@@ -200,7 +201,7 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
       }
       setStatus('alert-info', 'Fetching title...');
       try {
-        const response = await fetch('/api/link-log/metadata?url=' + encodeURIComponent(urlInput.value));
+        const response = await fetch('/admin/api/link-log/metadata?url=' + encodeURIComponent(urlInput.value));
         const data = await response.json();
         if (data && data.title) {
           titleInput.value = data.title;
@@ -231,7 +232,7 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       setStatus('alert-info', 'Creating post...');
-      const submitButton = form.querySelector('button[type=\"submit\"]');
+      const submitButton = form.querySelector('button[type="submit"]');
       if (submitButton) {
         submitButton.disabled = true;
       }
@@ -244,7 +245,7 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
       };
 
       try {
-        const response = await fetch('/api/link-log', {
+        const response = await fetch('/admin/api/link-log', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -279,6 +280,6 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
 }
 
 function buildBookmarklet(origin: string): string {
-  const script = `(function(){var url=encodeURIComponent(location.href);var title=encodeURIComponent(document.title);var selection=encodeURIComponent(window.getSelection?window.getSelection().toString():'');var target='${origin}/link-log?url='+url+'&title='+title+'&selection='+selection;var win=window.open(target,'_blank','noopener');if(win){win.focus();}})();`;
+  const script = `(function(){var url=encodeURIComponent(location.href);var title=encodeURIComponent(document.title);var selection=encodeURIComponent(window.getSelection?window.getSelection().toString():'');var target='${origin}/admin/link-log?url='+url+'&title='+title+'&selection='+selection;var win=window.open(target,'_blank','noopener');if(win){win.focus();}})();`;
   return `javascript:${script}`;
 }
