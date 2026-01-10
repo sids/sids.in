@@ -68,6 +68,8 @@ sids.in/
 │       └── *.md               # → /posts/{slug}
 ├── src/
 │   ├── index.ts              # Worker entry point and router
+│   ├── routes/               # Route handlers (pages, link log)
+│   ├── lib/                  # Pagination + response helpers
 │   ├── markdown.ts           # Markdown parsing with frontmatter
 │   ├── manifest.ts           # Auto-generated content manifest
 │   ├── rss.ts                # RSS feed generation
@@ -87,6 +89,8 @@ sids.in/
 │           └── posts-list.ts # List renderers (cards, compact, archive)
 ├── public/                   # Static assets (served by Workers)
 │   ├── css/styles.css        # Compiled Tailwind (generated)
+│   ├── robots.txt
+│   └── sitemap.xml
 │   └── images/
 ├── styles/
 │   └── input.css             # Tailwind source
@@ -147,9 +151,11 @@ link: "https://example.com" # Optional; marks link-log posts
 | `/tags/{tag}` | tag.ts | Paginated posts with tag |
 | `/posts/feed.xml` | rss.ts | RSS feed for all posts |
 | `/tags/{tag}/feed.xml` | rss.ts | RSS feed for tag |
-| `/link-log` | link-log.ts | Authenticated link log submission form |
-| `/api/link-log` | index.ts | Authenticated API endpoint that creates link log posts in GitHub |
-| `/api/link-log/metadata` | index.ts | Authenticated metadata fetch for auto-titling |
+| `/link-log` | routes/link-log.ts | Authenticated link log submission form |
+| `/api/link-log` | routes/link-log.ts | Authenticated API endpoint that creates link log posts in GitHub |
+| `/api/link-log/metadata` | routes/link-log.ts | Authenticated metadata fetch for auto-titling |
+| `/robots.txt` | - | Robots file (static asset) |
+| `/sitemap.xml` | - | Sitemap generated at build time |
 | `/css/*`, `/images/*` | - | Static assets |
 
 ## Pagination
@@ -207,6 +213,7 @@ export const posts: PostMeta[];              // sorted by date desc
 export const postContent: Record<string, string>;  // slug → markdown
 export const tagIndex: Record<string, string[]>;   // tag → slugs
 export const allTags: { tag: string; count: number }[];  // sorted by count
+export const contentVersion: string | null; // git short SHA if available
 ```
 
 ## Technical Notes
@@ -215,6 +222,7 @@ export const allTags: { tag: string; count: number }[];  // sorted by count
 - Content lives in `content/` (outside `src/`) for clean separation
 - Excerpt: first ~150 chars of rendered content (stripped of HTML); currently unused in templates
 - Static assets served via Workers Static Assets binding
+- `scripts/build-manifest.ts` writes `public/sitemap.xml` during build
 - Tailwind v3 (v4 has Cloudflare compatibility issues)
 - HTMX loaded from CDN (unpkg)
 - CSS variables defined in `:root` and `:root.dark` for theming

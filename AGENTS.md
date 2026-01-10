@@ -30,24 +30,27 @@ bun run build:manifest  # Regenerate content manifest only
 **Content Flow:**
 1. Markdown files in `content/` are bundled at build time via Wrangler's `rules` config
 2. `scripts/build-manifest.ts` generates `src/manifest.ts` with pre-processed metadata
-3. Worker (`src/index.ts`) serves content by parsing markdown on request
+3. Worker (`src/index.ts`) dispatches to route handlers for pages and link log
+4. `scripts/build-manifest.ts` also generates `public/sitemap.xml` during builds
 
 ## Link Handling
 
-**Link log posts:**
-- Use the `link` frontmatter field to mark a post as a "link log" entry.
-- `scripts/build-manifest.ts` and `src/markdown.ts` derive `postType: "link-log"` when `link` is present (otherwise `postType: "essay"`).
+**Post types:**
+- Posts under `content/posts/essays/` are treated as `postType: "essay"`.
+- Use the `link` frontmatter field to mark a post as a `postType: "link-log"` entry.
+- Other posts default to `postType: "brief"`.
 - In list views (`src/templates/partials/post-card.ts`), link-log titles point to the external URL and include the external-link icon, while the date and "Read Now →" link point to the local post page.
-- Link-log filtering is supported via the `type=link-log` query param on `/posts`, `/archive`, and tag pages.
+- Post filtering is supported via the `type=essay`, `type=brief`, and `type=link-log` query params on `/posts`, `/archive`, and tag pages.
 
 **Internal vs. external links:**
 - Default links inherit text color with underline styling from `styles/input.css`.
 - Use `.link-accent` for emphasized internal navigation links (e.g., pagination, archive/home CTAs).
 
 **Key Files:**
-- `src/index.ts` - Worker entry point and router
+- `src/index.ts` - Worker entry point and router (dispatches to routes)
 - `src/manifest.ts` - Auto-generated content index (do not edit manually)
 - `src/markdown.ts` - Frontmatter parsing using `front-matter` and `marked`
+- `src/routes/` - Route handlers for pages and link log endpoints
 - `src/templates/` - HTML templates (layout, page, post, archive, tags)
 
 **Content Structure:**
@@ -55,7 +58,7 @@ bun run build:manifest  # Regenerate content manifest only
 - `content/posts/**/*.md` → Blog posts (e.g., `my-post.md` → `/posts/my-post`); supports nested directories for organization
 
 **HTMX Partial Rendering:**
-The worker detects `HX-Request` header and returns partial HTML (content only) instead of full page. See `isHtmx` handling in `src/index.ts`.
+The worker detects `HX-Request` header and returns partial HTML (content only) instead of full page. See `isPartialHtmxRequest` handling in `src/index.ts`.
 
 ## Adding Content
 
@@ -78,7 +81,7 @@ draft: false
 ## Constraints
 
 - Tailwind v3 (v4 has Cloudflare compatibility issues)
-- Static assets served via Workers Static Assets binding (`env.ASSETS`)
+- Static assets (including `robots.txt` and `sitemap.xml`) served via Workers Static Assets binding (`env.ASSETS`)
 - CSS compiled to `public/css/styles.css` - don't edit directly
 - Run Wrangler via `bunx wrangler` (see scripts in `package.json`)
 
