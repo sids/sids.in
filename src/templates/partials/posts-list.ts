@@ -13,10 +13,10 @@ function formatMonthDay(dateStr: string): string {
 }
 
 function indicatorForPost(type: PostType): string {
-  if (type === "link-log") {
+  if (type === "link") {
     return "↗ ";
   }
-  if (type === "brief") {
+  if (type === "aside") {
     return "💬 ";
   }
   return "";
@@ -26,10 +26,10 @@ function describeFilter(filter: PostFilterType): string {
   switch (filter) {
     case "essay":
       return "essays";
-    case "brief":
+    case "aside":
       return "asides";
-    case "link-log":
-      return "link log posts";
+    case "link":
+      return "links";
     default:
       return "posts";
   }

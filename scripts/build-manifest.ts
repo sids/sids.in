@@ -176,7 +176,7 @@ async function buildManifest() {
   const postMetaArray = postMetaEntries.map(({ meta, file }) => {
     const [topLevelDir] = file.split("/");
     const isEssay = topLevelDir === "essays";
-    const postType = isEssay ? "essay" : meta.link ? "link-log" : "brief";
+    const postType = isEssay ? "essay" : meta.link ? "link" : "aside";
     return `  { title: ${JSON.stringify(meta.title)}, slug: ${JSON.stringify(meta.slug)}, date: ${JSON.stringify(meta.date)}${meta.description ? `, description: ${JSON.stringify(meta.description)}` : ""}, tags: ${JSON.stringify(meta.tags || [])}${meta.link ? `, link: ${JSON.stringify(meta.link)}` : ""}, postType: ${JSON.stringify(postType)} }`;
   });
 
