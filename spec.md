@@ -68,7 +68,7 @@ sids.in/
 │       └── *.md               # → /posts/{slug}
 ├── src/
 │   ├── index.ts              # Worker entry point and router
-│   ├── routes/               # Route handlers (pages, link log)
+│   ├── routes/               # Route handlers (pages, admin tools)
 │   ├── lib/                  # Pagination + response helpers
 │   ├── markdown.ts           # Markdown parsing with frontmatter
 │   ├── manifest.ts           # Auto-generated content manifest
@@ -83,6 +83,7 @@ sids.in/
 │       ├── archive.ts        # /archive - tags + posts by year
 │       ├── tag.ts            # /tags/{tag} - posts with tag
 │       ├── pagination.ts     # Pagination component
+│       ├── admin/            # Admin templates (dashboard, link log, aside)
 │       └── partials/
 │           ├── post-card.ts  # Card with title, date, description/content
 │           ├── post-filter.ts # Filter controls for post type
@@ -151,9 +152,12 @@ link: "https://example.com" # Optional; marks link posts
 | `/tags/{tag}` | tag.ts | Paginated posts with tag |
 | `/posts/feed.xml` | rss.ts | RSS feed for all posts |
 | `/tags/{tag}/feed.xml` | rss.ts | RSS feed for tag |
-| `/link-log` | routes/link-log.ts | Authenticated link log submission form |
-| `/api/link-log` | routes/link-log.ts | Authenticated API endpoint that creates link log posts in GitHub |
-| `/api/link-log/metadata` | routes/link-log.ts | Authenticated metadata fetch for auto-titling |
+| `/admin` | routes/admin.ts | Admin dashboard (password-protected) |
+| `/admin/link-log` | routes/admin.ts | Authenticated link log submission form |
+| `/admin/aside` | routes/admin.ts | Authenticated aside submission form |
+| `/admin/api/link-log` | routes/admin.ts | Authenticated API endpoint that creates link log posts in GitHub |
+| `/admin/api/link-log/metadata` | routes/admin.ts | Authenticated metadata fetch for auto-titling |
+| `/admin/api/aside` | routes/admin.ts | Authenticated API endpoint that creates aside posts in GitHub |
 | `/robots.txt` | - | Robots file (static asset) |
 | `/sitemap.xml` | - | Sitemap generated at build time |
 | `/css/*`, `/images/*` | - | Static assets |
@@ -229,8 +233,8 @@ export const contentVersion: string | null; // git short SHA if available
 - Dark mode uses class strategy with JavaScript for localStorage persistence
 - Typography-aware content width: `min(70ch, 100% - 3rem)`
 - Google Fonts: IBM Plex Sans and JetBrains Mono loaded via CSS import
-- Link log submission is protected with HTTP Basic Auth and uses GitHub's Contents API to create new markdown files.
-- Link log secrets are stored as Cloudflare Worker environment variables:
+- Admin authoring (link log + aside) is protected with HTTP Basic Auth and uses GitHub's Contents API to create new markdown files.
+- Admin secrets are stored as Cloudflare Worker environment variables:
   - `BASIC_AUTH_PASSWORD` (required) + optional `BASIC_AUTH_USER`
   - `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO`, optional `GITHUB_BRANCH`
 
