@@ -36,7 +36,7 @@ export function parsePost(rawMarkdown: string, postTypeOverride?: PostType): Pos
   const description = attributes.description;
 
   // Determine post type based on optional override or whether link exists
-  const postType = postTypeOverride ?? (attributes.link ? "link-log" : "brief");
+  const postType = postTypeOverride ?? (attributes.link ? "link" : "aside");
 
   return {
     title: attributes.title,
