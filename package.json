@@ -5,7 +5,8 @@
   "scripts": {
     "build:css": "tailwindcss -i ./styles/input.css -o ./public/css/styles.css --minify",
     "build:manifest": "bun run scripts/build-manifest.ts",
-    "build": "bun run build:css && bun run build:manifest",
+    "build:client": "bun build src/client/bookmarklet-copy.ts --outdir public/js --format=esm --minify",
+    "build": "bun run build:css && bun run build:client && bun run build:manifest",
     "dev:css": "tailwindcss -i ./styles/input.css -o ./public/css/styles.css --watch",
     "dev:worker": "bun run build:manifest && bunx wrangler dev",
     "dev": "concurrently \"bun run dev:css\" \"bun run dev:worker\"",
@@ -27,6 +28,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "copy-to-clipboard": "^3.3.3",
     "front-matter": "^4.0.2",
     "marked": "^17.0.1",
     "marked-footnote": "^1.4.0"

@@ -90,6 +90,7 @@ sids.in/
 │           └── posts-list.ts # List renderers (cards, compact, archive)
 ├── public/                   # Static assets (served by Workers)
 │   ├── css/styles.css        # Compiled Tailwind (generated)
+│   ├── js/bookmarklet-copy.js # Client bundle for bookmarklet copy (generated)
 │   ├── robots.txt
 │   └── sitemap.xml
 │   └── images/
@@ -97,6 +98,7 @@ sids.in/
 │   └── input.css             # Tailwind source
 ├── scripts/
 │   └── build-manifest.ts     # Generates content manifest
+├── src/client/               # Client-side bundles (compiled with bun build)
 ├── wrangler.jsonc
 ├── package.json
 ├── tsconfig.json
@@ -186,6 +188,7 @@ link: "https://example.com" # Optional; marks link posts
 
 - `marked` - Markdown to HTML (zero deps, works in Workers)
 - `front-matter` - YAML frontmatter parsing
+- `copy-to-clipboard` - Client-side copy helper for bookmarklet UI
 - `@cloudflare/workers-types` - TypeScript types
 - `wrangler` - Cloudflare CLI
 - `tailwindcss` + `@tailwindcss/typography` - Styling
@@ -203,7 +206,7 @@ link: "https://example.com" # Optional; marks link posts
 
 ```bash
 bun run dev      # Start dev server with CSS watch
-bun run build    # Build CSS + generate manifest
+bun run build    # Build CSS + client bundle + generate manifest
 bun run deploy   # Build and deploy to Cloudflare
 ```
 
