@@ -62,7 +62,9 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     </section>
   </section>
 
-  <script>
+  <script type="module">
+    import copyToClipboard from '/js/bookmarklet-copy.js';
+
     const form = document.getElementById('link-log-form');
     const statusEl = document.getElementById('link-log-status');
     const urlInput = document.getElementById('url');
@@ -93,28 +95,10 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
       bookmarkletInput.value = bookmarkletValue;
     }
     if (bookmarkletCopy) {
-      bookmarkletCopy.addEventListener('click', async () => {
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            await navigator.clipboard.writeText(bookmarkletValue);
-          } else {
-            const temp = document.createElement('textarea');
-            temp.value = bookmarkletValue;
-            temp.setAttribute('readonly', 'true');
-            temp.style.position = 'absolute';
-            temp.style.left = '-9999px';
-            document.body.appendChild(temp);
-            temp.select();
-            document.execCommand('copy');
-            document.body.removeChild(temp);
-          }
-          if (bookmarkletCopyStatus) {
-            bookmarkletCopyStatus.textContent = 'Copied.';
-          }
-        } catch (error) {
-          if (bookmarkletCopyStatus) {
-            bookmarkletCopyStatus.textContent = 'Copy failed.';
-          }
+      bookmarkletCopy.addEventListener('click', () => {
+        const didCopy = copyToClipboard(bookmarkletValue);
+        if (bookmarkletCopyStatus) {
+          bookmarkletCopyStatus.textContent = didCopy ? 'Copied.' : 'Copy failed.';
         }
       });
     }
