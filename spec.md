@@ -205,7 +205,7 @@ link: "https://example.com" # Optional; marks link posts
 ## Build Pipeline
 
 ```bash
-bun run dev      # Start dev server with CSS watch
+bun run dev      # Start dev server with CSS watch + client bundle
 bun run build    # Build CSS + client bundle + generate manifest
 bun run deploy   # Build and deploy to Cloudflare
 ```
