@@ -40,3 +40,4 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Generated files
 src/manifest.ts
 public/css/styles.css
+public/sitemap.xml
