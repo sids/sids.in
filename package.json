@@ -7,7 +7,7 @@
     "build:manifest": "bun run scripts/build-manifest.ts",
     "build": "bun run build:css && bun run build:manifest",
     "dev:css": "tailwindcss -i ./styles/input.css -o ./public/css/styles.css --watch",
-    "dev:worker": "bun run build:manifest && bunx wrangler dev",
+    "dev:worker": "bun run build:manifest && bunx wrangler dev --ip 0.0.0.0",
     "dev": "concurrently \"bun run dev:css\" \"bun run dev:worker\"",
     "deploy": "bun run build && bunx wrangler deploy",
     "types": "bunx wrangler types",
