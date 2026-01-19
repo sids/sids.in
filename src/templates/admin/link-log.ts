@@ -86,8 +86,8 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     }
     if (params.get('selection')) {
       const selection = params.get('selection');
-      const quoted = selection.split(/\r?\n/).map(line => '> ' + line).join('\n');
-      contentInput.value = quoted + '\n\n';
+      const quoted = selection.split(/\\r?\\n/).map(line => '> ' + line).join('\\n');
+      contentInput.value = quoted + '\\n\\n';
     }
     if (bookmarkletInput) {
       bookmarkletInput.value = bookmarkletValue;
