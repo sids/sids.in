@@ -47,9 +47,10 @@ bun run build:manifest  # Regenerate content manifest only
 - Use `.link-accent` for emphasized internal navigation links (e.g., pagination, archive/home CTAs).
 
 **Admin Section:**
-- `/admin` contains password-protected tools for authoring content (link log + asides).
+- `/admin` contains protected tools for authoring content (link log + asides).
 - `src/routes/admin.ts` defines admin routes and API endpoints.
-- Basic auth is enforced for all `/admin` and `/admin/api/*` routes.
+- Sign in with Apple OAuth is used for authentication, restricted to `ADMIN_EMAIL`.
+- Session-based auth via signed cookies (no KV storage required).
 
 **Key Files:**
 - `src/index.ts` - Worker entry point and router (dispatches to routes)

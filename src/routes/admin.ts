@@ -3,8 +3,24 @@ import { allTags } from "../manifest.ts";
 import { linkLogTemplate } from "../templates/admin/link-log.ts";
 import { asideTemplate } from "../templates/admin/aside.ts";
 import { adminHomeTemplate } from "../templates/admin/home.ts";
+import { loginTemplate } from "../templates/admin/login.ts";
 import { html, json } from "../lib/responses.ts";
 import { requireAdminAuth } from "../lib/admin-auth.ts";
+import {
+  createSessionCookie,
+  clearSessionCookie,
+  generateStateToken,
+  createStateCookie,
+  verifyStateToken,
+  clearStateCookie,
+} from "../lib/session.ts";
+import {
+  buildAppleAuthUrl,
+  exchangeCodeForTokens,
+  parseIdToken,
+  extractEmailFromClaims,
+  type AppleAuthConfig,
+} from "../lib/apple-auth.ts";
 
 type AdminContext = {
   path: string;
@@ -18,6 +34,10 @@ type AdminHandler = (context: AdminContext) => Promise<Response | null>;
 
 const routes: AdminHandler[] = [
   handleLegacyRedirects,
+  handleLoginPage,
+  handleLoginSubmit,
+  handleCallback,
+  handleLogout,
   handleAdminLinkLogSubmissionRoute,
   handleAdminLinkLogMetadataRoute,
   handleAdminAsideSubmissionRoute,
@@ -25,6 +45,8 @@ const routes: AdminHandler[] = [
   handleAdminLinkLogPage,
   handleAdminAsidePage,
 ];
+
+const PUBLIC_ADMIN_PATHS = ["/admin/login", "/admin/callback"];
 
 export async function routeAdmin(
   path: string,
@@ -48,10 +70,11 @@ export async function routeAdmin(
     isPartialRequest,
   };
 
-  if (isAdminPath) {
-    const authResponse = requireAdminAuth(request, env, "Admin");
-    if (authResponse) {
-      return authResponse;
+  const isPublicPath = PUBLIC_ADMIN_PATHS.includes(path);
+  if (isAdminPath && !isPublicPath) {
+    const authResult = await requireAdminAuth(request, env);
+    if (!authResult.authenticated) {
+      return authResult.redirect;
     }
   }
 
@@ -79,6 +102,139 @@ async function handleLegacyRedirects({ path }: AdminContext): Promise<Response |
   }
 
   return null;
+}
+
+async function handleLoginPage({ path, request, isPartialRequest }: AdminContext): Promise<Response | null> {
+  if (path !== "/admin/login" || request.method !== "GET") {
+    return null;
+  }
+
+  const url = new URL(request.url);
+  const error = url.searchParams.get("error") || undefined;
+  const content = loginTemplate({ error });
+  return html(content, "Sign In", "Sign in to admin", isPartialRequest, request);
+}
+
+async function handleLoginSubmit({ path, request, env, origin }: AdminContext): Promise<Response | null> {
+  if (path !== "/admin/login" || request.method !== "POST") {
+    return null;
+  }
+
+  const config = getAppleAuthConfig(env, origin);
+  const state = generateStateToken();
+  const stateCookie = await createStateCookie(state, env.SESSION_SECRET);
+  const authUrl = buildAppleAuthUrl(config, state);
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: authUrl,
+      "Set-Cookie": stateCookie,
+    },
+  });
+}
+
+async function handleCallback({ path, request, env, origin }: AdminContext): Promise<Response | null> {
+  if (path !== "/admin/callback") {
+    return null;
+  }
+
+  if (request.method !== "POST") {
+    return new Response("Method not allowed", { status: 405 });
+  }
+
+  const formData = await request.formData();
+  const code = formData.get("code");
+  const state = formData.get("state");
+  const errorParam = formData.get("error");
+
+  if (errorParam) {
+    const errorDescription = formData.get("error_description") || "Authentication failed";
+    return redirectToLoginWithError(String(errorDescription));
+  }
+
+  if (typeof code !== "string" || typeof state !== "string") {
+    return redirectToLoginWithError("Missing code or state");
+  }
+
+  const isValidState = await verifyStateToken(request, state, env.SESSION_SECRET);
+  if (!isValidState) {
+    return redirectToLoginWithError("Invalid state token");
+  }
+
+  const config = getAppleAuthConfig(env, origin);
+
+  let email: string | null;
+  try {
+    const tokens = await exchangeCodeForTokens(code, config);
+    const claims = parseIdToken(tokens.id_token, config.clientId);
+    email = extractEmailFromClaims(claims);
+  } catch (error) {
+    console.error("Apple auth error:", error);
+    return redirectToLoginWithError("Authentication failed");
+  }
+
+  if (!email) {
+    return redirectToLoginWithError("Could not retrieve email from Apple");
+  }
+
+  if (email !== env.ADMIN_EMAIL) {
+    return new Response("Forbidden: You are not authorized to access the admin area.", {
+      status: 403,
+      headers: {
+        "Content-Type": "text/plain",
+        "Set-Cookie": clearStateCookie(),
+      },
+    });
+  }
+
+  const sessionCookie = await createSessionCookie(email, env.SESSION_SECRET);
+
+  return new Response(null, {
+    status: 302,
+    headers: [
+      ["Location", "/admin"],
+      ["Set-Cookie", sessionCookie],
+      ["Set-Cookie", clearStateCookie()],
+    ],
+  });
+}
+
+async function handleLogout({ path, request, env }: AdminContext): Promise<Response | null> {
+  if (path !== "/admin/logout" || request.method !== "POST") {
+    return null;
+  }
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: "/",
+      "Set-Cookie": clearSessionCookie(),
+    },
+  });
+}
+
+function getAppleAuthConfig(env: Env, origin: string): AppleAuthConfig {
+  // Always use HTTPS for redirect URI (ngrok/proxies forward as HTTP locally)
+  const httpsOrigin = origin.replace(/^http:/, "https:");
+  return {
+    clientId: env.APPLE_CLIENT_ID,
+    teamId: env.APPLE_TEAM_ID,
+    keyId: env.APPLE_KEY_ID,
+    privateKey: env.APPLE_PRIVATE_KEY,
+    redirectUri: `${httpsOrigin}/admin/callback`,
+  };
+}
+
+function redirectToLoginWithError(message: string): Response {
+  const params = new URLSearchParams({ error: message });
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: `/admin/login?${params.toString()}`,
+      "Set-Cookie": clearStateCookie(),
+    },
+  });
 }
 
 async function handleAdminLinkLogSubmissionRoute({ path, request, env }: AdminContext): Promise<Response | null> {

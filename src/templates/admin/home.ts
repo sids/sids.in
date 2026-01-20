@@ -11,6 +11,10 @@ export function adminHomeTemplate(): string {
       <a href="/admin/link-log" class="link-accent font-mono text-sm">New link log entry →</a>
       <a href="/admin/aside" class="link-accent font-mono text-sm">New aside entry →</a>
     </div>
+
+    <form method="POST" action="/admin/logout" hx-boost="false">
+      <button type="submit" class="font-mono text-sm text-secondary hover:text-accent transition">Sign out</button>
+    </form>
   </section>
   `;
 }

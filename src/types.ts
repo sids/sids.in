@@ -41,10 +41,17 @@ export interface PaginationInfo {
 
 export interface Env {
   ASSETS: Fetcher;
-  BASIC_AUTH_PASSWORD: string;
-  BASIC_AUTH_USER?: string;
   GITHUB_TOKEN: string;
   GITHUB_OWNER: string;
   GITHUB_REPO: string;
   GITHUB_BRANCH?: string;
+  // Apple OAuth
+  APPLE_CLIENT_ID: string;
+  APPLE_TEAM_ID: string;
+  APPLE_KEY_ID: string;
+  APPLE_PRIVATE_KEY: string;
+  // Session
+  SESSION_SECRET: string;
+  // Authorization
+  ADMIN_EMAIL: string;
 }

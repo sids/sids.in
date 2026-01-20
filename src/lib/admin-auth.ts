@@ -1,40 +1,44 @@
 import type { Env } from "../types.ts";
+import { verifySession } from "./session.ts";
 
-export function requireAdminAuth(request: Request, env: Env, realm = "Admin"): Response | null {
-  const authHeader = request.headers.get("Authorization") || "";
-  const [scheme, encoded] = authHeader.split(" ");
-  if (scheme !== "Basic" || !encoded) {
-    return unauthorizedResponse(realm);
+export type AuthResult =
+  | { authenticated: true; email: string }
+  | { authenticated: false; redirect: Response };
+
+export async function requireAdminAuth(request: Request, env: Env): Promise<AuthResult> {
+  const session = await verifySession(request, env.SESSION_SECRET);
+
+  if (!session) {
+    return {
+      authenticated: false,
+      redirect: redirectToLogin(),
+    };
   }
 
-  let decoded: string;
-  try {
-    decoded = atob(encoded);
-  } catch (error) {
-    console.warn("Invalid Basic Auth header", error);
-    return unauthorizedResponse(realm);
-  }
-  const separatorIndex = decoded.indexOf(":");
-  if (separatorIndex === -1) {
-    return unauthorizedResponse(realm);
+  if (session.email !== env.ADMIN_EMAIL) {
+    return {
+      authenticated: false,
+      redirect: forbiddenResponse(),
+    };
   }
 
-  const username = decoded.slice(0, separatorIndex);
-  const password = decoded.slice(separatorIndex + 1);
-  const expectedUser = env.BASIC_AUTH_USER || "sid";
-
-  if (username !== expectedUser || password !== env.BASIC_AUTH_PASSWORD) {
-    return unauthorizedResponse(realm);
-  }
-
-  return null;
+  return { authenticated: true, email: session.email };
 }
 
-function unauthorizedResponse(realm: string): Response {
-  return new Response("Unauthorized", {
-    status: 401,
+function redirectToLogin(): Response {
+  return new Response(null, {
+    status: 302,
     headers: {
-      "WWW-Authenticate": `Basic realm="${realm}"`,
+      Location: "/admin/login",
+    },
+  });
+}
+
+function forbiddenResponse(): Response {
+  return new Response("Forbidden: You are not authorized to access the admin area.", {
+    status: 403,
+    headers: {
+      "Content-Type": "text/plain",
     },
   });
 }
