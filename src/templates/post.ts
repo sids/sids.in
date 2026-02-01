@@ -39,7 +39,7 @@ export function postTemplate(
       : "";
 
   const licenseMarkup = `<p class="text-secondary text-sm">
-    This post is licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer license">${ccIcon}${ccByIcon}${ccSaIcon} CC BY-SA 4.0</a>
+    This post is licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer license" class="inline-flex items-center gap-1">${ccIcon}${ccByIcon}${ccSaIcon} CC BY-SA 4.0</a>
   </p>`;
 
   const endMark = `<div class="text-center text-secondary text-lg tracking-widest mt-12">· · ·</div>`;
