@@ -66,11 +66,11 @@ export function postsListCards(
 // Compact list items (for homepage and archive)
 export function postsListCompact(
   posts: PostMeta[],
-  currentFilter: PostFilterType = "all"
+  currentFilter: PostFilterType = "all",
+  emptyMessage?: string
 ): string {
-  const noPostsMessage = currentFilter === "all"
-    ? ""
-    : `No ${describeFilter(currentFilter)} found.`;
+  const noPostsMessage = emptyMessage ??
+    (currentFilter === "all" ? "" : `No ${describeFilter(currentFilter)} found.`);
 
   if (posts.length === 0) {
     return `<div id="posts-list">
