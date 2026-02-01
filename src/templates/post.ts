@@ -1,7 +1,7 @@
 import type { Post, PostMeta } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
 import { formatPostDate } from "./format-date.ts";
-import { asideIcon, externalLinkIcon } from "./icons.ts";
+import { asideIcon, externalLinkIcon, ccIcon, ccByIcon, ccSaIcon } from "./icons.ts";
 import { postsListCompact } from "./partials/posts-list.ts";
 import { tagFilter, type TagFilterType } from "./partials/tag-filter.ts";
 import { recentPostsPartial, recentPostsSection } from "./partials/recent-posts-section.ts";
@@ -39,7 +39,7 @@ export function postTemplate(
       : "";
 
   const licenseMarkup = `<p class="text-secondary text-sm">
-    <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer license">CC BY-SA 4.0</a>
+    This post is licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer license">${ccIcon}${ccByIcon}${ccSaIcon} CC BY-SA 4.0</a>
   </p>`;
 
   const endMark = `<div class="text-center text-secondary text-lg tracking-widest mt-12">· · ·</div>`;
