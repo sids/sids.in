@@ -42,7 +42,7 @@ export function postTemplate(
     This post is licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer license" class="inline-flex items-center gap-1">${ccIcon}${ccByIcon}${ccSaIcon} CC BY-SA 4.0</a>
   </p>`;
 
-  const endMark = `<div class="text-center text-secondary text-lg tracking-widest mt-12">· · ·</div>`;
+  const endMark = `<div class="text-center text-secondary text-lg tracking-widest mt-12" aria-hidden="true">· · ·</div>`;
 
   return `<article>
   <header class="mb-12">
@@ -55,8 +55,8 @@ export function postTemplate(
   <footer class="mt-12 flex flex-col gap-3">
     ${tagsMarkup}
     ${licenseMarkup}
+    ${endMark}
   </footer>
-  ${endMark}
 </article>
 ${recentPostsSectionMarkup}`;
 }
