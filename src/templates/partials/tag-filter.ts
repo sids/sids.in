@@ -12,7 +12,8 @@ export function tagFilter(
     return "";
   }
 
-  const filters = ["all", ...tags];
+  const uniqueTags = [...new Set(tags)];
+  const filters = ["all", ...uniqueTags];
   const links = filters
     .map((tag) => {
       const isAll = tag === "all";
