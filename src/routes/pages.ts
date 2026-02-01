@@ -5,7 +5,7 @@ import { archivePartial, archiveTemplate } from "../templates/archive.ts";
 import { homePartial, homeTemplate } from "../templates/home.ts";
 import { pageTemplate } from "../templates/page.ts";
 import { postListPartial, postListTemplate } from "../templates/post-list.ts";
-import { postTemplate } from "../templates/post.ts";
+import { postRecentPostsPartial, postTemplate } from "../templates/post.ts";
 import { tagPartial, tagTemplate } from "../templates/tag.ts";
 import { generateRssFeed } from "../rss.ts";
 import { filterPosts, getPageNumber, getPostFilter, paginate } from "../lib/pagination.ts";
@@ -162,7 +162,7 @@ function handlePostsList({ path, params, isHtmx, hxTarget, request }: RouteConte
   return html(content, "Posts", "All blog posts", isHtmx, request);
 }
 
-function handlePost({ path, isHtmx, request }: RouteContext): Response | null {
+function handlePost({ path, params, isHtmx, hxTarget, request }: RouteContext): Response | null {
   const postMatch = path.match(/^\/posts\/([a-z0-9-]+)$/);
   if (!postMatch) {
     return null;
@@ -176,7 +176,23 @@ function handlePost({ path, isHtmx, request }: RouteContext): Response | null {
 
   const postMeta = posts.find((meta) => meta.slug === slug);
   const post = parsePost(raw, postMeta?.postType);
-  const content = postTemplate(post);
+  const tagParam = params.get("tag");
+  const currentTag = tagParam && post.tags.includes(tagParam) ? tagParam : "all";
+  const recentPostsPool = currentTag === "all"
+    ? posts
+    : posts.filter((meta) => meta.tags.includes(currentTag));
+  const recentPosts = recentPostsPool
+    .filter((meta) => meta.slug !== post.slug)
+    .slice(0, 5);
+
+  if (hxTarget === "posts-list") {
+    return htmlPartial(
+      postRecentPostsPartial(recentPosts, post.tags, currentTag, `/posts/${post.slug}`),
+      request
+    );
+  }
+
+  const content = postTemplate(post, recentPosts, currentTag);
   return html(content, post.title, post.description, isHtmx, request);
 }
 
