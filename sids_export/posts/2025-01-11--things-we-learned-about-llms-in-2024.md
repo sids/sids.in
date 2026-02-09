@@ -1,0 +1,18 @@
+---
+title: "🔗 Things we learned about LLMs in 2024"
+date: 2025-01-11
+slug: posts/things-we-learned-about-llms-in-2024
+tags:
+  - "link-log"
+  - "llm"
+  - "ai"
+---
+
+[Things we learned about LLMs in 2024](https://simonwillison.net/2024/Dec/31/llms-in-2024/)
+
+Simon Willison:
+
+> A _lot_ has happened in the world of Large Language Models over the course of 2024. Here’s a review of things we figured out about the field in the past twelve months, plus my attempt at identifying key themes and pivotal moments.
+
+It’s a long read, but excellent post that gives a good sense of the action around LLMs over the last year.
+
