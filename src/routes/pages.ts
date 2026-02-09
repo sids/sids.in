@@ -10,6 +10,8 @@ import { tagPartial, tagTemplate } from "../templates/tag.ts";
 import { generateRssFeed } from "../rss.ts";
 import { filterPosts, getPageNumber, getPostFilter, paginate } from "../lib/pagination.ts";
 import { html, htmlPartial, xml } from "../lib/responses.ts";
+import { notFoundTemplate } from "../templates/not-found.ts";
+import { layout, partial } from "../templates/layout.ts";
 
 const POSTS_PER_PAGE = 10;
 
@@ -59,7 +61,12 @@ export function routePages(
     }
   }
 
-  return new Response("Not Found", { status: 404 });
+  const content = notFoundTemplate();
+  const body = isHtmx ? partial(content, "404") : layout(content, "404");
+  return new Response(body, {
+    status: 404,
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
 }
 
 function handleMainFeed({ path, origin, request }: RouteContext): Response | null {
