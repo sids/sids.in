@@ -138,6 +138,8 @@ link: "https://example.com" # Optional; marks link posts
 - Posts under `content/posts/essays/` are treated as `essay` entries.
 - Posts outside `essays/` are treated as `link` when `link` is present; otherwise they are `aside` posts.
 - Link titles in list views point to the external URL (with icon), while the date and "Read Now →" link to the local post page.
+- Draft posts (`draft: true`) are excluded from all public listings, tag indexes, feeds, and sitemap, but remain directly accessible at `/posts/{slug}` for private review via shared URLs.
+- Draft post pages show a visible “draft preview” banner.
 
 ## URL Routes
 

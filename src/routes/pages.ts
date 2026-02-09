@@ -1,6 +1,6 @@
 import type { Post } from "../types.ts";
 import { parsePage, parsePost } from "../markdown.ts";
-import { allTags, pages, postContent, posts, tagIndex } from "../manifest.ts";
+import { allTags, pages, postContent, postMetaBySlug, posts, tagIndex } from "../manifest.ts";
 import { archivePartial, archiveTemplate } from "../templates/archive.ts";
 import { homePartial, homeTemplate } from "../templates/home.ts";
 import { pageTemplate } from "../templates/page.ts";
@@ -181,7 +181,7 @@ function handlePost({ path, params, isHtmx, hxTarget, request }: RouteContext): 
     return null;
   }
 
-  const postMeta = posts.find((meta) => meta.slug === slug);
+  const postMeta = postMetaBySlug[slug];
   const post = parsePost(raw, postMeta?.postType);
   const tagParam = params.get("tag");
   const currentTag = tagParam && post.tags.includes(tagParam) ? tagParam : "all";
