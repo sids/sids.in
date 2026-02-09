@@ -1,6 +1,6 @@
 ---
-title: "My AI Adoption Journey"
-slug: "my-ai-adoption-journey"
+title: "Mitchell Hashimoto's AI Adoption Journey"
+slug: "mitchell-hashimotos-ai-adoption-journey"
 date: "2026-02-09"
 description: ""
 tags: ["AI Coding"]
