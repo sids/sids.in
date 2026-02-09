@@ -19,6 +19,10 @@ export function postTemplate(
     </a>`
     : `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-4 text-primary">${titlePrefix}${escapeHtml(post.title)}</h1>`;
 
+  const draftBanner = post.draft
+    ? `<div class="mb-6 rounded border border-border bg-secondary px-4 py-3 text-sm text-primary">Draft preview: this post is not published yet and is shared for review.</div>`
+    : "";
+
   const tagFilterMarkup = tagFilter(
     `/posts/${post.slug}`,
     post.tags,
@@ -46,6 +50,7 @@ export function postTemplate(
 
   return `<article>
   <header class="mb-12">
+    ${draftBanner}
     <time class="date-mono block mb-3">${formatPostDate(post.date)}</time>
     ${titleHtml}
   </header>
