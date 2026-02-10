@@ -26,9 +26,9 @@ export function postTemplate(
       ${canPublishDraft
         ? `<form method="POST" action="/admin/api/publish" hx-boost="false" class="shrink-0">
           <input type="hidden" name="slug" value="${escapeHtml(post.slug)}" />
-          <button type="submit" class="rounded border border-border bg-primary px-2 py-1 font-mono text-xs text-primary hover:text-accent">Publish</button>
+          <button type="submit" class="rounded border border-border bg-primary px-2 py-1 font-mono text-xs text-primary no-underline hover:text-accent">Publish</button>
         </form>`
-        : `<a href="/admin/login" class="shrink-0 rounded border border-border bg-primary px-2 py-1 font-mono text-xs text-primary hover:text-accent">Log in</a>`}
+        : `<a href="/admin/login" class="shrink-0 rounded border border-border bg-primary px-2 py-1 font-mono text-xs text-primary no-underline hover:text-accent hover:no-underline">Log in</a>`}
     </div>`
     : "";
 
