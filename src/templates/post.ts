@@ -9,7 +9,8 @@ import { recentPostsPartial, recentPostsSection } from "./partials/recent-posts-
 export function postTemplate(
   post: Post,
   recentPosts: PostMeta[],
-  currentTagFilter: TagFilterType = "all"
+  currentTagFilter: TagFilterType = "all",
+  canPublishDraft = false
 ): string {
   // Title: links to external URL with icon if link exists, otherwise just plain text
   const titlePrefix = post.postType === "aside" ? asideIcon : "";
@@ -20,7 +21,15 @@ export function postTemplate(
     : `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-4 text-primary">${titlePrefix}${escapeHtml(post.title)}</h1>`;
 
   const draftBanner = post.draft
-    ? `<div class="mb-6 rounded border border-border bg-secondary px-4 py-3 text-sm text-primary">Draft preview: this post is not published yet and is shared for review.</div>`
+    ? `<div class="mb-6 flex items-center justify-between gap-3 rounded border border-border bg-secondary px-4 py-3 text-sm text-primary">
+      <span>Draft preview: this post is not published yet and is shared for review.</span>
+      ${canPublishDraft
+        ? `<form method="POST" action="/admin/api/publish" class="shrink-0">
+          <input type="hidden" name="slug" value="${escapeHtml(post.slug)}" />
+          <button type="submit" class="rounded border border-border bg-primary px-2 py-1 font-mono text-xs text-primary no-underline hover:text-accent">Publish</button>
+        </form>`
+        : `<a href="/admin/login" class="shrink-0 rounded border border-border bg-primary px-2 py-1 font-mono text-xs text-primary no-underline hover:text-accent hover:no-underline">Log in</a>`}
+    </div>`
     : "";
 
   const tagFilterMarkup = tagFilter(
