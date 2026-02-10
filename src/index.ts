@@ -29,7 +29,7 @@ export default {
         return adminResponse;
       }
 
-      return routePages(path, url.searchParams, url.origin, isPartialRequest, hxTarget, request);
+      return routePages(path, url.searchParams, url.origin, isPartialRequest, hxTarget, request, env);
     } catch (e) {
       console.error(e);
       return new Response("Internal Server Error", { status: 500 });

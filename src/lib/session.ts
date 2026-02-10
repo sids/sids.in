@@ -1,5 +1,6 @@
 const COOKIE_NAME = "__session";
 const STATE_COOKIE_NAME = "__oauth_state";
+const ADMIN_FLAG_COOKIE_NAME = "__admin_logged_in";
 const MAX_AGE_SECONDS = 604800; // 7 days
 const STATE_MAX_AGE_SECONDS = 600; // 10 minutes
 
@@ -178,4 +179,19 @@ function parseCookies(cookieHeader: string): Record<string, string> {
     }
   }
   return cookies;
+}
+
+
+export function createAdminFlagCookie(): string {
+  return `${ADMIN_FLAG_COOKIE_NAME}=1; Secure; SameSite=Lax; Path=/; Max-Age=${MAX_AGE_SECONDS}`;
+}
+
+export function clearAdminFlagCookie(): string {
+  return `${ADMIN_FLAG_COOKIE_NAME}=; Secure; SameSite=Lax; Path=/; Max-Age=0`;
+}
+
+export function hasAdminLoginFlag(request: Request): boolean {
+  const cookieHeader = request.headers.get("Cookie") || "";
+  const cookies = parseCookies(cookieHeader);
+  return cookies[ADMIN_FLAG_COOKIE_NAME] === "1";
 }

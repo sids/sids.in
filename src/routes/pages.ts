@@ -1,4 +1,4 @@
-import type { Post } from "../types.ts";
+import type { Env, Post } from "../types.ts";
 import { parsePage, parsePost } from "../markdown.ts";
 import { allTags, pages, postContent, postMetaBySlug, posts, tagIndex } from "../manifest.ts";
 import { archivePartial, archiveTemplate } from "../templates/archive.ts";
@@ -11,6 +11,7 @@ import { generateRssFeed } from "../rss.ts";
 import { filterPosts, getPageNumber, getPostFilter, paginate } from "../lib/pagination.ts";
 import { html, htmlPartial, xml } from "../lib/responses.ts";
 import { notFoundTemplate } from "../templates/not-found.ts";
+import { hasAdminLoginFlag } from "../lib/session.ts";
 import { layout, partial } from "../templates/layout.ts";
 
 const POSTS_PER_PAGE = 10;
@@ -22,6 +23,7 @@ type RouteContext = {
   isHtmx: boolean;
   hxTarget: string | null;
   request: Request;
+  env: Env;
 };
 
 type RouteHandler = (context: RouteContext) => Response | null;
@@ -44,6 +46,7 @@ export function routePages(
   isHtmx: boolean,
   hxTarget: string | null,
   request: Request,
+  env: Env,
 ): Response {
   const context: RouteContext = {
     path,
@@ -52,6 +55,7 @@ export function routePages(
     isHtmx,
     hxTarget,
     request,
+    env,
   };
 
   for (const handler of routes) {
@@ -199,7 +203,8 @@ function handlePost({ path, params, isHtmx, hxTarget, request }: RouteContext): 
     );
   }
 
-  const content = postTemplate(post, recentPosts, currentTag);
+  const canPublishDraft = post.draft ? hasAdminLoginFlag(request) : false;
+  const content = postTemplate(post, recentPosts, currentTag, canPublishDraft);
   return html(content, post.title, post.description, isHtmx, request);
 }
 
