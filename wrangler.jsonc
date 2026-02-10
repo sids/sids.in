@@ -25,7 +25,7 @@
   ],
 
   "vars": {
-    "GITHUB_OWNER": "",
-    "GITHUB_REPO": ""
+    "GITHUB_OWNER": "sids",
+    "GITHUB_REPO": "sids.in"
   }
 }

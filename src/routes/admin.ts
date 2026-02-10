@@ -331,11 +331,23 @@ async function handleAdminPublishRoute({ path, request, env }: AdminContext): Pr
 
 async function handlePublishDraft(slug: string, env: Env): Promise<{ ok?: boolean; path?: string; error?: string }> {
   if (!env.GITHUB_TOKEN || !env.GITHUB_OWNER || !env.GITHUB_REPO) {
+    console.error("Missing GitHub configuration for publish", {
+      hasToken: Boolean(env.GITHUB_TOKEN),
+      hasOwner: Boolean(env.GITHUB_OWNER),
+      hasRepo: Boolean(env.GITHUB_REPO),
+      slug,
+    });
     return { error: "Missing GitHub configuration" };
   }
 
   const meta = postMetaBySlug[slug];
   if (!meta?.draft || !meta.sourcePath) {
+    console.error("Draft post lookup failed", {
+      slug,
+      hasMeta: Boolean(meta),
+      isDraft: meta?.draft,
+      sourcePath: meta?.sourcePath,
+    });
     return { error: "Draft post not found" };
   }
 
@@ -353,7 +365,12 @@ async function handlePublishDraft(slug: string, env: Env): Promise<{ ok?: boolea
 
   if (!readResponse.ok) {
     const errorText = await readResponse.text();
-    console.error(errorText);
+    console.error("Failed to read draft post", {
+      slug,
+      branch,
+      status: readResponse.status,
+      response: errorText,
+    });
     return { error: "Failed to read draft post" };
   }
 
@@ -362,6 +379,10 @@ async function handlePublishDraft(slug: string, env: Env): Promise<{ ok?: boolea
   const next = raw.replace(/^draft:\s*true\s*$/m, "draft: false");
 
   if (next === raw) {
+    console.error("Draft flag not found while publishing", {
+      slug,
+      sourcePath: meta.sourcePath,
+    });
     return { error: "Draft flag not found" };
   }
 
@@ -387,7 +408,12 @@ async function handlePublishDraft(slug: string, env: Env): Promise<{ ok?: boolea
 
   if (!updateResponse.ok) {
     const errorText = await updateResponse.text();
-    console.error(errorText);
+    console.error("Failed to publish draft", {
+      slug,
+      branch,
+      status: updateResponse.status,
+      response: errorText,
+    });
     return { error: "Failed to publish draft" };
   }
 
