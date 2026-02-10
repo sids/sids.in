@@ -18,6 +18,7 @@ export interface PostMeta {
   tags: string[];
   draft?: boolean;
   link?: string;
+  sourcePath?: string;
   postType: PostType;
 }
 

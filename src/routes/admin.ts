@@ -1,5 +1,5 @@
 import type { Env } from "../types.ts";
-import { allTags } from "../manifest.ts";
+import { allTags, postMetaBySlug } from "../manifest.ts";
 import { linkLogTemplate } from "../templates/admin/link-log.ts";
 import { asideTemplate } from "../templates/admin/aside.ts";
 import { adminHomeTemplate } from "../templates/admin/home.ts";
@@ -13,6 +13,8 @@ import {
   createStateCookie,
   verifyStateToken,
   clearStateCookie,
+  createAdminFlagCookie,
+  clearAdminFlagCookie,
 } from "../lib/session.ts";
 import {
   buildAppleAuthUrl,
@@ -41,6 +43,7 @@ const routes: AdminHandler[] = [
   handleAdminLinkLogSubmissionRoute,
   handleAdminLinkLogMetadataRoute,
   handleAdminAsideSubmissionRoute,
+  handleAdminPublishRoute,
   handleAdminHome,
   handleAdminLinkLogPage,
   handleAdminAsidePage,
@@ -195,6 +198,7 @@ async function handleCallback({ path, request, env, origin }: AdminContext): Pro
     headers: [
       ["Location", "/admin"],
       ["Set-Cookie", sessionCookie],
+      ["Set-Cookie", createAdminFlagCookie()],
       ["Set-Cookie", clearStateCookie()],
     ],
   });
@@ -207,10 +211,11 @@ async function handleLogout({ path, request, env }: AdminContext): Promise<Respo
 
   return new Response(null, {
     status: 302,
-    headers: {
-      Location: "/",
-      "Set-Cookie": clearSessionCookie(),
-    },
+    headers: [
+      ["Location", "/"],
+      ["Set-Cookie", clearSessionCookie()],
+      ["Set-Cookie", clearAdminFlagCookie()],
+    ],
   });
 }
 
@@ -259,6 +264,106 @@ async function handleAdminAsideSubmissionRoute({ path, request, env }: AdminCont
   }
 
   return handleAsideSubmission(request, env);
+}
+
+async function handleAdminPublishRoute({ path, request, env }: AdminContext): Promise<Response | null> {
+  if (path !== "/admin/api/publish" || request.method !== "POST") {
+    return null;
+  }
+
+  const contentType = request.headers.get("Content-Type") || "";
+  const isJson = contentType.includes("application/json");
+  let slug = "";
+
+  if (isJson) {
+    const payload = await request.json<{ slug?: string }>();
+    slug = String(payload.slug || "").trim();
+  } else {
+    const formData = await request.formData();
+    slug = String(formData.get("slug") || "").trim();
+  }
+
+  if (!slug) {
+    return json({ error: "Missing slug" }, 400);
+  }
+
+  const result = await handlePublishDraft(slug, env);
+
+  if (!isJson) {
+    return new Response(null, {
+      status: 302,
+      headers: {
+        Location: `/posts/${slug}`,
+      },
+    });
+  }
+
+  return json(result, result.error ? 502 : 200);
+}
+
+async function handlePublishDraft(slug: string, env: Env): Promise<{ ok?: boolean; path?: string; error?: string }> {
+  if (!env.GITHUB_TOKEN || !env.GITHUB_OWNER || !env.GITHUB_REPO) {
+    return { error: "Missing GitHub configuration" };
+  }
+
+  const meta = postMetaBySlug[slug];
+  if (!meta?.draft || !meta.sourcePath) {
+    return { error: "Draft post not found" };
+  }
+
+  const branch = env.GITHUB_BRANCH || "main";
+  const encodedPath = meta.sourcePath.split("/").map(encodeURIComponent).join("/");
+  const apiUrl = `https://api.github.com/repos/${env.GITHUB_OWNER}/${env.GITHUB_REPO}/contents/${encodedPath}`;
+
+  const readResponse = await fetch(`${apiUrl}?ref=${encodeURIComponent(branch)}`, {
+    headers: {
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+      "Accept": "application/vnd.github+json",
+      "User-Agent": "sids.in admin bot",
+    },
+  });
+
+  if (!readResponse.ok) {
+    const errorText = await readResponse.text();
+    console.error(errorText);
+    return { error: "Failed to read draft post" };
+  }
+
+  const file = await readResponse.json<{ content: string; sha: string }>();
+  const raw = atob(file.content.replace(/\n/g, ""));
+  const next = raw.replace(/^draft:\s*true\s*$/m, "draft: false");
+
+  if (next === raw) {
+    return { error: "Draft flag not found" };
+  }
+
+  const updateResponse = await fetch(apiUrl, {
+    method: "PUT",
+    headers: {
+      "Authorization": `Bearer ${env.GITHUB_TOKEN}`,
+      "Accept": "application/vnd.github+json",
+      "Content-Type": "application/json",
+      "User-Agent": "sids.in admin bot",
+    },
+    body: JSON.stringify({
+      message: `Publish post: ${slug}`,
+      content: base64EncodeUtf8(next),
+      sha: file.sha,
+      branch,
+      committer: {
+        name: "Admin Bot",
+        email: "admin@users.noreply.github.com",
+      },
+    }),
+  });
+
+  if (!updateResponse.ok) {
+    const errorText = await updateResponse.text();
+    console.error(errorText);
+    return { error: "Failed to publish draft" };
+  }
+
+  return { ok: true, path: meta.sourcePath };
 }
 
 async function handleAdminHome({ path, request, isPartialRequest }: AdminContext): Promise<Response | null> {
