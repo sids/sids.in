@@ -330,7 +330,7 @@ async function handlePublishDraft(slug: string, env: Env): Promise<{ ok?: boolea
   }
 
   const file = await readResponse.json<{ content: string; sha: string }>();
-  const raw = atob(file.content.replace(/\n/g, ""));
+  const raw = base64DecodeUtf8(file.content);
   const next = raw.replace(/^draft:\s*true\s*$/m, "draft: false");
 
   if (next === raw) {
@@ -665,6 +665,15 @@ function buildPostMarkdown(input: {
 
 function escapeYaml(value: string): string {
   return value.replace(/"/g, "\\\"");
+}
+
+function base64DecodeUtf8(value: string): string {
+  const binary = atob(value.replace(/\n/g, ""));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new TextDecoder("utf-8").decode(bytes);
 }
 
 function base64EncodeUtf8(value: string): string {
