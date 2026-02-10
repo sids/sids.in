@@ -4,7 +4,7 @@ slug: "agentic-engineering"
 date: "2026-02-10"
 description: ""
 tags: ["Agentic Engineering"]
-draft: true
+draft: false
 ---
 
 [Andrej Karpathy](https://x.com/karpathy/status/2019137879310836075), on the one-year anniversary of coining "vibe coding" *(emphasis mine)*:
