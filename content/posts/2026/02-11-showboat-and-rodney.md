@@ -12,6 +12,8 @@ draft: true
 
 > A key challenge working with coding agents is having them both test what they've built and demonstrate that software to you, their overseer. This goes beyond automated tests—we need artifacts that show their progress and help us see exactly what the agent-produced software is able to do.
 
+Simon's response to this challenge is two CLIs, Showboat & Rodney.
+
 [Showboat](https://github.com/simonw/showboat):
 
 > It's a CLI tool (a Go binary, optionally wrapped in Python to make it easier to install) that helps an agent construct a Markdown document demonstrating exactly what their newly developed code can do.
