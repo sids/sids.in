@@ -92,7 +92,7 @@ export function postTemplate(
         }
 
         async function isDeploymentReady() {
-          const statusUrl = `/posts/${encodeURIComponent(slug)}?publish-check=${Date.now()}`;
+          const statusUrl = \`/posts/\${encodeURIComponent(slug)}?publish-check=\${Date.now()}\`;
           const response = await fetch(statusUrl, {
             headers: {
               "HX-Request": "true",
