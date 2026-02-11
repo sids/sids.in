@@ -5,7 +5,7 @@ date: "2026-02-11"
 description: ""
 tags: ["AI Coding", "Agentic Engineering"]
 link: "https://simonwillison.net/2026/Feb/10/showboat-and-rodney/"
-draft: true
+draft: false
 ---
 
 [Simon Willison](https://simonwillison.net/):
