@@ -174,6 +174,7 @@ link: "https://example.com" # Optional; marks link posts
 ## Post Filtering
 
 - Filter query param: `?type=essay`, `?type=aside`, or `?type=link`
+- Legacy `?type=brief` URLs are permanently redirected to `?type=aside` for backwards compatibility
 - Available on `/`, `/posts`, `/archive`, and `/tags/{tag}` via the filter UI
 - HTMX updates swap `#posts-list` and update the filter nav out-of-band
 

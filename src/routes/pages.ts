@@ -48,6 +48,11 @@ export function routePages(
   request: Request,
   env: Env,
 ): Response {
+  const legacyFilterRedirect = redirectLegacyBriefFilter(path, params, request.url);
+  if (legacyFilterRedirect) {
+    return legacyFilterRedirect;
+  }
+
   const context: RouteContext = {
     path,
     params,
@@ -71,6 +76,22 @@ export function routePages(
     status: 404,
     headers: { "Content-Type": "text/html; charset=utf-8" },
   });
+}
+
+function redirectLegacyBriefFilter(path: string, params: URLSearchParams, requestUrl: string): Response | null {
+  if (params.get("type") !== "brief") {
+    return null;
+  }
+
+  const isFilterablePath = path === "/" || path === "/posts" || path === "/archive" || /^\/tags\/[a-z0-9-]+$/i.test(path);
+  if (!isFilterablePath) {
+    return null;
+  }
+
+  const url = new URL(requestUrl);
+  url.searchParams.set("type", "aside");
+
+  return Response.redirect(url.toString(), 301);
 }
 
 function handleMainFeed({ path, origin, request }: RouteContext): Response | null {
