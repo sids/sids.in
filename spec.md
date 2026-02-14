@@ -63,7 +63,7 @@ sids.in/
 │   │   ├── home.md           # → /
 │   │   └── about.md          # → /about
 │   └── posts/                # Blog posts
-│       ├── essays/            # Essay posts
+│       ├── notes/             # Note posts
 │       ├── 2025/              # Dated posts (asides + link logs)
 │       └── *.md               # → /posts/{slug}
 ├── src/
@@ -135,8 +135,8 @@ link: "https://example.com" # Optional; marks link posts
 ```
 
 **Post types:**
-- Posts under `content/posts/essays/` are treated as `essay` entries.
-- Posts outside `essays/` are treated as `link` when `link` is present; otherwise they are `aside` posts.
+- Posts under `content/posts/notes/` are treated as `note` entries.
+- Posts outside `notes/` are treated as `link` when `link` is present; otherwise they are `aside` posts.
 - Link titles in list views point to the external URL (with icon), while the date and "Read Now →" link to the local post page.
 - Draft posts (`draft: true`) are excluded from all public listings, tag indexes, feeds, and sitemap, but remain directly accessible at `/posts/{slug}` for private review via shared URLs.
 - Draft post pages show a visible “draft preview” banner.
@@ -173,8 +173,8 @@ link: "https://example.com" # Optional; marks link posts
 
 ## Post Filtering
 
-- Filter query param: `?type=essay`, `?type=aside`, or `?type=link`
-- Legacy `?type=brief` URLs are permanently redirected to `?type=aside` for backwards compatibility
+- Filter query param: `?type=note`, `?type=aside`, or `?type=link`
+- Legacy `?type=essay` URLs are permanently redirected to `?type=note`; `?type=brief` URLs remain redirected to `?type=aside` for backwards compatibility
 - Available on `/`, `/posts`, `/archive`, and `/tags/{tag}` via the filter UI
 - HTMX updates swap `#posts-list` and update the filter nav out-of-band
 
