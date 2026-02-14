@@ -5,7 +5,7 @@ date: "2026-02-14"
 description: ""
 tags: ["Agentic Engineering"]
 link: "https://lucumr.pocoo.org/2026/2/13/the-final-bottleneck/"
-draft: true
+draft: false
 ---
 
 Armin Ronacher:
