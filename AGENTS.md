@@ -36,12 +36,12 @@ bun run build:manifest  # Regenerate content manifest only
 ## Link Handling
 
 **Post types:**
-- Posts under `content/posts/essays/` are treated as `postType: "essay"`.
+- Posts under `content/posts/notes/` are treated as `postType: "note"`.
 - Use the `link` frontmatter field to mark a post as a `postType: "link-log"` entry.
 - Other posts default to `postType: "aside"`.
 - In list views (`src/templates/partials/post-card.ts`), link-log titles point to the external URL and include the external-link icon, while the date and "Read Now →" link point to the local post page.
-- Post filtering is supported via the `type=essay`, `type=aside`, and `type=link` query params on `/`, `/posts`, `/archive`, and tag pages.
-- Legacy `type=brief` URLs are permanently redirected to `type=aside` for backwards compatibility.
+- Post filtering is supported via the `type=note`, `type=aside`, and `type=link` query params on `/`, `/posts`, `/archive`, and tag pages.
+- Legacy `type=essay` URLs are permanently redirected to `type=note`; `type=brief` URLs remain redirected to `type=aside` for backwards compatibility.
 
 **Internal vs. external links:**
 - Default links inherit text color with underline styling from `styles/input.css`.

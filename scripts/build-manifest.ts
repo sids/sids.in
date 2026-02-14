@@ -182,8 +182,8 @@ async function buildManifest() {
 
   const postMetaArray = postMetaEntries.map(({ meta, file }) => {
     const [topLevelDir] = file.split("/");
-    const isEssay = topLevelDir === "essays";
-    const postType = isEssay ? "essay" : meta.link ? "link" : "aside";
+    const isNote = topLevelDir === "notes";
+    const postType = isNote ? "note" : meta.link ? "link" : "aside";
     const sourcePath = `content/posts/${file}`;
     return `  { title: ${JSON.stringify(meta.title)}, slug: ${JSON.stringify(meta.slug)}, date: ${JSON.stringify(meta.date)}${meta.description ? `, description: ${JSON.stringify(meta.description)}` : ""}, tags: ${JSON.stringify(meta.tags || [])}${meta.link ? `, link: ${JSON.stringify(meta.link)}` : ""}, sourcePath: ${JSON.stringify(sourcePath)}, postType: ${JSON.stringify(postType)} }`;
   });
@@ -191,8 +191,8 @@ async function buildManifest() {
   const postMetaBySlug = allPostMetaEntries
     .map(({ meta, file }) => {
       const [topLevelDir] = file.split("/");
-      const isEssay = topLevelDir === "essays";
-      const postType = isEssay ? "essay" : meta.link ? "link" : "aside";
+      const isNote = topLevelDir === "notes";
+      const postType = isNote ? "note" : meta.link ? "link" : "aside";
       const sourcePath = `content/posts/${file}`;
       return `  ${JSON.stringify(meta.slug)}: { title: ${JSON.stringify(meta.title)}, slug: ${JSON.stringify(meta.slug)}, date: ${JSON.stringify(meta.date)}${meta.description ? `, description: ${JSON.stringify(meta.description)}` : ""}, tags: ${JSON.stringify(meta.tags || [])}, draft: ${Boolean(meta.draft)}${meta.link ? `, link: ${JSON.stringify(meta.link)}` : ""}, sourcePath: ${JSON.stringify(sourcePath)}, postType: ${JSON.stringify(postType)} }`;
     })

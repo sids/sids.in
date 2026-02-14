@@ -48,7 +48,7 @@ export function routePages(
   request: Request,
   env: Env,
 ): Response {
-  const legacyFilterRedirect = redirectLegacyBriefFilter(path, params, request.url);
+  const legacyFilterRedirect = redirectLegacyFilterTypes(path, params, request.url);
   if (legacyFilterRedirect) {
     return legacyFilterRedirect;
   }
@@ -78,8 +78,9 @@ export function routePages(
   });
 }
 
-function redirectLegacyBriefFilter(path: string, params: URLSearchParams, requestUrl: string): Response | null {
-  if (params.get("type") !== "brief") {
+function redirectLegacyFilterTypes(path: string, params: URLSearchParams, requestUrl: string): Response | null {
+  const currentType = params.get("type");
+  if (currentType !== "brief" && currentType !== "essay") {
     return null;
   }
 
@@ -89,7 +90,7 @@ function redirectLegacyBriefFilter(path: string, params: URLSearchParams, reques
   }
 
   const url = new URL(requestUrl);
-  url.searchParams.set("type", "aside");
+  url.searchParams.set("type", currentType === "essay" ? "note" : "aside");
 
   return Response.redirect(url.toString(), 301);
 }

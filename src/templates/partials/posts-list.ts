@@ -24,8 +24,8 @@ function indicatorForPost(type: PostType): string {
 
 function describeFilter(filter: PostFilterType): string {
   switch (filter) {
-    case "essay":
-      return "essays";
+    case "note":
+      return "notes";
     case "aside":
       return "asides";
     case "link":
