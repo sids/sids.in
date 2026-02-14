@@ -33,8 +33,8 @@ export function archiveTemplate(
 ): string {
   return `<div>
   <h1 class="font-mono text-3xl font-medium mb-8 text-secondary">Archive</h1>
-  ${postFilter("/archive", currentFilter)}
   ${renderTags(tags)}
+  ${postFilter("/archive", currentFilter)}
   ${postsListArchive(posts, currentFilter)}
 </div>`;
 }
