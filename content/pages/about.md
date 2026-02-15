@@ -16,3 +16,9 @@ I presently _head engineering_ at **udaan** (India’s largest B2B e-commerce pl
 I have a master’s degree in Computer Science from [**iiit-b**](https://www.iiitb.ac.in/). My research and thesis was in the field of Information Retrieval.
 
 These days, you can find me lurking on [X/Twitter](https://x.com/sids), [Threads](https://www.threads.net/@sidsr), [Mastodon](https://mstdn.social/@sids), [Bluesky](https://bsky.app/profile/sids.in). You can also connect with me on [LinkedIn](https://www.linkedin.com/in/sidsr).
+
+## Newsletter
+
+Subscribe to my newsletter for an occasional roundup of interesting things.
+
+<iframe src="https://siddhartha.substack.com/embed" width="480" height="320" style="border: 1px solid #EEE; background: white; max-width: 100%; border-radius: 8px;" frameborder="0" scrolling="no"></iframe>
