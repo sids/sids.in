@@ -2,6 +2,7 @@ import type { Page, PostMeta } from "../types.ts";
 import { postFilter, type PostFilterType } from "./partials/post-filter.ts";
 import { postsListCompact } from "./partials/posts-list.ts";
 import { recentPostsSection, recentPostsPartial } from "./partials/recent-posts-section.ts";
+import { newsletterEmbed } from "./partials/subscribe.ts";
 
 export function homeTemplate(
   page: Page,
@@ -19,7 +20,8 @@ export function homeTemplate(
   return `<article class="post-content">
   ${page.html}
 </article>
-${recentPostsSectionMarkup}`;
+${recentPostsSectionMarkup}
+${newsletterEmbed()}`;
 }
 
 // Returns posts list + filter with OOB swap for HTMX partial updates
