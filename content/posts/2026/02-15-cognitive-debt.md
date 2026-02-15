@@ -4,7 +4,7 @@ slug: "cognitive-debt"
 date: "2026-02-15"
 description: ""
 tags: ["Agentic Engineering"]
-draft: true
+draft: false
 ---
 
 From [How Generative and Agentic AI Shift Concern from Technical Debt to Cognitive Debt](https://margaretstorey.com/blog/2026/02/09/cognitive-debt/) ([via Simon Willison](https://simonwillison.net/2026/Feb/15/cognitive-debt/)):
