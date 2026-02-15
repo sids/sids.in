@@ -13,6 +13,6 @@ From [How Generative and Agentic AI Shift Concern from Technical Debt to Cogniti
 
 I hadn't come across this term before. It is a useful one to add to our collective vocabulary. I suppose that in just a couple of years we'll all be talking about this phenomenon like we talk about technical debt now.
 
-I haven't personally felt this way yet, maybe that means I'm not fully embracing and giving into the agents. But I can feel the urge to go there.
+I haven't personally felt this way yet, maybe that means I'm not fully embracing and giving in to the agents. But I can feel the urge to go there.
 
 I bet that one of the best ways to avoid getting into cognitive debt is [to continue to be the bottleneck](https://sids.in/posts/the-final-bottleneck).
