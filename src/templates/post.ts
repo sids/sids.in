@@ -3,6 +3,7 @@ import { escapeHtml } from "../markdown.ts";
 import { formatPostDate } from "./format-date.ts";
 import { asideIcon, externalLinkIcon, ccIcon, ccByIcon, ccSaIcon } from "./icons.ts";
 import { postsListCompact } from "./partials/posts-list.ts";
+import { postSubscribePrompt } from "./partials/subscribe.ts";
 import { tagFilter, type TagFilterType } from "./partials/tag-filter.ts";
 import { recentPostsPartial, recentPostsSection } from "./partials/recent-posts-section.ts";
 
@@ -212,6 +213,8 @@ export function postTemplate(
     This post is licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer license" class="align-middle"><span class="inline-flex items-center gap-1 align-middle">${ccIcon}${ccByIcon}${ccSaIcon}</span> CC BY-SA 4.0</a>
   </p>`;
 
+  const subscribeMarkup = postSubscribePrompt();
+
   const endMark = `<div class="text-center text-secondary text-lg tracking-widest mt-12" aria-hidden="true">· · ·</div>`;
 
   return `<article data-post-draft="${post.draft ? "true" : "false"}">
@@ -226,6 +229,7 @@ export function postTemplate(
   <footer class="mt-12 flex flex-col gap-3">
     ${tagsMarkup}
     ${licenseMarkup}
+    ${subscribeMarkup}
     ${endMark}
   </footer>
 </article>
