@@ -207,6 +207,11 @@
     background-color: var(--border);
   }
 
+
+  .newsletter-embed {
+    @apply block w-full max-w-sm h-[168px] md:h-[176px] border border-border bg-primary rounded;
+  }
+
   .alert {
     @apply rounded border border-border bg-secondary px-3 py-2 text-sm;
   }
