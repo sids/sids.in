@@ -80,6 +80,8 @@ export function layout(content: string, title: string, description?: string, tag
     <div class="content-width py-8 flex flex-col items-center gap-4 md:flex-row md:justify-between">
       <div class="flex items-center gap-4 md:order-2">
         <a href="/posts/feed.xml" hx-boost="false" class="font-mono text-xs text-secondary" aria-label="RSS Feed">RSS</a>
+        <span class="text-secondary font-mono text-xs">&middot;</span>
+        <a href="/newsletter" class="font-mono text-xs text-secondary">Newsletter</a>
         <button onclick="toggleTheme()" class="theme-switch" id="theme-switch" aria-label="Toggle theme">
           <span class="theme-switch-icon" id="theme-icon">☀</span>
           <span class="theme-switch-knob" id="theme-knob"></span>
