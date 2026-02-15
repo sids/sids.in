@@ -13,6 +13,7 @@ import { html, htmlPartial, xml } from "../lib/responses.ts";
 import { notFoundTemplate } from "../templates/not-found.ts";
 import { hasAdminLoginFlag } from "../lib/session.ts";
 import { layout, partial } from "../templates/layout.ts";
+import { newsletterEmbed } from "../templates/partials/subscribe.ts";
 
 const POSTS_PER_PAGE = 10;
 
@@ -290,6 +291,7 @@ function handleStaticPage({ path, isHtmx, request }: RouteContext): Response | n
 
   const pageData = pages[pageSlug]!;
   const page = parsePage(pageData.content, pageSlug);
-  const content = pageTemplate(page);
+  const suffix = pageSlug === "about" ? newsletterEmbed() : "";
+  const content = pageTemplate(page) + suffix;
   return html(content, page.title, page.description, isHtmx, request);
 }
