@@ -212,6 +212,24 @@ export function postTemplate(
     This post is licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer license" class="align-middle"><span class="inline-flex items-center gap-1 align-middle">${ccIcon}${ccByIcon}${ccSaIcon}</span> CC BY-SA 4.0</a>
   </p>`;
 
+  const subscribeMarkup = `<div class="flex flex-col gap-3 rounded border border-border bg-secondary p-4">
+    <p class="text-sm text-primary">
+      Enjoyed this post? Subscribe via <a href="/posts/feed.xml" class="link-accent">RSS</a> for new posts.
+    </p>
+    <div>
+      <p class="mb-2 text-sm text-primary">Or subscribe to the newsletter:</p>
+      <iframe
+        src="https://siddhartha.substack.com/embed"
+        width="480"
+        height="320"
+        frameborder="0"
+        scrolling="no"
+        class="newsletter-embed"
+        title="Subscribe to Siddhartha's newsletter on Substack"
+      ></iframe>
+    </div>
+  </div>`;
+
   const endMark = `<div class="text-center text-secondary text-lg tracking-widest mt-12" aria-hidden="true">· · ·</div>`;
 
   return `<article data-post-draft="${post.draft ? "true" : "false"}">
@@ -226,6 +244,7 @@ export function postTemplate(
   <footer class="mt-12 flex flex-col gap-3">
     ${tagsMarkup}
     ${licenseMarkup}
+    ${subscribeMarkup}
     ${endMark}
   </footer>
 </article>
