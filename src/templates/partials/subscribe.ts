@@ -9,7 +9,7 @@ export function newsletterEmbed(): string {
 export function postSubscribePrompt(): string {
   return `<div class="flex flex-col gap-3 mt-3">
   <p class="text-secondary text-sm">
-    Enjoyed this post? Subscribe via <a href="/posts/feed.xml" class="link-accent">RSS</a> or sign up for the newsletter:
+    Enjoyed this post? Subscribe via <a href="/posts/feed.xml" hx-boost="false" class="link-accent">RSS</a> or sign up for the newsletter:
   </p>
   <iframe src="https://siddhartha.substack.com/embed" width="480" height="150" style="border: 1px solid var(--border); border-radius: 8px; background: white; max-width: 100%;" frameborder="0" scrolling="no"></iframe>
 </div>`;
