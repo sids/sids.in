@@ -5,7 +5,7 @@ date: "2026-02-16"
 description: ""
 tags: ["ai", "programming", "Agentic Engineering"]
 link: "https://simonwillison.net/2026/Feb/15/deep-blue/"
-draft: true
+draft: false
 ---
 
 Simon Willison:
