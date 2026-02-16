@@ -39,7 +39,8 @@ export function layout(content: string, title: string, description?: string, tag
   const tagFeedLink = tag
     ? `\n  <link rel="alternate" type="application/rss+xml" title="Posts tagged ${escapeHtml(tag)}" href="/tags/${tag}/feed.xml">`
     : "";
-  const pageTitle = isPost ? `${escapeHtml(title)} by Siddhartha Reddy | sids.in` : `${escapeHtml(title)} | sids.in`;
+  const escaped = escapeHtml(title);
+  const pageTitle = isPost ? `${escaped} by Siddhartha Reddy | sids.in` : escaped === "sids.in" ? escaped : `${escaped} | sids.in`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,7 +101,8 @@ export function layout(content: string, title: string, description?: string, tag
 }
 
 export function partial(content: string, title: string, isPost?: boolean): string {
-  const pageTitle = isPost ? `${escapeHtml(title)} by Siddhartha Reddy | sids.in` : `${escapeHtml(title)} | sids.in`;
+  const escaped = escapeHtml(title);
+  const pageTitle = isPost ? `${escaped} by Siddhartha Reddy | sids.in` : escaped === "sids.in" ? escaped : `${escaped} | sids.in`;
   return `<title>${pageTitle}</title>
 ${content}`;
 }
