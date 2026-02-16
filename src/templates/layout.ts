@@ -44,8 +44,9 @@ export function layout(content: string, title: string, description?: string, tag
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(title)} | sids.in</title>
-  ${description ? `<meta name="description" content="${escapeHtml(description)}">` : ""}
+  <title>${escapeHtml(title)} by Siddhartha Reddy | sids.in</title>
+  <meta property="og:title" content="${escapeHtml(title)}">
+  ${description ? `<meta name="description" content="${escapeHtml(description)}">\n  <meta property="og:description" content="${escapeHtml(description)}">` : ""}
   <link rel="icon" type="image/png" href="/images/s.png">
   <link rel="stylesheet" href="/css/styles.css">
   <link rel="alternate" type="application/rss+xml" title="Sid's Blog" href="/posts/feed.xml">${tagFeedLink}
@@ -98,6 +99,6 @@ export function layout(content: string, title: string, description?: string, tag
 }
 
 export function partial(content: string, title: string): string {
-  return `<title>${escapeHtml(title)} | sids.in</title>
+  return `<title>${escapeHtml(title)} by Siddhartha Reddy | sids.in</title>
 ${content}`;
 }
