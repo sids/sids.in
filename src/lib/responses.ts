@@ -44,8 +44,9 @@ export function html(
   isHtmx: boolean,
   request: Request,
   tag?: string,
+  isPost?: boolean,
 ): Response {
-  const body = isHtmx ? partial(content, title) : layout(content, title, description, tag);
+  const body = isHtmx ? partial(content, title, isPost) : layout(content, title, description, tag, isPost);
   return cachedResponse(body, "text/html; charset=utf-8", request);
 }
 

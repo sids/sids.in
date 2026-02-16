@@ -35,16 +35,17 @@ function updateToggle() {
 document.addEventListener('DOMContentLoaded', updateToggle);
 `;
 
-export function layout(content: string, title: string, description?: string, tag?: string): string {
+export function layout(content: string, title: string, description?: string, tag?: string, isPost?: boolean): string {
   const tagFeedLink = tag
     ? `\n  <link rel="alternate" type="application/rss+xml" title="Posts tagged ${escapeHtml(tag)}" href="/tags/${tag}/feed.xml">`
     : "";
+  const pageTitle = isPost ? `${escapeHtml(title)} by Siddhartha Reddy | sids.in` : `${escapeHtml(title)} | sids.in`;
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapeHtml(title)} by Siddhartha Reddy | sids.in</title>
+  <title>${pageTitle}</title>
   <meta property="og:title" content="${escapeHtml(title)}">
   ${description ? `<meta name="description" content="${escapeHtml(description)}">\n  <meta property="og:description" content="${escapeHtml(description)}">` : ""}
   <link rel="icon" type="image/png" href="/images/s.png">
@@ -98,7 +99,8 @@ export function layout(content: string, title: string, description?: string, tag
 </html>`;
 }
 
-export function partial(content: string, title: string): string {
-  return `<title>${escapeHtml(title)} by Siddhartha Reddy | sids.in</title>
+export function partial(content: string, title: string, isPost?: boolean): string {
+  const pageTitle = isPost ? `${escapeHtml(title)} by Siddhartha Reddy | sids.in` : `${escapeHtml(title)} | sids.in`;
+  return `<title>${pageTitle}</title>
 ${content}`;
 }

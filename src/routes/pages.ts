@@ -227,7 +227,7 @@ function handlePost({ path, params, isHtmx, hxTarget, request }: RouteContext): 
 
   const canPublishDraft = post.draft ? hasAdminLoginFlag(request) : false;
   const content = postTemplate(post, recentPosts, currentTag, canPublishDraft);
-  return html(content, post.title, post.description, isHtmx, request);
+  return html(content, post.title, post.description, isHtmx, request, undefined, true);
 }
 
 function handleArchive({ path, params, isHtmx, hxTarget, request }: RouteContext): Response | null {
