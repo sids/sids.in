@@ -5,7 +5,7 @@ date: "2026-02-16"
 description: ""
 tags: ["ai", "product building"]
 link: "https://x.com/michaelxbloch/status/2022389638619353233"
-draft: true
+draft: false
 ---
 
 [Michael Bloch](https://x.com/michaelxbloch):
