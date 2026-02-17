@@ -1,7 +1,7 @@
 import type { TagInfo } from "../../types.ts";
 import { escapeHtml } from "../../markdown.ts";
 
-export function asideTemplate(tags: TagInfo[]): string {
+export function noteTemplate(tags: TagInfo[]): string {
   const tagOptions = tags
     .map((tag) => `"${escapeHtml(tag.tag)}"`)
     .join(", ");
@@ -10,14 +10,14 @@ export function asideTemplate(tags: TagInfo[]): string {
   <section class="flex flex-col gap-8">
     <header class="flex flex-col gap-3">
       <a href="/admin" class="font-mono text-xs uppercase text-secondary link-accent">Admin home</a>
-      <p class="font-mono text-sm text-secondary">Aside</p>
-      <h1 class="text-3xl font-mono text-primary">New aside entry</h1>
+      <p class="font-mono text-sm text-secondary">Note</p>
+      <h1 class="text-3xl font-mono text-primary">New note entry</h1>
     </header>
 
-    <form id="aside-form" class="flex flex-col gap-6">
+    <form id="note-form" class="flex flex-col gap-6">
       <div class="flex flex-col gap-2">
         <label for="title" class="font-mono text-xs uppercase text-secondary">Title</label>
-        <input id="title" name="title" type="text" required class="w-full rounded border border-border bg-primary px-3 py-2 text-primary" placeholder="Short aside title">
+        <input id="title" name="title" type="text" required class="w-full rounded border border-border bg-primary px-3 py-2 text-primary" placeholder="Short note title">
       </div>
 
       <div class="flex flex-col gap-2">
@@ -35,22 +35,22 @@ export function asideTemplate(tags: TagInfo[]): string {
       </div>
 
       <div class="flex flex-col gap-2">
-        <label for="aside-content" class="font-mono text-xs uppercase text-secondary">Content</label>
-        <textarea id="aside-content" name="content" rows="10" class="w-full rounded border border-border bg-primary px-3 py-2 text-primary" placeholder="Write the aside content here."></textarea>
+        <label for="note-content" class="font-mono text-xs uppercase text-secondary">Content</label>
+        <textarea id="note-content" name="content" rows="10" class="w-full rounded border border-border bg-primary px-3 py-2 text-primary" placeholder="Write the note content here."></textarea>
       </div>
 
-      <div id="aside-status" class="alert hidden" role="status" aria-live="polite"></div>
+      <div id="note-status" class="alert hidden" role="status" aria-live="polite"></div>
       <button type="submit" class="inline-flex items-center justify-center rounded border border-border bg-secondary px-4 py-2 font-mono text-sm text-primary transition hover:text-accent">
-        Create aside
+        Create note
       </button>
     </form>
   </section>
 
   <script>
-    const form = document.getElementById('aside-form');
-    const statusEl = document.getElementById('aside-status');
+    const form = document.getElementById('note-form');
+    const statusEl = document.getElementById('note-status');
     const titleInput = document.getElementById('title');
-    const contentInput = document.getElementById('aside-content');
+    const contentInput = document.getElementById('note-content');
 
     const tagChips = document.getElementById('tag-chips');
     const tagSuggestionsList = document.getElementById('tag-suggestions-list');
@@ -162,7 +162,7 @@ export function asideTemplate(tags: TagInfo[]): string {
       };
 
       try {
-        const response = await fetch('/admin/api/aside', {
+        const response = await fetch('/admin/api/note', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
