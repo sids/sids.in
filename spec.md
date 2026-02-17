@@ -152,8 +152,12 @@ link: "https://example.com" # Optional; marks link posts
 | `/posts/{slug}` | post.ts | Individual post |
 | `/archive` | archive.ts | Tags + posts grouped by year |
 | `/tags/{tag}` | tag.ts | Paginated posts with tag |
+| `/posts/feed` | templates/feed.ts | Feed landing page for all posts (links to Atom/RSS) |
+| `/tags/{tag}/feed` | templates/feed.ts | Feed landing page for a tag (links to Atom/RSS + global feed page) |
 | `/posts/feed.xml` | rss.ts | RSS feed for all posts |
+| `/posts/feed.atom` | atom.ts | Atom feed for all posts |
 | `/tags/{tag}/feed.xml` | rss.ts | RSS feed for tag |
+| `/tags/{tag}/feed.atom` | atom.ts | Atom feed for tag |
 | `/admin` | routes/admin.ts | Admin dashboard (password-protected) |
 | `/admin/link-log` | routes/admin.ts | Authenticated link log submission form |
 | `/admin/aside` | routes/admin.ts | Authenticated aside submission form |
@@ -178,12 +182,15 @@ link: "https://example.com" # Optional; marks link posts
 - Available on `/`, `/posts`, `/archive`, and `/tags/{tag}` via the filter UI
 - HTMX updates swap `#posts-list` and update the filter nav out-of-band
 
-## RSS Feeds
+## Syndication Feeds
 
 - RSS 2.0 format with `content:encoded` for full HTML
+- Link posts publish their external URL in `<item><link>`, while `<guid>` stays on the local permalink for stable item identity
+- Atom feeds are available alongside RSS and include `rel="alternate"` and `rel="related"` links for link posts
 - Feed discovery via `<link rel="alternate">` in HTML head
-- Footer link to main feed; tag pages link to tag-specific feed
-- Feed links use `hx-boost="false"` to bypass HTMX
+- `/posts/feed` and `/tags/{tag}/feed` are human-readable feed pages that link to Atom and RSS variants
+- Footer links point to `/posts/feed`; tag pages point to `/tags/{tag}/feed`
+- Direct Atom/RSS links use `hx-boost="false"` to bypass HTMX
 
 ## Key Dependencies
 

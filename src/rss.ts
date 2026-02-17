@@ -14,7 +14,8 @@ export function generateRssFeed(posts: Post[], options: FeedOptions): string {
 
   const items = posts
     .map((post) => {
-      const postUrl = `${siteUrl}/posts/${post.slug}`;
+      const permalinkUrl = `${siteUrl}/posts/${post.slug}`;
+      const itemUrl = post.link || permalinkUrl;
       const pubDate = formatRssDate(post.date);
 
       // Add indicators for link and aside posts
@@ -31,8 +32,8 @@ export function generateRssFeed(posts: Post[], options: FeedOptions): string {
 
       return `    <item>
       <title>${titleWithIndicator}</title>
-      <link>${postUrl}</link>
-      <guid isPermaLink="true">${postUrl}</guid>
+      <link>${escapeHtml(itemUrl)}</link>
+      <guid isPermaLink="true">${escapeHtml(permalinkUrl)}</guid>
       <pubDate>${pubDate}</pubDate>
       <description>${escapeHtml(post.description || "")}</description>
       <content:encoded><![CDATA[${content}]]></content:encoded>

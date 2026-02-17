@@ -1,15 +1,17 @@
-import type { Env, Post } from "../types.ts";
+import type { Env, Post, PostMeta } from "../types.ts";
 import { parsePage, parsePost } from "../markdown.ts";
 import { allTags, pages, postContent, postMetaBySlug, posts, tagIndex } from "../manifest.ts";
 import { archivePartial, archiveTemplate } from "../templates/archive.ts";
 import { homePartial, homeTemplate } from "../templates/home.ts";
 import { pageTemplate } from "../templates/page.ts";
+import { feedTemplate, tagFeedTemplate } from "../templates/feed.ts";
 import { postListPartial, postListTemplate } from "../templates/post-list.ts";
 import { postRecentPostsPartial, postTemplate } from "../templates/post.ts";
 import { tagPartial, tagTemplate } from "../templates/tag.ts";
 import { generateRssFeed } from "../rss.ts";
+import { generateAtomFeed } from "../atom.ts";
 import { filterPosts, getPageNumber, getPostFilter, paginate } from "../lib/pagination.ts";
-import { html, htmlPartial, xml } from "../lib/responses.ts";
+import { atom, html, htmlPartial, xml } from "../lib/responses.ts";
 import { notFoundTemplate } from "../templates/not-found.ts";
 import { hasAdminLoginFlag } from "../lib/session.ts";
 import { layout, partial } from "../templates/layout.ts";
@@ -30,9 +32,13 @@ type RouteHandler = (context: RouteContext) => Response | null;
 
 const routes: RouteHandler[] = [
   handleMainFeed,
+  handleMainAtomFeed,
   handleTagFeed,
+  handleTagAtomFeed,
   handleHome,
   handlePostsList,
+  handleFeedPage,
+  handleTagFeedPage,
   handlePost,
   handleArchive,
   handleTag,
@@ -95,25 +101,60 @@ function redirectLegacyFilterTypes(path: string, params: URLSearchParams, reques
   return Response.redirect(url.toString(), 301);
 }
 
+function parseFeedPost(meta: PostMeta): Post | null {
+  const raw = postContent[meta.slug];
+  if (!raw) {
+    return null;
+  }
+
+  const parsed = parsePost(raw, meta.postType);
+  return {
+    ...parsed,
+    title: meta.title,
+    slug: meta.slug,
+    date: meta.date,
+    description: meta.description,
+    tags: meta.tags,
+    draft: meta.draft,
+    link: meta.link,
+    postType: meta.postType,
+  };
+}
+
 function handleMainFeed({ path, origin, request }: RouteContext): Response | null {
   if (path !== "/posts/feed.xml") {
     return null;
   }
 
   const fullPosts = posts
-    .map((meta) => {
-      const raw = postContent[meta.slug];
-      return raw ? parsePost(raw, meta.postType) : null;
-    })
+    .map(parseFeedPost)
     .filter((p): p is Post => p !== null);
 
   const feed = generateRssFeed(fullPosts, {
-    title: "Sid's Blog",
-    description: "Posts from Sid's blog",
+    title: "Siddhartha Reddy",
+    description: "Posts from Siddhartha Reddy",
     feedUrl: `${origin}/posts/feed.xml`,
     siteUrl: origin,
   });
   return xml(feed, request);
+}
+
+function handleMainAtomFeed({ path, origin, request }: RouteContext): Response | null {
+  if (path !== "/posts/feed.atom") {
+    return null;
+  }
+
+  const fullPosts = posts
+    .map(parseFeedPost)
+    .filter((p): p is Post => p !== null);
+
+  const feed = generateAtomFeed(fullPosts, {
+    title: "Siddhartha Reddy",
+    description: "Posts from Siddhartha Reddy",
+    feedUrl: `${origin}/posts/feed.atom`,
+    siteUrl: origin,
+  });
+  return atom(feed, request);
 }
 
 function handleTagFeed({ path, origin, request }: RouteContext): Response | null {
@@ -133,19 +174,45 @@ function handleTagFeed({ path, origin, request }: RouteContext): Response | null
     .filter((p) => p !== undefined);
 
   const fullPosts = tagPosts
-    .map((meta) => {
-      const raw = postContent[meta.slug];
-      return raw ? parsePost(raw, meta.postType) : null;
-    })
+    .map(parseFeedPost)
     .filter((p): p is Post => p !== null);
 
   const feed = generateRssFeed(fullPosts, {
-    title: `Sid's Blog - ${tag}`,
+    title: `Siddhartha Reddy - ${tag}`,
     description: `Posts tagged ${tag}`,
     feedUrl: `${origin}/tags/${tag}/feed.xml`,
     siteUrl: origin,
   });
   return xml(feed, request);
+}
+
+function handleTagAtomFeed({ path, origin, request }: RouteContext): Response | null {
+  const tagFeedMatch = path.match(/^\/tags\/([a-z0-9-]+)\/feed\.atom$/i);
+  if (!tagFeedMatch) {
+    return null;
+  }
+
+  const tag = tagFeedMatch[1]!;
+  const slugs = tagIndex[tag];
+  if (!slugs || slugs.length === 0) {
+    return null;
+  }
+
+  const tagPosts = slugs
+    .map((slug) => posts.find((p) => p.slug === slug))
+    .filter((p) => p !== undefined);
+
+  const fullPosts = tagPosts
+    .map(parseFeedPost)
+    .filter((p): p is Post => p !== null);
+
+  const feed = generateAtomFeed(fullPosts, {
+    title: `Siddhartha Reddy - ${tag}`,
+    description: `Posts tagged ${tag}`,
+    feedUrl: `${origin}/tags/${tag}/feed.atom`,
+    siteUrl: origin,
+  });
+  return atom(feed, request);
 }
 
 function handleHome({ path, params, isHtmx, hxTarget, request }: RouteContext): Response | null {
@@ -193,6 +260,36 @@ function handlePostsList({ path, params, isHtmx, hxTarget, request }: RouteConte
 
   const content = postListTemplate(fullPosts, pagination, filter);
   return html(content, "Posts", "All blog posts", isHtmx, request);
+}
+
+function handleFeedPage({ path, isHtmx, request }: RouteContext): Response | null {
+  if (path !== "/posts/feed") {
+    return null;
+  }
+
+  return html(feedTemplate(), "Feed", "Subscribe to Sid's blog in Atom or RSS", isHtmx, request);
+}
+
+function handleTagFeedPage({ path, isHtmx, request }: RouteContext): Response | null {
+  const tagFeedMatch = path.match(/^\/tags\/([a-z0-9-]+)\/feed$/i);
+  if (!tagFeedMatch) {
+    return null;
+  }
+
+  const tag = tagFeedMatch[1]!;
+  const slugs = tagIndex[tag];
+  if (!slugs || slugs.length === 0) {
+    return null;
+  }
+
+  return html(
+    tagFeedTemplate(tag),
+    `Feed: ${tag}`,
+    `Subscribe to posts tagged ${tag} in Atom or RSS`,
+    isHtmx,
+    request,
+    tag
+  );
 }
 
 function handlePost({ path, params, isHtmx, hxTarget, request }: RouteContext): Response | null {
