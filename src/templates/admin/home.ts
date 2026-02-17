@@ -9,7 +9,7 @@ export function adminHomeTemplate(): string {
 
     <div class="flex flex-col gap-4">
       <a href="/admin/link-log" class="link-accent font-mono text-sm">New link log entry →</a>
-      <a href="/admin/aside" class="link-accent font-mono text-sm">New aside entry →</a>
+      <a href="/admin/note" class="link-accent font-mono text-sm">New note entry →</a>
     </div>
 
     <form method="POST" action="/admin/logout" hx-boost="false">

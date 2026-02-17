@@ -2,12 +2,12 @@ import type { Post } from "../../types.ts";
 import { escapeHtml } from "../../markdown.ts";
 import { marked } from "marked";
 import { formatPostDate } from "../format-date.ts";
-import { asideIcon, externalLinkIcon } from "../icons.ts";
+import { noteIcon, externalLinkIcon } from "../icons.ts";
 
 export function postCard(post: Post): string {
   const hasExternalLink = !!post.link;
   const hasDescription = !!post.description;
-  const isAside = post.postType === "aside";
+  const isNote = post.postType === "note";
 
   // Date link: accent when external link, no underline when no external link
   const dateLinkClass = hasExternalLink ? "link-accent" : "no-underline";
@@ -21,7 +21,7 @@ export function postCard(post: Post): string {
   </a>`;
   } else {
     titleHtml = `<a href="/posts/${post.slug}" class="text-primary">
-    <h2 class="font-mono text-xl font-medium mb-2">${isAside ? `${asideIcon}` : ""}${escapeHtml(post.title)}</h2>
+    <h2 class="font-mono text-xl font-medium mb-2">${isNote ? `${noteIcon}` : ""}${escapeHtml(post.title)}</h2>
   </a>`;
   }
 

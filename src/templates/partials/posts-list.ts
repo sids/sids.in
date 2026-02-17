@@ -16,7 +16,7 @@ function indicatorForPost(type: PostType): string {
   if (type === "link") {
     return "↗ ";
   }
-  if (type === "aside") {
+  if (type === "note") {
     return "💬 ";
   }
   return "";
@@ -24,10 +24,10 @@ function indicatorForPost(type: PostType): string {
 
 function describeFilter(filter: PostFilterType): string {
   switch (filter) {
+    case "article":
+      return "articles";
     case "note":
       return "notes";
-    case "aside":
-      return "asides";
     case "link":
       return "links";
     default:

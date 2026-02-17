@@ -8,7 +8,7 @@ export interface Page extends PageMeta {
   html: string;
 }
 
-export type PostType = "note" | "aside" | "link";
+export type PostType = "article" | "note" | "link";
 
 export interface PostMeta {
   title: string;

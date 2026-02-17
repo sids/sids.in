@@ -1,7 +1,7 @@
 import type { Post, PostMeta } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
 import { formatPostDate } from "./format-date.ts";
-import { asideIcon, externalLinkIcon, ccIcon, ccByIcon, ccSaIcon } from "./icons.ts";
+import { noteIcon, externalLinkIcon, ccIcon, ccByIcon, ccSaIcon } from "./icons.ts";
 import { postsListCompact } from "./partials/posts-list.ts";
 import { postSubscribePrompt } from "./partials/subscribe.ts";
 import { tagFilter, type TagFilterType } from "./partials/tag-filter.ts";
@@ -14,7 +14,7 @@ export function postTemplate(
   canPublishDraft = false
 ): string {
   // Title: links to external URL with icon if link exists, otherwise just plain text
-  const titlePrefix = post.postType === "aside" ? asideIcon : "";
+  const titlePrefix = post.postType === "note" ? noteIcon : "";
   const titleHtml = post.link
     ? `<a href="${escapeHtml(post.link)}" class="text-primary" target="_blank" rel="noopener noreferrer">
       <h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-4 text-primary">${externalLinkIcon}${escapeHtml(post.title)}</h1>
