@@ -86,7 +86,7 @@ export function routePages(
 
 function redirectLegacyFilterTypes(path: string, params: URLSearchParams, requestUrl: string): Response | null {
   const currentType = params.get("type");
-  if (currentType !== "brief" && currentType !== "essay") {
+  if (currentType !== "brief" && currentType !== "essay" && currentType !== "aside") {
     return null;
   }
 
@@ -96,7 +96,11 @@ function redirectLegacyFilterTypes(path: string, params: URLSearchParams, reques
   }
 
   const url = new URL(requestUrl);
-  url.searchParams.set("type", currentType === "essay" ? "note" : "aside");
+  if (currentType === "essay") {
+    url.searchParams.set("type", "article");
+  } else {
+    url.searchParams.set("type", "note");
+  }
 
   return Response.redirect(url.toString(), 301);
 }

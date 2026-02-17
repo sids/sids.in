@@ -1,7 +1,7 @@
 import type { Env } from "../types.ts";
 import { allTags, postMetaBySlug } from "../manifest.ts";
 import { linkLogTemplate } from "../templates/admin/link-log.ts";
-import { asideTemplate } from "../templates/admin/aside.ts";
+import { noteTemplate } from "../templates/admin/note.ts";
 import { adminHomeTemplate } from "../templates/admin/home.ts";
 import { loginTemplate } from "../templates/admin/login.ts";
 import { html, json } from "../lib/responses.ts";
@@ -42,11 +42,11 @@ const routes: AdminHandler[] = [
   handleLogout,
   handleAdminLinkLogSubmissionRoute,
   handleAdminLinkLogMetadataRoute,
-  handleAdminAsideSubmissionRoute,
+  handleAdminNoteSubmissionRoute,
   handleAdminPublishRoute,
   handleAdminHome,
   handleAdminLinkLogPage,
-  handleAdminAsidePage,
+  handleAdminNotePage,
 ];
 
 const PUBLIC_ADMIN_PATHS = ["/admin/login", "/admin/callback"];
@@ -258,12 +258,12 @@ async function handleAdminLinkLogMetadataRoute({ path, request, env }: AdminCont
   return handleLinkLogMetadata(request, env);
 }
 
-async function handleAdminAsideSubmissionRoute({ path, request, env }: AdminContext): Promise<Response | null> {
-  if (path !== "/admin/api/aside" || request.method !== "POST") {
+async function handleAdminNoteSubmissionRoute({ path, request, env }: AdminContext): Promise<Response | null> {
+  if (path !== "/admin/api/note" || request.method !== "POST") {
     return null;
   }
 
-  return handleAsideSubmission(request, env);
+  return handleNoteSubmission(request, env);
 }
 
 async function handleAdminPublishRoute({ path, request, env }: AdminContext): Promise<Response | null> {
@@ -438,13 +438,13 @@ async function handleAdminLinkLogPage({ path, request, origin, isPartialRequest 
   return html(content, "New Link Log", "Create a link log entry", isPartialRequest, request);
 }
 
-async function handleAdminAsidePage({ path, request, isPartialRequest }: AdminContext): Promise<Response | null> {
-  if (path !== "/admin/aside") {
+async function handleAdminNotePage({ path, request, isPartialRequest }: AdminContext): Promise<Response | null> {
+  if (path !== "/admin/note") {
     return null;
   }
 
-  const content = asideTemplate(allTags);
-  return html(content, "New Aside", "Create a new aside entry", isPartialRequest, request);
+  const content = noteTemplate(allTags);
+  return html(content, "New Note", "Create a new note entry", isPartialRequest, request);
 }
 
 function redirectResponse(location: string): Response {
@@ -595,7 +595,7 @@ async function handleLinkLogSubmission(request: Request, env: Env): Promise<Resp
   });
 }
 
-async function handleAsideSubmission(request: Request, env: Env): Promise<Response> {
+async function handleNoteSubmission(request: Request, env: Env): Promise<Response> {
   if (!env.GITHUB_TOKEN || !env.GITHUB_OWNER || !env.GITHUB_REPO) {
     return json({ error: "Missing GitHub configuration" }, 500);
   }
@@ -637,7 +637,7 @@ async function handleAsideSubmission(request: Request, env: Env): Promise<Respon
         "User-Agent": "sids.in admin bot",
       },
       body: JSON.stringify({
-        message: `Add aside: ${payload.title}`,
+        message: `Add note: ${payload.title}`,
         content: base64EncodeUtf8(markdown),
         branch,
         committer: {

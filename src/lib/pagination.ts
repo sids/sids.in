@@ -4,7 +4,7 @@ type PostFilter = "all" | PostType;
 
 export function getPostFilter(params: URLSearchParams): PostFilter {
   const type = params.get("type");
-  if (type === "note" || type === "aside" || type === "link") {
+  if (type === "article" || type === "note" || type === "link") {
     return type;
   }
   return "all";

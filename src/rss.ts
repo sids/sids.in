@@ -18,10 +18,10 @@ export function generateRssFeed(posts: Post[], options: FeedOptions): string {
       const itemUrl = post.link || permalinkUrl;
       const pubDate = formatRssDate(post.date);
 
-      // Add indicators for link and aside posts
+      // Add indicators for link and note posts
       const titleWithIndicator = post.link
         ? `↗ ${escapeHtml(post.title)}`
-        : post.postType === "aside"
+        : post.postType === "note"
         ? `💬 ${escapeHtml(post.title)}`
         : escapeHtml(post.title);
 

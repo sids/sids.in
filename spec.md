@@ -63,8 +63,8 @@ sids.in/
 │   │   ├── home.md           # → /
 │   │   └── about.md          # → /about
 │   └── posts/                # Blog posts
-│       ├── notes/             # Note posts
-│       ├── 2025/              # Dated posts (asides + link logs)
+│       ├── articles/          # Article posts
+│       ├── 2025/              # Dated posts (notes + link logs)
 │       └── *.md               # → /posts/{slug}
 ├── src/
 │   ├── index.ts              # Worker entry point and router
@@ -83,7 +83,7 @@ sids.in/
 │       ├── archive.ts        # /archive - tags + posts by year
 │       ├── tag.ts            # /tags/{tag} - posts with tag
 │       ├── pagination.ts     # Pagination component
-│       ├── admin/            # Admin templates (dashboard, link log, aside)
+│       ├── admin/            # Admin templates (dashboard, link log, note)
 │       └── partials/
 │           ├── post-card.ts  # Card with title, date, description/content
 │           ├── post-filter.ts # Filter controls for post type
@@ -135,8 +135,8 @@ link: "https://example.com" # Optional; marks link posts
 ```
 
 **Post types:**
-- Posts under `content/posts/notes/` are treated as `note` entries.
-- Posts outside `notes/` are treated as `link` when `link` is present; otherwise they are `aside` posts.
+- Posts under `content/posts/articles/` are treated as `article` entries.
+- Posts outside `articles/` are treated as `link` when `link` is present; otherwise they are `note` posts.
 - Link titles in list views point to the external URL (with icon), while the date and "Read Now →" link to the local post page.
 - Draft posts (`draft: true`) are excluded from all public listings, tag indexes, feeds, and sitemap, but remain directly accessible at `/posts/{slug}` for private review via shared URLs.
 - Draft post pages show a visible “draft preview” banner.
@@ -160,10 +160,10 @@ link: "https://example.com" # Optional; marks link posts
 | `/tags/{tag}/feed.atom` | atom.ts | Atom feed for tag |
 | `/admin` | routes/admin.ts | Admin dashboard (password-protected) |
 | `/admin/link-log` | routes/admin.ts | Authenticated link log submission form |
-| `/admin/aside` | routes/admin.ts | Authenticated aside submission form |
+| `/admin/note` | routes/admin.ts | Authenticated note submission form |
 | `/admin/api/link-log` | routes/admin.ts | Authenticated API endpoint that creates link log posts in GitHub |
 | `/admin/api/link-log/metadata` | routes/admin.ts | Authenticated metadata fetch for auto-titling |
-| `/admin/api/aside` | routes/admin.ts | Authenticated API endpoint that creates aside posts in GitHub |
+| `/admin/api/note` | routes/admin.ts | Authenticated API endpoint that creates note posts in GitHub |
 | `/robots.txt` | - | Robots file (static asset) |
 | `/sitemap.xml` | - | Sitemap generated at build time |
 | `/css/*`, `/images/*` | - | Static assets |
@@ -177,8 +177,8 @@ link: "https://example.com" # Optional; marks link posts
 
 ## Post Filtering
 
-- Filter query param: `?type=note`, `?type=aside`, or `?type=link`
-- Legacy `?type=essay` URLs are permanently redirected to `?type=note`; `?type=brief` URLs remain redirected to `?type=aside` for backwards compatibility
+- Filter query param: `?type=article`, `?type=note`, or `?type=link`
+- Legacy `?type=essay` URLs are permanently redirected to `?type=article`; `?type=aside` and `?type=brief` URLs are permanently redirected to `?type=note` for backwards compatibility
 - Available on `/`, `/posts`, `/archive`, and `/tags/{tag}` via the filter UI
 - HTMX updates swap `#posts-list` and update the filter nav out-of-band
 
@@ -243,7 +243,7 @@ export const contentVersion: string | null; // git short SHA if available
 - Dark mode uses class strategy with JavaScript for localStorage persistence
 - Typography-aware content width: `min(70ch, 100% - 3rem)`
 - Google Fonts: IBM Plex Sans and JetBrains Mono loaded via CSS import
-- Admin authoring (link log + aside) is protected with HTTP Basic Auth and uses GitHub's Contents API to create new markdown files.
+- Admin authoring (link log + note) is protected with HTTP Basic Auth and uses GitHub's Contents API to create new markdown files.
 - Admin secrets are stored as Cloudflare Worker environment variables:
   - `BASIC_AUTH_PASSWORD` (required) + optional `BASIC_AUTH_USER`
   - `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO`, optional `GITHUB_BRANCH`
