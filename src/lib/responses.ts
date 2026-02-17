@@ -57,3 +57,7 @@ export function htmlPartial(content: string, request: Request): Response {
 export function xml(content: string, request: Request): Response {
   return cachedResponse(content, "application/rss+xml; charset=utf-8", request);
 }
+
+export function atom(content: string, request: Request): Response {
+  return cachedResponse(content, "application/atom+xml; charset=utf-8", request);
+}

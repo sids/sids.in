@@ -13,7 +13,7 @@ export function homeTemplate(
     filterMarkup: postFilter("/", currentFilter),
     listMarkup: postsListCompact(recentPosts, currentFilter),
     footerMarkup: `<p class="mt-6 text-primary">
-      Browse the <a href="/archive" class="link-accent">archive</a> or subscribe to the <a href="/posts/feed.xml" hx-boost="false" class="link-accent">RSS feed</a>.
+      Browse the <a href="/archive" class="link-accent">archive</a> or subscribe to RSS/Atom <a href="/posts/feed" class="link-accent">feed</a>.
     </p>`,
   });
 

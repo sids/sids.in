@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', updateToggle);
 `;
 
 export function layout(content: string, title: string, description?: string, tag?: string, og?: { title: string; description?: string }): string {
-  const tagFeedLink = tag
-    ? `\n  <link rel="alternate" type="application/rss+xml" title="Posts tagged ${escapeHtml(tag)}" href="/tags/${tag}/feed.xml">`
+  const tagFeedLinks = tag
+    ? `\n  <link rel="alternate" type="application/rss+xml" title="Posts tagged ${escapeHtml(tag)}" href="/tags/${tag}/feed.xml">\n  <link rel="alternate" type="application/atom+xml" title="Posts tagged ${escapeHtml(tag)}" href="/tags/${tag}/feed.atom">`
     : "";
   return `<!DOCTYPE html>
 <html lang="en">
@@ -50,7 +50,8 @@ export function layout(content: string, title: string, description?: string, tag
   ${og?.description ? `<meta property="og:description" content="${escapeHtml(og.description)}">` : ""}
   <link rel="icon" type="image/png" href="/images/s.png">
   <link rel="stylesheet" href="/css/styles.css">
-  <link rel="alternate" type="application/rss+xml" title="Sid's Blog" href="/posts/feed.xml">${tagFeedLink}
+  <link rel="alternate" type="application/rss+xml" title="Sid's Blog" href="/posts/feed.xml">
+  <link rel="alternate" type="application/atom+xml" title="Sid's Blog" href="/posts/feed.atom">${tagFeedLinks}
   <script>${themeScript}</script>
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <script src="https://unpkg.com/htmx-ext-head-support@2.0.2/head-support.js"></script>
@@ -79,17 +80,17 @@ export function layout(content: string, title: string, description?: string, tag
     ${content}
   </main>
   <footer class="border-t border-border mt-8">
-    <div class="content-width py-8 flex flex-col items-center gap-4 md:flex-row md:justify-between">
-      <div class="flex items-center gap-4 md:order-2">
-        <a href="/posts/feed.xml" hx-boost="false" class="font-mono text-xs text-secondary" aria-label="RSS Feed">RSS</a>
-        <span class="text-secondary font-mono text-xs">&middot;</span>
+    <div class="content-width py-8 flex flex-col items-center gap-3">
+      <div class="flex items-center gap-4 flex-wrap justify-center">
+        <a href="/posts/feed" class="font-mono text-xs text-secondary">RSS/Atom Feed</a>
+        <span class="text-secondary font-mono text-xs">🫶🏽</span>
         <a href="/newsletter" class="font-mono text-xs text-secondary">Newsletter</a>
         <button onclick="toggleTheme()" class="theme-switch" id="theme-switch" aria-label="Toggle theme">
           <span class="theme-switch-icon" id="theme-icon">☀</span>
           <span class="theme-switch-knob" id="theme-knob"></span>
         </button>
       </div>
-      <span class="font-mono text-xs text-secondary tracking-wide md:order-1">
+      <span class="font-mono text-xs text-secondary tracking-wide text-center">
         &copy; 2024&ndash;${new Date().getFullYear()} Siddhartha Reddy Kothakapu. All Rights Reserved.
       </span>
     </div>

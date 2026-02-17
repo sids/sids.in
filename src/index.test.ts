@@ -76,6 +76,16 @@ describe("cachedResponse", () => {
     expect(response.headers.get("ETag")).toBe(`"${contentVersion}"`);
     expect(response.headers.get("Content-Type")).toBe("application/rss+xml; charset=utf-8");
   });
+
+  it("works with Atom content type", () => {
+    const request = new Request("https://example.com/feed.atom");
+    const response = cachedResponse("<feed>atom</feed>", "application/atom+xml; charset=utf-8", request, contentVersion);
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe(CACHE_CONTROL);
+    expect(response.headers.get("ETag")).toBe(`"${contentVersion}"`);
+    expect(response.headers.get("Content-Type")).toBe("application/atom+xml; charset=utf-8");
+  });
 });
 
 describe("cachedResponse with null version", () => {
