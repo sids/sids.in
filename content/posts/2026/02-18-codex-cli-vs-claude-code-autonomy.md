@@ -5,7 +5,7 @@ date: "2026-02-18"
 description: ""
 tags: ["AI Coding", "Agentic Engineering", "llm"]
 link: "http://blog.nilenso.com/blog/2026/02/12/codex-cli-vs-claude-code-on-autonomy/"
-draft: true
+draft: false
 ---
 
 nilenso:
