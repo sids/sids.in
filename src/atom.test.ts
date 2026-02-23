@@ -29,7 +29,7 @@ describe("generateAtomFeed", () => {
     expect(feed).toContain('<link rel="alternate" type="text/html" href="https://sids.in/posts/deep-blue" />');
     expect(feed).toContain('<link rel="related" type="text/html" href="https://example.com/article?foo=1&amp;bar=2" />');
     expect(feed).toContain("<id>https://sids.in/posts/deep-blue</id>");
-    expect(feed).toContain('<a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Deep Blue ↗</a>');
+    expect(feed).toContain('<a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Original link ↗</a>');
   });
 
   it("uses only alternate links for non-link posts", () => {

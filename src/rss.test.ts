@@ -29,7 +29,7 @@ describe("generateRssFeed", () => {
     expect(feed).toContain("<link>https://sids.in/posts/deep-blue</link>");
     expect(feed).toContain("<guid isPermaLink=\"true\">https://sids.in/posts/deep-blue</guid>");
     expect(feed).not.toContain("<source ");
-    expect(feed).toContain('<a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Deep Blue ↗</a>');
+    expect(feed).toContain('<a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Original link ↗</a>');
   });
 
   it("keeps local permalinks for non-link posts", () => {

@@ -3,7 +3,7 @@ import type { Post } from "../types.ts";
 import { postTemplate } from "./post.ts";
 
 describe("postTemplate", () => {
-  it("renders link posts with a plain title and a top-of-content external link", () => {
+  it("renders link post titles as external h1 links with a text arrow marker", () => {
     const post: Post = {
       title: "Deep Blue",
       slug: "deep-blue",
@@ -20,7 +20,8 @@ describe("postTemplate", () => {
     const html = postTemplate(post, []);
 
     expect(html).toContain("<h1");
-    expect(html).not.toContain('<a href="https://example.com/article" class="text-primary"');
-    expect(html).toContain('<p class="mb-6"><a href="https://example.com/article" target="_blank" rel="noopener noreferrer" class="underline">Deep Blue ↗</a></p>');
+    expect(html).toContain('<span aria-hidden="true">↗ </span><a href="https://example.com/article" target="_blank" rel="noopener noreferrer" class="text-primary">Deep Blue</a>');
+    expect(html).not.toContain("Original link ↗");
+    expect(html).toContain("<p>Body</p>");
   });
 });

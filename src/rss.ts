@@ -26,7 +26,7 @@ export function generateRssFeed(posts: Post[], options: FeedOptions): string {
 
       // For link posts, prepend the external link at the top of content
       const content = post.link
-        ? `<p><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>${post.html}`
+        ? `<p><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">Original link ↗</a></p>${post.html}`
         : post.html;
 
       return `    <item>
