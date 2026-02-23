@@ -2,11 +2,15 @@ import type { Env } from "./types.ts";
 import { routeAdmin } from "./routes/admin.ts";
 import { routePages } from "./routes/pages.ts";
 
-// HTMX partial unless it's a full navigation (back/forward, direct URL)
+// HTMX partial unless it's a history restore request.
+// History restore must receive full HTML so HTMX can rebuild state correctly.
 function isPartialHtmxRequest(request: Request): boolean {
   const headers = request.headers;
-  if (headers.get("HX-Request") !== "true") return false;
-  return headers.get("Sec-Fetch-Dest") !== "document" && headers.get("Sec-Fetch-Mode") !== "navigate";
+  if (headers.get("HX-Request") !== "true") {
+    return false;
+  }
+
+  return headers.get("HX-History-Restore-Request") !== "true";
 }
 
 const STATIC_PATHS = ["/css/", "/images/", "/robots.txt", "/sitemap.xml"];
