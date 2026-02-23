@@ -35,7 +35,6 @@ export function generateRssFeed(posts: Post[], options: FeedOptions): string {
       <guid isPermaLink="true">${escapeHtml(permalinkUrl)}</guid>
       <pubDate>${pubDate}</pubDate>
       <description>${escapeHtml(post.description || "")}</description>
-      ${post.link ? `<source url="${escapeHtml(post.link)}">${escapeHtml(post.link)}</source>` : ""}
       <content:encoded><![CDATA[${content}]]></content:encoded>
     </item>`;
     })
