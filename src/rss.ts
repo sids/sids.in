@@ -15,7 +15,6 @@ export function generateRssFeed(posts: Post[], options: FeedOptions): string {
   const items = posts
     .map((post) => {
       const permalinkUrl = `${siteUrl}/posts/${post.slug}`;
-      const itemUrl = post.link || permalinkUrl;
       const pubDate = formatRssDate(post.date);
 
       // Add indicators for link and note posts
@@ -27,12 +26,12 @@ export function generateRssFeed(posts: Post[], options: FeedOptions): string {
 
       // For link posts, prepend the external link at the top of content
       const content = post.link
-        ? `<p><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">Link ↗</a></p>${post.html}`
+        ? `<p><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>${post.html}`
         : post.html;
 
       return `    <item>
       <title>${titleWithIndicator}</title>
-      <link>${escapeHtml(itemUrl)}</link>
+      <link>${escapeHtml(permalinkUrl)}</link>
       <guid isPermaLink="true">${escapeHtml(permalinkUrl)}</guid>
       <pubDate>${pubDate}</pubDate>
       <description>${escapeHtml(post.description || "")}</description>
