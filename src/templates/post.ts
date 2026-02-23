@@ -13,13 +13,13 @@ export function postTemplate(
   currentTagFilter: TagFilterType = "all",
   canPublishDraft = false
 ): string {
-  // Title: links to external URL with icon if link exists, otherwise just plain text
-  const titlePrefix = post.postType === "note" ? noteIcon : "";
-  const titleHtml = post.link
-    ? `<a href="${escapeHtml(post.link)}" class="text-primary" target="_blank" rel="noopener noreferrer">
-      <h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-4 text-primary">${externalLinkIcon}${escapeHtml(post.title)}</h1>
-    </a>`
-    : `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-4 text-primary">${titlePrefix}${escapeHtml(post.title)}</h1>`;
+  // Title: always plain text. Link posts surface external URL at top of content instead.
+  const titlePrefix = post.postType === "note" ? noteIcon : post.link ? externalLinkIcon : "";
+  const titleHtml = `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-2 text-primary">${titlePrefix}${escapeHtml(post.title)}</h1>`;
+
+  const linkPostLead = post.link
+    ? `<p class="mb-6"><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer" class="underline">${escapeHtml(post.title)} ↗</a></p>`
+    : "";
 
   const draftBanner = post.draft
     ? `<div id="draft-publish-banner" class="mb-6 flex items-center justify-between gap-3 rounded border border-border bg-secondary px-4 py-3 text-sm text-primary" role="status" aria-live="polite">
@@ -224,6 +224,7 @@ export function postTemplate(
     ${titleHtml}
   </header>
   <div class="post-content">
+    ${linkPostLead}
     ${post.html}
   </div>
   <footer class="mt-12 flex flex-col gap-3">

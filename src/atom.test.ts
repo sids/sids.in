@@ -10,7 +10,7 @@ describe("generateAtomFeed", () => {
     siteUrl: "https://sids.in",
   };
 
-  it("uses alternate and related links for link posts", () => {
+  it("keeps local alternate links and includes related external URLs for link posts", () => {
     const post: Post = {
       title: "Deep Blue",
       slug: "deep-blue",
@@ -26,9 +26,10 @@ describe("generateAtomFeed", () => {
 
     const feed = generateAtomFeed([post], options);
 
-    expect(feed).toContain('<link rel="alternate" type="text/html" href="https://example.com/article?foo=1&amp;bar=2" />');
-    expect(feed).toContain('<link rel="related" type="text/html" href="https://sids.in/posts/deep-blue" />');
+    expect(feed).toContain('<link rel="alternate" type="text/html" href="https://sids.in/posts/deep-blue" />');
+    expect(feed).toContain('<link rel="related" type="text/html" href="https://example.com/article?foo=1&amp;bar=2" />');
     expect(feed).toContain("<id>https://sids.in/posts/deep-blue</id>");
+    expect(feed).toContain('<a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Deep Blue ↗</a>');
   });
 
   it("uses only alternate links for non-link posts", () => {

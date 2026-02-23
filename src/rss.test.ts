@@ -10,7 +10,7 @@ describe("generateRssFeed", () => {
     siteUrl: "https://sids.in",
   };
 
-  it("uses the external URL as the item link for link posts", () => {
+  it("keeps local permalinks as item links for link posts", () => {
     const post: Post = {
       title: "Deep Blue",
       slug: "deep-blue",
@@ -26,8 +26,10 @@ describe("generateRssFeed", () => {
 
     const feed = generateRssFeed([post], options);
 
-    expect(feed).toContain("<link>https://example.com/article?foo=1&amp;bar=2</link>");
+    expect(feed).toContain("<link>https://sids.in/posts/deep-blue</link>");
     expect(feed).toContain("<guid isPermaLink=\"true\">https://sids.in/posts/deep-blue</guid>");
+    expect(feed).not.toContain("<source ");
+    expect(feed).toContain('<a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Deep Blue ↗</a>');
   });
 
   it("keeps local permalinks for non-link posts", () => {
