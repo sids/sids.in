@@ -15,7 +15,6 @@ export function generateAtomFeed(posts: Post[], options: FeedOptions): string {
   const entries = posts
     .map((post) => {
       const permalinkUrl = `${siteUrl}/posts/${post.slug}`;
-      const alternateUrl = post.link || permalinkUrl;
       const published = formatAtomDate(post.date);
 
       // Add indicators for link and aside posts
@@ -27,11 +26,11 @@ export function generateAtomFeed(posts: Post[], options: FeedOptions): string {
 
       // For link posts, prepend the external link at the top of content
       const content = post.link
-        ? `<p><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">Link ↗</a></p>${post.html}`
+        ? `<p><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>${post.html}`
         : post.html;
 
       const relatedLink = post.link
-        ? `\n    <link rel="related" type="text/html" href="${escapeHtml(permalinkUrl)}" />`
+        ? `\n    <link rel="related" type="text/html" href="${escapeHtml(post.link)}" />`
         : "";
 
       const summary = post.description
@@ -41,7 +40,7 @@ export function generateAtomFeed(posts: Post[], options: FeedOptions): string {
       return `  <entry>
     <title>${titleWithIndicator}</title>
     <id>${escapeHtml(permalinkUrl)}</id>
-    <link rel="alternate" type="text/html" href="${escapeHtml(alternateUrl)}" />${relatedLink}
+    <link rel="alternate" type="text/html" href="${escapeHtml(permalinkUrl)}" />${relatedLink}
     <published>${published}</published>
     <updated>${published}</updated>${summary}
     <content type="html"><![CDATA[${content}]]></content>
