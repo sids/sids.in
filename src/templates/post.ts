@@ -1,7 +1,7 @@
 import type { Post, PostMeta } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
 import { formatPostDate } from "./format-date.ts";
-import { noteIcon, externalLinkIcon, ccIcon, ccByIcon, ccSaIcon } from "./icons.ts";
+import { noteIcon, ccIcon, ccByIcon, ccSaIcon } from "./icons.ts";
 import { postsListCompact } from "./partials/posts-list.ts";
 import { postSubscribePrompt } from "./partials/subscribe.ts";
 import { tagFilter, type TagFilterType } from "./partials/tag-filter.ts";
@@ -13,13 +13,12 @@ export function postTemplate(
   currentTagFilter: TagFilterType = "all",
   canPublishDraft = false
 ): string {
-  // Title: always plain text. Link posts surface external URL at top of content instead.
-  const titlePrefix = post.postType === "note" ? noteIcon : post.link ? externalLinkIcon : "";
-  const titleHtml = `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-2 text-primary">${titlePrefix}${escapeHtml(post.title)}</h1>`;
-
-  const linkPostLead = post.link
-    ? `<p class="mb-6"><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer" class="underline">${escapeHtml(post.title)} ↗</a></p>`
-    : "";
+  // Link posts use the title itself as the external link with a text arrow marker.
+  const titlePrefix = post.postType === "note" ? noteIcon : "";
+  const titleInner = `${titlePrefix}${escapeHtml(post.title)}`;
+  const titleHtml = post.link
+    ? `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-2 text-primary"><span aria-hidden="true">↗ </span><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer" class="text-primary">${titleInner}</a></h1>`
+    : `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-2 text-primary">${titleInner}</h1>`;
 
   const draftBanner = post.draft
     ? `<div id="draft-publish-banner" class="mb-6 flex items-center justify-between gap-3 rounded border border-border bg-secondary px-4 py-3 text-sm text-primary" role="status" aria-live="polite">
@@ -224,7 +223,6 @@ export function postTemplate(
     ${titleHtml}
   </header>
   <div class="post-content">
-    ${linkPostLead}
     ${post.html}
   </div>
   <footer class="mt-12 flex flex-col gap-3">

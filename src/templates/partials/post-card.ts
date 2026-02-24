@@ -2,23 +2,21 @@ import type { Post } from "../../types.ts";
 import { escapeHtml } from "../../markdown.ts";
 import { marked } from "marked";
 import { formatPostDate } from "../format-date.ts";
-import { noteIcon, externalLinkIcon } from "../icons.ts";
+import { noteIcon, permalinkIcon } from "../icons.ts";
 
 export function postCard(post: Post): string {
   const hasExternalLink = !!post.link;
   const hasDescription = !!post.description;
   const isNote = post.postType === "note";
 
-  // Date link: accent when external link, no underline when no external link
+  // Date link: keep underline width limited to text and suffix a permalink indicator.
   const dateLinkClass = hasExternalLink ? "link-accent" : "no-underline";
-  const dateLink = `<a href="/posts/${post.slug}" class="${dateLinkClass} date-mono block mb-2">${formatPostDate(post.date)}</a>`;
+  const dateLink = `<a href="/posts/${post.slug}" class="${dateLinkClass} date-mono inline-flex items-center gap-1 mb-2">${formatPostDate(post.date)} ${permalinkIcon}</a>`;
 
   // Title: links to external URL with icon if link exists, otherwise links to post
   let titleHtml: string;
   if (hasExternalLink) {
-    titleHtml = `<a href="${escapeHtml(post.link!)}" class="text-primary" target="_blank" rel="noopener noreferrer">
-    <h2 class="font-mono text-xl font-medium mb-2">${externalLinkIcon}${escapeHtml(post.title)}</h2>
-  </a>`;
+    titleHtml = `<h2 class="font-mono text-xl font-medium mb-2"><span aria-hidden="true">↗ </span><a href="${escapeHtml(post.link!)}" class="text-primary" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)}</a></h2>`;
   } else {
     titleHtml = `<a href="/posts/${post.slug}" class="text-primary">
     <h2 class="font-mono text-xl font-medium mb-2">${isNote ? `${noteIcon}` : ""}${escapeHtml(post.title)}</h2>
