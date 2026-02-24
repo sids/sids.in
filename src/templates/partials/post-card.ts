@@ -2,7 +2,7 @@ import type { Post } from "../../types.ts";
 import { escapeHtml } from "../../markdown.ts";
 import { marked } from "marked";
 import { formatPostDate } from "../format-date.ts";
-import { noteIcon } from "../icons.ts";
+import { noteIcon, permalinkIcon } from "../icons.ts";
 
 export function postCard(post: Post): string {
   const hasExternalLink = !!post.link;
@@ -11,7 +11,7 @@ export function postCard(post: Post): string {
 
   // Date link: keep underline width limited to text and suffix a permalink indicator.
   const dateLinkClass = hasExternalLink ? "link-accent" : "no-underline";
-  const dateLink = `<a href="/posts/${post.slug}" class="${dateLinkClass} date-mono inline-block mb-2">${formatPostDate(post.date)} 🔗</a>`;
+  const dateLink = `<a href="/posts/${post.slug}" class="${dateLinkClass} date-mono inline-flex items-center gap-1 mb-2">${formatPostDate(post.date)} ${permalinkIcon}</a>`;
 
   // Title: links to external URL with icon if link exists, otherwise links to post
   let titleHtml: string;
