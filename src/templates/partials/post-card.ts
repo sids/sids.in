@@ -9,9 +9,9 @@ export function postCard(post: Post): string {
   const hasDescription = !!post.description;
   const isNote = post.postType === "note";
 
-  // Date link: accent when external link, no underline when no external link
+  // Date link: keep underline width limited to text and suffix a permalink indicator.
   const dateLinkClass = hasExternalLink ? "link-accent" : "no-underline";
-  const dateLink = `<a href="/posts/${post.slug}" class="${dateLinkClass} date-mono block mb-2">${formatPostDate(post.date)}</a>`;
+  const dateLink = `<a href="/posts/${post.slug}" class="${dateLinkClass} date-mono inline-block mb-2">${formatPostDate(post.date)} 🔗</a>`;
 
   // Title: links to external URL with icon if link exists, otherwise links to post
   let titleHtml: string;
