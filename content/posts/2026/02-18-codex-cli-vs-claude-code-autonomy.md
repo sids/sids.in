@@ -3,7 +3,7 @@ title: "Codex CLI vs Claude Code on Autonomy"
 slug: "codex-cli-vs-claude-code-autonomy"
 date: "2026-02-18"
 description: ""
-tags: ["AI Coding", "Agentic Engineering", "llm"]
+tags: ["ai", "agentic-engineering"]
 link: "http://blog.nilenso.com/blog/2026/02/12/codex-cli-vs-claude-code-on-autonomy/"
 draft: false
 ---

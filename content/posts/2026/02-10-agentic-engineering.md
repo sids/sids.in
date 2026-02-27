@@ -3,7 +3,7 @@ title: "Agentic Engineering"
 slug: "agentic-engineering"
 date: "2026-02-10"
 description: ""
-tags: ["Agentic Engineering"]
+tags: ["agentic-engineering"]
 draft: false
 ---
 

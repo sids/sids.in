@@ -3,7 +3,7 @@ title: "Feedback Loopable"
 slug: "feedback-loopable"
 date: "2026-02-09"
 description: ""
-tags: ["AI Coding"]
+tags: ["agentic-engineering"]
 link: "https://ampcode.com/notes/feedback-loopable"
 draft: false
 ---
