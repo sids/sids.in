@@ -5,7 +5,7 @@ date: "2026-02-27"
 description: ""
 tags: ["AI Coding", "programming"]
 link: "https://www.dbreunig.com/2026/02/25/two-things-i-believe-about-coding-agents.html"
-draft: true
+draft: false
 ---
 
 Drew Breunig:
