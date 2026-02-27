@@ -213,6 +213,9 @@ export function postTemplate(
   </p>`;
 
   const subscribeMarkup = postSubscribePrompt();
+  const rssLinkMarkup = post.link
+    ? `<p class="rss-link-only"><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>`
+    : "";
 
   const endMark = `<div class="text-center text-secondary text-lg tracking-widest mt-12" aria-hidden="true">· · ·</div>`;
 
@@ -223,6 +226,7 @@ export function postTemplate(
     ${titleHtml}
   </header>
   <div class="post-content">
+    ${rssLinkMarkup}
     ${post.html}
   </div>
   <footer class="mt-12 flex flex-col gap-3">
