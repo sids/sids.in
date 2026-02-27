@@ -3,7 +3,7 @@ title: "Cognitive Debt"
 slug: "cognitive-debt"
 date: "2026-02-15"
 description: ""
-tags: ["Agentic Engineering"]
+tags: ["agentic-engineering"]
 draft: false
 ---
 

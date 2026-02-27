@@ -3,7 +3,7 @@ title: "Ship Software That Does Nothing"
 slug: "ship-software-that-does-nothing"
 date: "2025-04-25"
 description: ""
-tags: ["entrepreneurship", "product building"]
+tags: ["entrepreneurship", "product-building"]
 link: "https://kerrick.blog/articles/2025/ship-software-that-does-nothing/"
 draft: false
 ---

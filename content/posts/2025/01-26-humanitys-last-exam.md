@@ -3,7 +3,7 @@ title: "Humanity's Last Exam"
 slug: "humanitys-last-exam"
 date: "2025-01-26"
 description: ""
-tags: ["ai", "llm"]
+tags: ["ai"]
 link: "https://agi.safe.ai/"
 draft: false
 ---

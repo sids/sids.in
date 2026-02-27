@@ -3,7 +3,7 @@ title: "Two Beliefs About Coding Agents"
 slug: "two-beliefs-about-coding-agents"
 date: "2026-02-27"
 description: ""
-tags: ["AI Coding", "programming"]
+tags: ["agentic-engineering", "programming"]
 link: "https://www.dbreunig.com/2026/02/25/two-things-i-believe-about-coding-agents.html"
 draft: false
 ---

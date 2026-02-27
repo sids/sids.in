@@ -3,7 +3,7 @@ title: "“Tight deadline” is a poor excuse for not writing clean code"
 slug: "tight-deadline-is-a-poor-excuse-for-not-writing-clean-code"
 date: "2025-01-11"
 description: "Deadlines aren’t an excuse for messy code—clean coding has to be a habit."
-tags: ["programming", "work culture"]
+tags: ["programming", "work-culture"]
 draft: true
 ---
 
