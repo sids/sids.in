@@ -3,7 +3,7 @@ title: "Andrew Ng on why learning programming shouldn’t be discouraged"
 slug: "andrew-ng-on-why-learning-programming-shouldnt-be-discouraged"
 date: "2025-03-30"
 description: "Andrew Ng argues that telling people not to learn programming because AI will automate it is terrible advice—as coding becomes easier, more people should code, not fewer."
-tags: ["AI Coding", "quote"]
+tags: ["agentic-engineering", "quote"]
 draft: false
 ---
 

@@ -3,7 +3,7 @@ title: "Showboat and Rodney — Agents Demoing Their Work"
 slug: "showboat-and-rodney"
 date: "2026-02-11"
 description: ""
-tags: ["AI Coding", "Agentic Engineering"]
+tags: ["agentic-engineering"]
 link: "https://simonwillison.net/2026/Feb/10/showboat-and-rodney/"
 draft: false
 ---

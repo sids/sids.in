@@ -17,6 +17,14 @@ import { hasAdminLoginFlag } from "../lib/session.ts";
 import { layout, partial } from "../templates/layout.ts";
 
 const POSTS_PER_PAGE = 10;
+const LEGACY_TAG_REDIRECTS: Record<string, string> = {
+  "ai coding": "agentic-engineering",
+  "ai-coding": "agentic-engineering",
+  "agentic engineering": "agentic-engineering",
+  "llm": "ai",
+  "product building": "product-building",
+  "work culture": "work-culture",
+};
 
 type RouteContext = {
   path: string;
@@ -33,6 +41,7 @@ type RouteHandler = (context: RouteContext) => Response | null;
 const routes: RouteHandler[] = [
   handleMainFeed,
   handleMainAtomFeed,
+  handleLegacyTagRedirects,
   handleTagFeed,
   handleTagAtomFeed,
   handleHome,
@@ -159,6 +168,31 @@ function handleMainAtomFeed({ path, origin, request }: RouteContext): Response |
     siteUrl: origin,
   });
   return atom(feed, request);
+}
+
+function handleLegacyTagRedirects({ path, request }: RouteContext): Response | null {
+  const match = path.match(/^\/tags\/([^/]+)(\/feed\.(xml|atom))?$/i);
+  if (!match) {
+    return null;
+  }
+
+  let decoded = match[1]!;
+  try {
+    decoded = decodeURIComponent(decoded);
+  } catch {
+    return null;
+  }
+
+  const normalized = decoded.toLowerCase();
+  const redirectSlug = LEGACY_TAG_REDIRECTS[normalized];
+  if (!redirectSlug) {
+    return null;
+  }
+
+  const feedSuffix = match[2] ?? "";
+  const url = new URL(request.url);
+  url.pathname = `/tags/${redirectSlug}${feedSuffix}`;
+  return Response.redirect(url.toString(), 301);
 }
 
 function handleTagFeed({ path, origin, request }: RouteContext): Response | null {
