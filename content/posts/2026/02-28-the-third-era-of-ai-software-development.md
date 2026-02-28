@@ -5,7 +5,7 @@ date: "2026-02-28"
 description: ""
 tags: ["agentic-engineering"]
 link: "https://x.com/mntruell/status/2026736314272591924"
-draft: true
+draft: false
 ---
 
 [Michael Truell](https://x.com/mntruell), CEO of Cursor:
