@@ -19,6 +19,9 @@ export function postTemplate(
   const titleHtml = post.link
     ? `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-2 text-primary"><span aria-hidden="true">↗ </span><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer" class="text-primary">${titleInner}</a></h1>`
     : `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-2 text-primary">${titleInner}</h1>`;
+  const rssSourceLink = post.link
+    ? `<p class="rss-source-link"><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>`
+    : "";
 
   const draftBanner = post.draft
     ? `<div id="draft-publish-banner" class="mb-6 flex items-center justify-between gap-3 rounded border border-border bg-secondary px-4 py-3 text-sm text-primary" role="status" aria-live="polite">
@@ -223,6 +226,7 @@ export function postTemplate(
     ${titleHtml}
   </header>
   <div class="post-content">
+    ${rssSourceLink}
     ${post.html}
   </div>
   <footer class="mt-12 flex flex-col gap-3">

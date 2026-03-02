@@ -70,6 +70,14 @@
     color: var(--text-primary);
   }
 
+  .rss-source-link {
+    display: none;
+  }
+
+  .post-content > .rss-source-link + * {
+    margin-top: 0;
+  }
+
   /* Accented links: orange, animated underline on hover */
   .link-accent {
     color: var(--accent);
