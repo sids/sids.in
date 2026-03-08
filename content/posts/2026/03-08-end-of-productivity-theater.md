@@ -5,7 +5,7 @@ date: "2026-03-08"
 description: ""
 tags: ["productivity"]
 link: "http://muratbuffalo.blogspot.com/2026/02/end-of-productivity-theater.html"
-draft: true
+draft: false
 ---
 
 Murat Demirbas:
