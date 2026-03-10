@@ -43,7 +43,7 @@ describe("postTemplate", () => {
     const html = postTemplate(post, []);
 
     expect(html).toContain('class="twitter-tweet"');
-    expect(html).toContain('https://x.com/atmoio/status/2030289138126107074');
+    expect(html).toContain('https://twitter.com/atmoio/status/2030289138126107074');
     expect(html).toContain('https://platform.twitter.com/widgets.js');
   });
 
