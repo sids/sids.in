@@ -25,4 +25,45 @@ describe("postTemplate", () => {
     expect(html).not.toContain("Original link ↗");
     expect(html).toContain("<p>Body</p>");
   });
+
+  it("embeds X posts for link posts that point to a status URL", () => {
+    const post: Post = {
+      title: "The Deal Is So Good",
+      slug: "the-deal-is-so-good",
+      date: "2026-03-09",
+      description: "",
+      tags: ["ai"],
+      postType: "link",
+      link: "https://x.com/atmoio/status/2030289138126107074?s=12",
+      draft: false,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const html = postTemplate(post, []);
+
+    expect(html).toContain('class="twitter-tweet"');
+    expect(html).toContain('https://x.com/atmoio/status/2030289138126107074');
+    expect(html).toContain('https://platform.twitter.com/widgets.js');
+  });
+
+  it("does not embed non-status X links", () => {
+    const post: Post = {
+      title: "Profile Link",
+      slug: "profile-link",
+      date: "2026-03-09",
+      description: "",
+      tags: ["ai"],
+      postType: "link",
+      link: "https://x.com/sids",
+      draft: false,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const html = postTemplate(post, []);
+
+    expect(html).not.toContain('class="twitter-tweet"');
+    expect(html).not.toContain('https://platform.twitter.com/widgets.js');
+  });
 });
