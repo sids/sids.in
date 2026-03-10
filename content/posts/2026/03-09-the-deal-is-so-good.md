@@ -5,7 +5,7 @@ date: "2026-03-09"
 description: ""
 tags: ["ai", "programming", "work-culture"]
 link: "https://x.com/atmoio/status/2030289138126107074?s=12"
-draft: true
+draft: false
 ---
 
 Mo Bitar:
