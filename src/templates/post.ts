@@ -30,11 +30,11 @@ function getTweetEmbedMarkup(link?: string): string {
   }
 
   const [, username, statusId] = match;
-  const canonicalUrl = `https://x.com/${username}/status/${statusId}`;
+  const canonicalUrl = `https://twitter.com/${username}/status/${statusId}`;
 
   return `<div class="tweet-embed my-8 not-prose">
     <blockquote class="twitter-tweet" data-dnt="true" data-theme="light">
-      <a href="${escapeHtml(canonicalUrl)}">View post by @${escapeHtml(username)}</a>
+      <a href="${escapeHtml(canonicalUrl)}"></a>
     </blockquote>
     <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
   </div>`;
