@@ -7,6 +7,39 @@ import { postSubscribePrompt } from "./partials/subscribe.ts";
 import { tagFilter, type TagFilterType } from "./partials/tag-filter.ts";
 import { recentPostsPartial, recentPostsSection } from "./partials/recent-posts-section.ts";
 
+function getTweetEmbedMarkup(link?: string): string {
+  if (!link) {
+    return "";
+  }
+
+  let url: URL;
+  try {
+    url = new URL(link);
+  } catch {
+    return "";
+  }
+
+  const hostname = url.hostname.toLowerCase();
+  if (hostname !== "x.com" && hostname !== "www.x.com" && hostname !== "twitter.com" && hostname !== "www.twitter.com") {
+    return "";
+  }
+
+  const match = url.pathname.match(/^\/(?:#!\/)?([^/]+)\/status\/(\d+)/);
+  if (!match) {
+    return "";
+  }
+
+  const [, username, statusId] = match;
+  const canonicalUrl = `https://x.com/${username}/status/${statusId}`;
+
+  return `<div class="tweet-embed my-8 not-prose">
+    <blockquote class="twitter-tweet" data-dnt="true" data-theme="light">
+      <a href="${escapeHtml(canonicalUrl)}">View post by @${escapeHtml(username)}</a>
+    </blockquote>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+  </div>`;
+}
+
 export function postTemplate(
   post: Post,
   recentPosts: PostMeta[],
@@ -22,6 +55,8 @@ export function postTemplate(
   const rssSourceLink = post.link
     ? `<p class="rss-source-link"><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>`
     : "";
+
+  const tweetEmbedMarkup = post.postType === "link" ? getTweetEmbedMarkup(post.link) : "";
 
   const draftBanner = post.draft
     ? `<div id="draft-publish-banner" class="mb-6 flex items-center justify-between gap-3 rounded border border-border bg-secondary px-4 py-3 text-sm text-primary" role="status" aria-live="polite">
@@ -227,6 +262,7 @@ export function postTemplate(
   </header>
   <div class="post-content">
     ${rssSourceLink}
+    ${tweetEmbedMarkup}
     ${post.html}
   </div>
   <footer class="mt-12 flex flex-col gap-3">
