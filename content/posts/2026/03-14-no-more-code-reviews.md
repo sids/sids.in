@@ -5,7 +5,7 @@ date: "2026-03-14"
 description: ""
 tags: ["ai", "programming", "agentic-engineering"]
 link: "https://molochinations.substack.com/p/no-more-code-reviews-lights-out-codebases"
-draft: true
+draft: false
 ---
 
 [Philip Su](https://molochinations.substack.com/p/no-more-code-reviews-lights-out-codebases):
