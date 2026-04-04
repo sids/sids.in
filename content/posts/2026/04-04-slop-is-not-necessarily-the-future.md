@@ -5,7 +5,7 @@ date: "2026-04-04"
 description: ""
 tags: ["ai", "programming"]
 link: "https://www.greptile.com/blog/ai-slopware-future"
-draft: true
+draft: false
 ---
 [Soohoon Choi](https://www.greptile.com/blog/ai-slopware-future):
 
