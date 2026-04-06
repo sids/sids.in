@@ -9,6 +9,11 @@ interface SessionPayload {
   exp: number;
 }
 
+interface StatePayload {
+  state: string;
+  returnTo?: string;
+}
+
 async function hmacSign(secret: string, data: string): Promise<string> {
   const encoder = new TextEncoder();
   const keyData = encoder.encode(secret);
@@ -129,40 +134,74 @@ export function generateStateToken(): string {
   return base64UrlEncode(bytes);
 }
 
-export async function createStateCookie(state: string, secret: string): Promise<string> {
-  const signature = await hmacSign(secret, state);
-  const value = `${state}.${signature}`;
+export async function createStateCookie(state: string, secret: string, returnTo?: string): Promise<string> {
+  const payload: StatePayload = returnTo ? { state, returnTo } : { state };
+  const payloadStr = JSON.stringify(payload);
+  const encodedPayload = base64UrlEncode(new TextEncoder().encode(payloadStr));
+  const signature = await hmacSign(secret, encodedPayload);
+  const value = `${encodedPayload}.${signature}`;
   // SameSite=None required for cross-site POST from Apple's OAuth callback
   return `${STATE_COOKIE_NAME}=${value}; HttpOnly; Secure; SameSite=None; Path=/admin; Max-Age=${STATE_MAX_AGE_SECONDS}`;
+}
+
+export async function readStateCookie(
+  request: Request,
+  secret: string,
+): Promise<{ state: string; returnTo: string | null } | null> {
+  const cookieHeader = request.headers.get("Cookie") || "";
+  const cookies = parseCookies(cookieHeader);
+  const storedValue = cookies[STATE_COOKIE_NAME];
+
+  if (!storedValue) {
+    return null;
+  }
+
+  const parts = storedValue.split(".");
+  if (parts.length !== 2) {
+    return null;
+  }
+
+  const encodedPayload = parts[0]!;
+  const signature = parts[1]!;
+
+  const isValidSignature = await hmacVerify(secret, encodedPayload, signature);
+  if (!isValidSignature) {
+    return null;
+  }
+
+  let payload: StatePayload;
+  try {
+    const decoded = base64UrlDecode(encodedPayload);
+    payload = JSON.parse(new TextDecoder().decode(decoded)) as StatePayload;
+  } catch {
+    return null;
+  }
+
+  if (!payload.state || typeof payload.state !== "string") {
+    return null;
+  }
+
+  return {
+    state: payload.state,
+    returnTo: typeof payload.returnTo === "string" ? payload.returnTo : null,
+  };
 }
 
 export async function verifyStateToken(
   request: Request,
   state: string,
   secret: string,
-): Promise<boolean> {
-  const cookieHeader = request.headers.get("Cookie") || "";
-  const cookies = parseCookies(cookieHeader);
-  const storedValue = cookies[STATE_COOKIE_NAME];
-
-  if (!storedValue) {
-    return false;
+): Promise<{ valid: boolean; returnTo: string | null }> {
+  const payload = await readStateCookie(request, secret);
+  if (!payload) {
+    return { valid: false, returnTo: null };
   }
 
-  const parts = storedValue.split(".");
-  if (parts.length !== 2) {
-    return false;
+  if (!timingSafeEqual(payload.state, state)) {
+    return { valid: false, returnTo: null };
   }
 
-  const storedState = parts[0]!;
-  const signature = parts[1]!;
-
-  const isValidSignature = await hmacVerify(secret, storedState, signature);
-  if (!isValidSignature) {
-    return false;
-  }
-
-  return timingSafeEqual(storedState, state);
+  return { valid: true, returnTo: payload.returnTo };
 }
 
 export function clearStateCookie(): string {

@@ -361,7 +361,9 @@ function handlePost({ path, params, isHtmx, hxTarget, request }: RouteContext): 
   }
 
   const canPublishDraft = post.draft ? hasAdminLoginFlag(request) : false;
-  const content = postTemplate(post, recentPosts, currentTag, canPublishDraft);
+  const requestUrl = new URL(request.url);
+  const draftLoginPath = `${requestUrl.pathname}${requestUrl.search}`;
+  const content = postTemplate(post, recentPosts, currentTag, canPublishDraft, draftLoginPath);
   const og = { title: post.title, description: post.description };
   return html(content, post.title, post.description, isHtmx, request, undefined, og);
 }

@@ -11,6 +11,7 @@ import {
   clearSessionCookie,
   generateStateToken,
   createStateCookie,
+  readStateCookie,
   verifyStateToken,
   clearStateCookie,
   createAdminFlagCookie,
@@ -114,7 +115,8 @@ async function handleLoginPage({ path, request, isPartialRequest }: AdminContext
 
   const url = new URL(request.url);
   const error = url.searchParams.get("error") || undefined;
-  const content = loginTemplate({ error });
+  const returnTo = sanitizeReturnTo(url.searchParams.get("returnTo"));
+  const content = loginTemplate({ error, returnTo });
   return html(content, "Sign In", "Sign in to admin", isPartialRequest, request);
 }
 
@@ -123,9 +125,12 @@ async function handleLoginSubmit({ path, request, env, origin }: AdminContext): 
     return null;
   }
 
+  const formData = await request.formData();
+  const rawReturnTo = formData.get("returnTo");
+  const returnTo = sanitizeReturnTo(typeof rawReturnTo === "string" ? rawReturnTo : null);
   const config = getAppleAuthConfig(env, origin);
   const state = generateStateToken();
-  const stateCookie = await createStateCookie(state, env.SESSION_SECRET);
+  const stateCookie = await createStateCookie(state, env.SESSION_SECRET, returnTo);
   const authUrl = buildAppleAuthUrl(config, state);
 
   return new Response(null, {
@@ -150,20 +155,23 @@ async function handleCallback({ path, request, env, origin }: AdminContext): Pro
   const code = formData.get("code");
   const state = formData.get("state");
   const errorParam = formData.get("error");
+  const storedState = await readStateCookie(request, env.SESSION_SECRET);
+  const storedReturnTo = sanitizeReturnTo(storedState?.returnTo ?? null);
 
   if (errorParam) {
     const errorDescription = formData.get("error_description") || "Authentication failed";
-    return redirectToLoginWithError(String(errorDescription));
+    return redirectToLoginWithError(String(errorDescription), storedReturnTo);
   }
 
   if (typeof code !== "string" || typeof state !== "string") {
-    return redirectToLoginWithError("Missing code or state");
+    return redirectToLoginWithError("Missing code or state", storedReturnTo);
   }
 
-  const isValidState = await verifyStateToken(request, state, env.SESSION_SECRET);
-  if (!isValidState) {
-    return redirectToLoginWithError("Invalid state token");
+  const stateResult = await verifyStateToken(request, state, env.SESSION_SECRET);
+  if (!stateResult.valid) {
+    return redirectToLoginWithError("Invalid state token", storedReturnTo);
   }
+  const returnTo = sanitizeReturnTo(stateResult.returnTo) || "/admin";
 
   const config = getAppleAuthConfig(env, origin);
 
@@ -174,11 +182,11 @@ async function handleCallback({ path, request, env, origin }: AdminContext): Pro
     email = extractEmailFromClaims(claims);
   } catch (error) {
     console.error("Apple auth error:", error);
-    return redirectToLoginWithError("Authentication failed");
+    return redirectToLoginWithError("Authentication failed", returnTo);
   }
 
   if (!email) {
-    return redirectToLoginWithError("Could not retrieve email from Apple");
+    return redirectToLoginWithError("Could not retrieve email from Apple", returnTo);
   }
 
   if (email !== env.ADMIN_EMAIL) {
@@ -196,7 +204,7 @@ async function handleCallback({ path, request, env, origin }: AdminContext): Pro
   return new Response(null, {
     status: 302,
     headers: [
-      ["Location", "/admin"],
+      ["Location", returnTo],
       ["Set-Cookie", sessionCookie],
       ["Set-Cookie", createAdminFlagCookie()],
       ["Set-Cookie", clearStateCookie()],
@@ -231,8 +239,11 @@ function getAppleAuthConfig(env: Env, origin: string): AppleAuthConfig {
   };
 }
 
-function redirectToLoginWithError(message: string): Response {
+function redirectToLoginWithError(message: string, returnTo?: string): Response {
   const params = new URLSearchParams({ error: message });
+  if (returnTo) {
+    params.set("returnTo", returnTo);
+  }
   return new Response(null, {
     status: 302,
     headers: {
@@ -454,6 +465,19 @@ function redirectResponse(location: string): Response {
       Location: location,
     },
   });
+}
+
+function sanitizeReturnTo(value: string | null): string | undefined {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return undefined;
+  }
+
+  try {
+    const url = new URL(value, "https://sids.in");
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return undefined;
+  }
 }
 
 async function handleLinkLogMetadata(request: Request, env: Env): Promise<Response> {

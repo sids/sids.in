@@ -5,11 +5,20 @@ import {
   clearSessionCookie,
   generateStateToken,
   createStateCookie,
+  readStateCookie,
   verifyStateToken,
   clearStateCookie,
 } from "./session.ts";
 
 const TEST_SECRET = "test-secret-key-32-chars-long!!!";
+
+function decodeBase64UrlJson<T>(value: string): T {
+  const padding = "=".repeat((4 - (value.length % 4)) % 4);
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/") + padding;
+  const binary = atob(base64);
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes)) as T;
+}
 
 describe("session", () => {
   describe("createSessionCookie", () => {
@@ -159,6 +168,22 @@ describe("state token", () => {
       expect(cookie).toContain("Path=/admin");
       expect(cookie).toContain("Max-Age=600");
     });
+
+    it("stores an optional return path", async () => {
+      const state = generateStateToken();
+      const cookie = await createStateCookie(state, TEST_SECRET, "/posts/draft-post?tag=ai");
+      const match = cookie.match(/__oauth_state=([^;]+)/);
+
+      expect(match).not.toBeNull();
+
+      const [encodedPayload] = match![1].split(".");
+      const payload = decodeBase64UrlJson<{ state: string; returnTo: string }>(encodedPayload!);
+
+      expect(payload).toEqual({
+        state,
+        returnTo: "/posts/draft-post?tag=ai",
+      });
+    });
   });
 
   describe("verifyStateToken", () => {
@@ -172,7 +197,7 @@ describe("state token", () => {
       });
 
       const result = await verifyStateToken(request, state, TEST_SECRET);
-      expect(result).toBe(true);
+      expect(result).toEqual({ valid: true, returnTo: null });
     });
 
     it("returns false for missing state cookie", async () => {
@@ -180,7 +205,7 @@ describe("state token", () => {
       const request = new Request("https://example.com");
 
       const result = await verifyStateToken(request, state, TEST_SECRET);
-      expect(result).toBe(false);
+      expect(result).toEqual({ valid: false, returnTo: null });
     });
 
     it("returns false for mismatched state", async () => {
@@ -193,7 +218,7 @@ describe("state token", () => {
       });
 
       const result = await verifyStateToken(request, "different-state", TEST_SECRET);
-      expect(result).toBe(false);
+      expect(result).toEqual({ valid: false, returnTo: null });
     });
 
     it("returns false for invalid signature", async () => {
@@ -203,7 +228,44 @@ describe("state token", () => {
       });
 
       const result = await verifyStateToken(request, state, TEST_SECRET);
-      expect(result).toBe(false);
+      expect(result).toEqual({ valid: false, returnTo: null });
+    });
+
+    it("returns a stored return path for valid state", async () => {
+      const state = generateStateToken();
+      const cookie = await createStateCookie(state, TEST_SECRET, "/posts/draft-post");
+      const match = cookie.match(/__oauth_state=([^;]+)/);
+
+      const request = new Request("https://example.com", {
+        headers: { Cookie: `__oauth_state=${match![1]}` },
+      });
+
+      const result = await verifyStateToken(request, state, TEST_SECRET);
+      expect(result).toEqual({ valid: true, returnTo: "/posts/draft-post" });
+    });
+  });
+
+  describe("readStateCookie", () => {
+    it("returns the stored state payload without needing the callback state", async () => {
+      const state = generateStateToken();
+      const cookie = await createStateCookie(state, TEST_SECRET, "/posts/draft-post");
+      const match = cookie.match(/__oauth_state=([^;]+)/);
+
+      const request = new Request("https://example.com", {
+        headers: { Cookie: `__oauth_state=${match![1]}` },
+      });
+
+      const result = await readStateCookie(request, TEST_SECRET);
+      expect(result).toEqual({ state, returnTo: "/posts/draft-post" });
+    });
+
+    it("returns null for an invalid state cookie", async () => {
+      const request = new Request("https://example.com", {
+        headers: { Cookie: "__oauth_state=invalid.signature" },
+      });
+
+      const result = await readStateCookie(request, TEST_SECRET);
+      expect(result).toBeNull();
     });
   });
 

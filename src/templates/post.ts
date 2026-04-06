@@ -44,7 +44,8 @@ export function postTemplate(
   post: Post,
   recentPosts: PostMeta[],
   currentTagFilter: TagFilterType = "all",
-  canPublishDraft = false
+  canPublishDraft = false,
+  draftLoginPath?: string,
 ): string {
   // Link posts use the title itself as the external link with a text arrow marker.
   const titlePrefix = post.postType === "note" ? noteIcon : "";
@@ -57,6 +58,9 @@ export function postTemplate(
     : "";
 
   const tweetEmbedMarkup = post.postType === "link" ? getTweetEmbedMarkup(post.link) : "";
+  const loginHref = draftLoginPath
+    ? `/admin/login?${new URLSearchParams({ returnTo: draftLoginPath }).toString()}`
+    : "/admin/login";
 
   const draftBanner = post.draft
     ? `<div id="draft-publish-banner" class="mb-6 flex items-center justify-between gap-3 rounded border border-border bg-secondary px-4 py-3 text-sm text-primary" role="status" aria-live="polite">
@@ -74,7 +78,7 @@ export function postTemplate(
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v3a5 5 0 0 0-5 5H4z"></path>
           </svg>
         </span>`
-        : `<a href="/admin/login" class="shrink-0 rounded border border-border bg-primary px-2 py-1 font-mono text-xs text-primary no-underline hover:text-accent hover:no-underline">Log in</a>`}
+        : `<a href="${escapeHtml(loginHref)}" class="shrink-0 rounded border border-border bg-primary px-2 py-1 font-mono text-xs text-primary no-underline hover:text-accent hover:no-underline">Log in</a>`}
     </div>`
     : "";
 
