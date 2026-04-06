@@ -66,4 +66,22 @@ describe("postTemplate", () => {
     expect(html).not.toContain('class="twitter-tweet"');
     expect(html).not.toContain('https://platform.twitter.com/widgets.js');
   });
+
+  it("preserves the current post URL in the draft login link", () => {
+    const post: Post = {
+      title: "Draft Post",
+      slug: "draft-post",
+      date: "2026-03-09",
+      description: "",
+      tags: ["ai"],
+      postType: "note",
+      draft: true,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const html = postTemplate(post, [], "all", false, "/posts/draft-post?tag=ai");
+
+    expect(html).toContain('href="/admin/login?returnTo=%2Fposts%2Fdraft-post%3Ftag%3Dai"');
+  });
 });
