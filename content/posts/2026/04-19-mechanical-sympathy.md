@@ -5,7 +5,7 @@ date: "2026-04-19"
 description: ""
 tags: ["programming", "product-building", "agentic-engineering"]
 link: "https://vickiboykis.com/2026/04/13/mechanical-sympathy/"
-draft: true
+draft: false
 ---
 
 Vicki Boykis:
