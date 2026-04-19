@@ -5,7 +5,7 @@ date: "2026-04-19"
 description: ""
 tags: ["programming", "agentic-engineering"]
 link: "https://bcantrill.dtrace.org/2026/04/12/the-peril-of-laziness-lost/"
-draft: true
+draft: false
 ---
 
 Bryan Cantrill:
