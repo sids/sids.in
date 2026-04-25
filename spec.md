@@ -14,7 +14,7 @@ Swiss/Minimal design with distinctive but professional feel.
 
 - **Display/Headings**: JetBrains Mono (monospace)
 - **Body**: IBM Plex Sans
-- **Date format**: `YYYY.MM.DD` in monospace
+- **Date format**: `YYYY.MON.DD` in monospace (e.g. `2026.APR.25`)
 
 ### Color Scheme
 
@@ -126,13 +126,15 @@ description: "Learn more about me"
 ---
 title: "Post Title"
 slug: "post-slug"
-date: "2024-12-29"
+date: "2024-12-29T14:30:00Z"
 description: "Brief description for cards and SEO"
 tags: ["typescript", "cloudflare"]
 draft: false
 link: "https://example.com" # Optional; marks link posts
 ---
 ```
+
+The `date` field accepts either `YYYY-MM-DD` or an ISO-style timestamp such as `YYYY-MM-DDTHH:mm:ssZ` / `YYYY-MM-DDTHH:mm:ss+05:30`. Date-only values are treated as midnight UTC for sorting and feed output; timestamps without an explicit timezone are also interpreted as UTC.
 
 **Post types:**
 - Posts under `content/posts/articles/` are treated as `article` entries.
@@ -164,6 +166,7 @@ link: "https://example.com" # Optional; marks link posts
 | `/admin/api/link-log` | routes/admin.ts | Authenticated API endpoint that creates link log posts in GitHub |
 | `/admin/api/link-log/metadata` | routes/admin.ts | Authenticated metadata fetch for auto-titling |
 | `/admin/api/note` | routes/admin.ts | Authenticated API endpoint that creates note posts in GitHub |
+| `/admin/api/publish` | routes/admin.ts | Authenticated API endpoint that publishes draft posts and stamps the current date/time |
 | `/robots.txt` | - | Robots file (static asset) |
 | `/sitemap.xml` | - | Sitemap generated at build time |
 | `/css/*`, `/images/*` | - | Static assets |
@@ -185,7 +188,8 @@ link: "https://example.com" # Optional; marks link posts
 ## Syndication Feeds
 
 - RSS 2.0 format with `content:encoded` for full HTML
-- Link posts publish their external URL in `<item><link>`, while `<guid>` stays on the local permalink for stable item identity
+- RSS `<pubDate>` / `<lastBuildDate>` and Atom `<published>` / `<updated>` use the full post timestamp when present
+- Link posts keep local permalinks in RSS `<item><link>` / `<guid>` for stable item identity; external URLs are included in the item content and Atom `rel="related"` links
 - Atom feeds are available alongside RSS and include `rel="alternate"` and `rel="related"` links for link posts
 - Feed discovery via `<link rel="alternate">` in HTML head
 - `/posts/feed` and `/tags/{tag}/feed` are human-readable feed pages that link to Atom and RSS variants
@@ -223,7 +227,7 @@ bun run deploy   # Build and deploy to Cloudflare
 
 ```typescript
 export const pages: Record<string, { title: string; description: string; content: string }>;
-export const posts: PostMeta[];              // sorted by date desc
+export const posts: PostMeta[];              // sorted by date/timestamp desc
 export const postContent: Record<string, string>;  // slug → markdown
 export const tagIndex: Record<string, string[]>;   // tag → slugs
 export const allTags: { tag: string; count: number }[];  // sorted by count
@@ -243,9 +247,10 @@ export const contentVersion: string | null; // git short SHA if available
 - Dark mode uses class strategy with JavaScript for localStorage persistence
 - Typography-aware content width: `min(70ch, 100% - 3rem)`
 - Google Fonts: IBM Plex Sans and JetBrains Mono loaded via CSS import
-- Admin authoring (link log + note) is protected with HTTP Basic Auth and uses GitHub's Contents API to create new markdown files.
+- Admin authoring (link log + note) is protected with Sign in with Apple OAuth and uses GitHub's Contents API to create and publish markdown files.
+- Admin-created posts and draft publishes write `date` with the current ISO timestamp.
 - Admin secrets are stored as Cloudflare Worker environment variables:
-  - `BASIC_AUTH_PASSWORD` (required) + optional `BASIC_AUTH_USER`
+  - `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`, `SESSION_SECRET`, `ADMIN_EMAIL`
   - `GITHUB_TOKEN`, `GITHUB_OWNER`, `GITHUB_REPO`, optional `GITHUB_BRANCH`
 
 ## Adding Content

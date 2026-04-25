@@ -1,7 +1,7 @@
 ---
 title: "Mechanical Sympathy"
 slug: "mechanical-sympathy"
-date: "2026-04-19"
+date: "2026-04-19T21:52:20+05:30"
 description: ""
 tags: ["programming", "product-building", "agentic-engineering"]
 link: "https://vickiboykis.com/2026/04/13/mechanical-sympathy/"

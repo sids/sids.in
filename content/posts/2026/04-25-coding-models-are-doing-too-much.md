@@ -1,7 +1,7 @@
 ---
 title: "Coding Models Are Doing Too Much"
 slug: "coding-models-are-doing-too-much"
-date: "2026-04-25"
+date: "2026-04-25T06:41:07+05:30"
 description: ""
 tags: ["agentic-engineering", "programming"]
 link: "https://nrehiew.github.io/blog/minimal_editing/"

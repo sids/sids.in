@@ -1,7 +1,7 @@
 ---
 title: "Feedback Loopable"
 slug: "feedback-loopable"
-date: "2026-02-09"
+date: "2026-02-09T14:52:51+05:30"
 description: ""
 tags: ["agentic-engineering"]
 link: "https://ampcode.com/notes/feedback-loopable"

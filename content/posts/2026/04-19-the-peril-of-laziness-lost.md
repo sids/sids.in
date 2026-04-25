@@ -1,7 +1,7 @@
 ---
 title: "The Peril of Laziness Lost"
 slug: "the-peril-of-laziness-lost"
-date: "2026-04-19"
+date: "2026-04-19T22:00:52+05:30"
 description: ""
 tags: ["programming", "agentic-engineering"]
 link: "https://bcantrill.dtrace.org/2026/04/12/the-peril-of-laziness-lost/"

@@ -340,7 +340,7 @@ async function handleAdminPublishRoute({ path, request, env }: AdminContext): Pr
   });
 }
 
-async function handlePublishDraft(slug: string, env: Env): Promise<{ ok?: boolean; path?: string; error?: string }> {
+async function handlePublishDraft(slug: string, env: Env): Promise<{ ok?: boolean; path?: string; date?: string; error?: string }> {
   if (!env.GITHUB_TOKEN || !env.GITHUB_OWNER || !env.GITHUB_REPO) {
     console.error("Missing GitHub configuration for publish", {
       hasToken: Boolean(env.GITHUB_TOKEN),
@@ -387,9 +387,10 @@ async function handlePublishDraft(slug: string, env: Env): Promise<{ ok?: boolea
 
   const file = await readResponse.json<{ content: string; sha: string }>();
   const raw = base64DecodeUtf8(file.content);
-  const next = raw.replace(/^draft:\s*true\s*$/m, "draft: false");
+  const publishedAt = currentPostDateTime();
+  const next = publishDraftMarkdown(raw, publishedAt);
 
-  if (next === raw) {
+  if (!next) {
     console.error("Draft flag not found while publishing", {
       slug,
       sourcePath: meta.sourcePath,
@@ -428,7 +429,7 @@ async function handlePublishDraft(slug: string, env: Env): Promise<{ ok?: boolea
     return { error: "Failed to publish draft" };
   }
 
-  return { ok: true, path: meta.sourcePath };
+  return { ok: true, path: meta.sourcePath, date: publishedAt };
 }
 
 async function handleAdminHome({ path, request, isPartialRequest }: AdminContext): Promise<Response | null> {
@@ -567,7 +568,7 @@ async function handleLinkLogSubmission(request: Request, env: Env): Promise<Resp
   }
 
   const tags = normalizeTags(payload.tags);
-  const date = new Date().toISOString().slice(0, 10);
+  const date = currentPostDateTime();
   const slug = slugify(payload.title);
   const filePath = buildPostPath(date, slug);
   const markdown = buildPostMarkdown({
@@ -636,7 +637,7 @@ async function handleNoteSubmission(request: Request, env: Env): Promise<Respons
   }
 
   const tags = normalizeTags(payload.tags);
-  const date = new Date().toISOString().slice(0, 10);
+  const date = currentPostDateTime();
   const slug = slugify(payload.title);
   const filePath = buildPostPath(date, slug);
   const markdown = buildPostMarkdown({
@@ -687,6 +688,35 @@ async function handleNoteSubmission(request: Request, env: Env): Promise<Respons
   });
 }
 
+export function publishDraftMarkdown(raw: string, publishedAt: string): string | null {
+  const frontmatterMatch = raw.match(/^---\s*\n([\s\S]*?)\n---/);
+  if (!frontmatterMatch) {
+    return null;
+  }
+
+  const frontmatter = frontmatterMatch[1]!;
+  const draftUpdated = frontmatter.replace(/^draft:\s*true\s*$/m, "draft: false");
+  if (draftUpdated === frontmatter) {
+    return null;
+  }
+
+  const dateLine = `date: "${publishedAt}"`;
+  let nextFrontmatter: string;
+  if (/^date:\s*.*$/m.test(draftUpdated)) {
+    nextFrontmatter = draftUpdated.replace(/^date:\s*.*$/m, dateLine);
+  } else if (/^slug:\s*.*$/m.test(draftUpdated)) {
+    nextFrontmatter = draftUpdated.replace(/^slug:\s*.*$/m, (line) => `${line}\n${dateLine}`);
+  } else {
+    nextFrontmatter = `${dateLine}\n${draftUpdated}`;
+  }
+
+  return `---\n${nextFrontmatter}\n---${raw.slice(frontmatterMatch[0]!.length)}`;
+}
+
+function currentPostDateTime(): string {
+  return new Date().toISOString();
+}
+
 function normalizeTags(input?: string | string[]): string[] {
   if (!input) {
     return [];
@@ -710,7 +740,7 @@ function slugify(title: string): string {
 }
 
 function buildPostPath(date: string, slug: string): string {
-  const [year, month, day] = date.split("-");
+  const [year, month, day] = date.slice(0, 10).split("-");
   return `content/posts/${year}/${month}-${day}-${slug}.md`;
 }
 

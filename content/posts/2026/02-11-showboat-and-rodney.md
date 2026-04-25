@@ -1,7 +1,7 @@
 ---
 title: "Showboat and Rodney — Agents Demoing Their Work"
 slug: "showboat-and-rodney"
-date: "2026-02-11"
+date: "2026-02-11T21:38:34+05:30"
 description: ""
 tags: ["agentic-engineering"]
 link: "https://simonwillison.net/2026/Feb/10/showboat-and-rodney/"

@@ -1,7 +1,7 @@
 ---
 title: "Agentic Engineering"
 slug: "agentic-engineering"
-date: "2026-02-10"
+date: "2026-02-10T13:27:40+05:30"
 description: ""
 tags: ["agentic-engineering"]
 draft: false

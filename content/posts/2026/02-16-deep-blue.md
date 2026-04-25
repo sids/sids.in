@@ -1,7 +1,7 @@
 ---
 title: "Deep Blue"
 slug: "deep-blue"
-date: "2026-02-16"
+date: "2026-02-16T07:21:34+05:30"
 description: ""
 tags: ["ai", "programming", "agentic-engineering"]
 link: "https://simonwillison.net/2026/Feb/15/deep-blue/"

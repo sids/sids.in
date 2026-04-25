@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { routeAdmin } from "./admin.ts";
-import { createStateCookie, generateStateToken } from "../lib/session.ts";
+import { publishDraftMarkdown, routeAdmin } from "./admin.ts";
+import { createSessionCookie, createStateCookie, generateStateToken } from "../lib/session.ts";
 import type { Env } from "../types.ts";
 
 const TEST_SECRET = "test-secret-key-32-chars-long!!!";
@@ -17,6 +17,56 @@ const TEST_ENV: Env = {
   SESSION_SECRET: TEST_SECRET,
   ADMIN_EMAIL: "admin@example.com",
 };
+
+describe("admin authoring dates", () => {
+  it("creates note posts with a timestamped frontmatter date", async () => {
+    const originalFetch = globalThis.fetch;
+    const sessionCookie = await createSessionCookie(TEST_ENV.ADMIN_EMAIL, TEST_SECRET);
+    let githubRequestBody: { content: string } | null = null;
+
+    globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      githubRequestBody = JSON.parse(String(init?.body)) as { content: string };
+      return new Response(JSON.stringify({ content: { path: "content/posts/2026/04-25-timestamped-note.md" } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    try {
+      const request = new Request("https://example.com/admin/api/note", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: sessionCookie.split(";")[0]!,
+        },
+        body: JSON.stringify({ title: "Timestamped Note", content: "Body" }),
+      });
+
+      const response = await routeAdmin("/admin/api/note", request, TEST_ENV, "https://example.com", false);
+
+      expect(response).not.toBeNull();
+      expect(response!.status).toBe(200);
+      const payload = await response!.json<{ date: string }>();
+      expect(payload.date).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+      expect(githubRequestBody).not.toBeNull();
+      const markdown = atob(githubRequestBody!.content);
+      expect(markdown).toContain(`date: "${payload.date}"`);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("sets draft false and replaces the frontmatter date with the publish timestamp", () => {
+    const markdown = `---\ntitle: "Draft"\nslug: "draft"\ndate: "2026-03-09"\ndraft: true\n---\n\nBody\n`;
+
+    const result = publishDraftMarkdown(markdown, "2026-04-25T09:03:29.000Z");
+
+    expect(result).not.toBeNull();
+    expect(result).toContain('date: "2026-04-25T09:03:29.000Z"');
+    expect(result).toContain("draft: false");
+    expect(result).not.toContain("draft: true");
+  });
+});
 
 describe("routeAdmin callback errors", () => {
   it("preserves returnTo when Apple posts back an OAuth error", async () => {

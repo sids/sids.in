@@ -32,6 +32,25 @@ describe("generateAtomFeed", () => {
     expect(feed).toContain('<a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Deep Blue ↗</a>');
   });
 
+  it("uses the full post timestamp for published and updated dates", () => {
+    const post: Post = {
+      title: "Timestamped Post",
+      slug: "timestamped-post",
+      date: "2026-04-25T09:03:29+05:30",
+      description: "",
+      tags: ["ai"],
+      postType: "note",
+      draft: false,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const feed = generateAtomFeed([post], options);
+
+    expect(feed).toContain("<published>2026-04-25T03:33:29.000Z</published>");
+    expect(feed).toContain("<updated>2026-04-25T03:33:29.000Z</updated>");
+  });
+
   it("uses only alternate links for non-link posts", () => {
     const post: Post = {
       title: "Cognitive Debt",
@@ -39,7 +58,7 @@ describe("generateAtomFeed", () => {
       date: "2026-02-15",
       description: "",
       tags: ["ai"],
-      postType: "aside",
+      postType: "note",
       draft: false,
       html: "<p>Body</p>",
       excerpt: "Body",
@@ -58,7 +77,7 @@ describe("generateAtomFeed", () => {
       date: "not-a-date",
       description: "",
       tags: ["ai"],
-      postType: "aside",
+      postType: "note",
       draft: false,
       html: "<p>Body</p>",
       excerpt: "Body",

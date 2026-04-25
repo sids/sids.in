@@ -1,7 +1,7 @@
 ---
 title: "The Zechner-Lopopolo Continuum"
 slug: "the-zechner-lopopolo-continuum"
-date: "2026-04-25"
+date: "2026-04-25T09:03:29+05:30"
 description: ""
 tags: ["agentic-engineering", "programming"]
 link: "https://sub.thursdai.news/p/the-lopopolo-zechner-spectrum"

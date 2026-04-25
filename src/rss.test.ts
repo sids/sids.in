@@ -32,6 +32,25 @@ describe("generateRssFeed", () => {
     expect(feed).toContain('<a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Deep Blue ↗</a>');
   });
 
+  it("uses the full post timestamp for pubDate", () => {
+    const post: Post = {
+      title: "Timestamped Post",
+      slug: "timestamped-post",
+      date: "2026-04-25T09:03:29+05:30",
+      description: "",
+      tags: ["ai"],
+      postType: "note",
+      draft: false,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const feed = generateRssFeed([post], options);
+
+    expect(feed).toContain("<pubDate>Sat, 25 Apr 2026 03:33:29 GMT</pubDate>");
+    expect(feed).toContain("<lastBuildDate>Sat, 25 Apr 2026 03:33:29 GMT</lastBuildDate>");
+  });
+
   it("keeps local permalinks for non-link posts", () => {
     const post: Post = {
       title: "Cognitive Debt",
@@ -39,7 +58,7 @@ describe("generateRssFeed", () => {
       date: "2026-02-15",
       description: "",
       tags: ["ai"],
-      postType: "aside",
+      postType: "note",
       draft: false,
       html: "<p>Body</p>",
       excerpt: "Body",

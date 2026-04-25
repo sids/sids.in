@@ -1,7 +1,7 @@
 ---
 title: "No More Code Reviews"
 slug: "no-more-code-reviews"
-date: "2026-03-14"
+date: "2026-03-14T22:10:27+05:30"
 description: ""
 tags: ["ai", "programming", "agentic-engineering"]
 link: "https://molochinations.substack.com/p/no-more-code-reviews-lights-out-codebases"

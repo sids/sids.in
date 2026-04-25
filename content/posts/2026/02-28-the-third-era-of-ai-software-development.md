@@ -1,7 +1,7 @@
 ---
 title: "The Third Era of AI Software Development"
 slug: "the-third-era-of-ai-software-development"
-date: "2026-02-28"
+date: "2026-02-28T23:11:52+05:30"
 description: ""
 tags: ["agentic-engineering"]
 link: "https://x.com/mntruell/status/2026736314272591924"

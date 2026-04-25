@@ -1,7 +1,7 @@
 ---
 title: "End of Productivity Theater"
 slug: "end-of-productivity-theater"
-date: "2026-03-08"
+date: "2026-03-08T11:20:48+05:30"
 description: ""
 tags: ["productivity"]
 link: "http://muratbuffalo.blogspot.com/2026/02/end-of-productivity-theater.html"

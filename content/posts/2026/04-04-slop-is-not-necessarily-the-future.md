@@ -1,7 +1,7 @@
 ---
 title: "Slop Is Not Necessarily the Future"
 slug: "slop-is-not-necessarily-the-future"
-date: "2026-04-04"
+date: "2026-04-04T22:52:05+05:30"
 description: ""
 tags: ["ai", "programming"]
 link: "https://www.greptile.com/blog/ai-slopware-future"
