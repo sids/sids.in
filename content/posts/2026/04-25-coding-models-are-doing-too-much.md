@@ -5,7 +5,7 @@ date: "2026-04-25"
 description: ""
 tags: ["agentic-engineering", "programming"]
 link: "https://nrehiew.github.io/blog/minimal_editing/"
-draft: true
+draft: false
 ---
 
 nrehiew:
