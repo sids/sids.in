@@ -5,7 +5,7 @@ date: "2026-04-25"
 description: ""
 tags: ["agentic-engineering", "programming"]
 link: "https://x.com/walden_yan/status/2047054401341370639"
-draft: true
+draft: false
 ---
 
 I've largely sat out the hype around multi-agent orchestration or agent swarms because it felt too gimmicky. Heck, I've only recently started using subagents in a limited way (mostly explicitly invoked when I feel like something is parallelizable).
