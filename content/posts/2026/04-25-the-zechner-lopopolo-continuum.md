@@ -5,7 +5,7 @@ date: "2026-04-25"
 description: ""
 tags: ["agentic-engineering", "programming"]
 link: "https://sub.thursdai.news/p/the-lopopolo-zechner-spectrum"
-draft: true
+draft: false
 ---
 
 Alex Volkov:
