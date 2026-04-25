@@ -5,7 +5,7 @@ date: "2026-04-25"
 description: ""
 tags: ["ai"]
 link: "https://davegriffith.substack.com/p/why-isnt-everything-different-yet"
-draft: true
+draft: false
 ---
 
 Dave Griffith:
