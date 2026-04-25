@@ -1,7 +1,7 @@
 ---
 title: "Multi-Agents: What's Actually Working"
 slug: "multi-agents-whats-actually-working"
-date: "2026-04-25"
+date: "2026-04-25T06:22:11+05:30"
 description: ""
 tags: ["agentic-engineering", "programming"]
 link: "https://x.com/walden_yan/status/2047054401341370639"

@@ -1,7 +1,7 @@
 ---
 title: "Mitchell Hashimoto's AI Adoption Journey"
 slug: "mitchell-hashimotos-ai-adoption-journey"
-date: "2026-02-09"
+date: "2026-02-09T17:54:04+05:30"
 description: ""
 tags: ["agentic-engineering"]
 link: "https://mitchellh.com/writing/my-ai-adoption-journey"

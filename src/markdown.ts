@@ -2,6 +2,7 @@ import { marked } from "marked";
 import markedFootnote from "marked-footnote";
 import fm from "front-matter";
 import type { PageMeta, PostMeta, Page, Post, PostType } from "./types.ts";
+import { resolveFrontmatterDate } from "./lib/post-date.ts";
 
 marked.use(markedFootnote());
 
@@ -20,7 +21,7 @@ export function parsePage(rawMarkdown: string, slug: string): Page {
 interface PostFrontmatter {
   title: string;
   slug: string;
-  date: string;
+  date: string | Date;
   description?: string;
   tags?: string[];
   draft?: boolean;
@@ -41,7 +42,7 @@ export function parsePost(rawMarkdown: string, postTypeOverride?: PostType): Pos
   return {
     title: attributes.title,
     slug: attributes.slug,
-    date: attributes.date,
+    date: resolveFrontmatterDate(rawMarkdown, attributes.date),
     description,
     tags: attributes.tags || [],
     draft: attributes.draft,

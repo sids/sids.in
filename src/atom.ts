@@ -1,5 +1,6 @@
 import type { Post } from "./types.ts";
 import { escapeHtml } from "./markdown.ts";
+import { getPostDate } from "./lib/post-date.ts";
 
 interface FeedOptions {
   title: string;
@@ -17,10 +18,10 @@ export function generateAtomFeed(posts: Post[], options: FeedOptions): string {
       const permalinkUrl = `${siteUrl}/posts/${post.slug}`;
       const published = formatAtomDate(post.date);
 
-      // Add indicators for link and aside posts
+      // Add indicators for link and note posts
       const titleWithIndicator = post.link
         ? `↗ ${escapeHtml(post.title)}`
-        : post.postType === "aside"
+        : post.postType === "note"
         ? `💬 ${escapeHtml(post.title)}`
         : escapeHtml(post.title);
 
@@ -61,10 +62,5 @@ ${entries}
 }
 
 function formatAtomDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) {
-    return new Date().toISOString();
-  }
-
-  return date.toISOString();
+  return (getPostDate(dateStr) ?? new Date()).toISOString();
 }

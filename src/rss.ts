@@ -1,5 +1,6 @@
 import type { Post } from "./types.ts";
 import { escapeHtml } from "./markdown.ts";
+import { getPostDate } from "./lib/post-date.ts";
 
 interface FeedOptions {
   title: string;
@@ -55,6 +56,5 @@ ${items}
 }
 
 function formatRssDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toUTCString();
+  return (getPostDate(dateStr) ?? new Date()).toUTCString();
 }

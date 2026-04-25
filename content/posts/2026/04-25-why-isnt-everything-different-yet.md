@@ -1,7 +1,7 @@
 ---
 title: "Why Isn't Everything Different Yet?"
 slug: "why-isnt-everything-different-yet"
-date: "2026-04-25"
+date: "2026-04-25T06:51:55+05:30"
 description: ""
 tags: ["ai"]
 link: "https://davegriffith.substack.com/p/why-isnt-everything-different-yet"

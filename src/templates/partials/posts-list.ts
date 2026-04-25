@@ -3,14 +3,8 @@ import { escapeHtml } from "../../markdown.ts";
 import { postCard } from "./post-card.ts";
 import { pagination } from "../pagination.ts";
 import type { PostFilterType } from "./post-filter.ts";
-import { formatPostDate } from "../format-date.ts";
-
-function formatMonthDay(dateStr: string): string {
-  const date = new Date(dateStr);
-  const month = date.toLocaleString("en-US", { month: "short" }).toUpperCase();
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${month}.${day}`;
-}
+import { formatPostDate, formatPostMonthDay } from "../format-date.ts";
+import { getPostDateParts } from "../../lib/post-date.ts";
 
 function indicatorForPost(type: PostType): string {
   if (type === "link") {
@@ -111,7 +105,7 @@ export function postsListArchive(
   const postsByYear: Record<string, PostMeta[]> = {};
 
   for (const post of posts) {
-    const year = new Date(post.date).getFullYear().toString();
+    const year = String(getPostDateParts(post.date)?.year ?? "");
     if (!postsByYear[year]) {
       postsByYear[year] = [];
     }
@@ -126,7 +120,7 @@ export function postsListArchive(
       .map((post) => {
         const indicator = indicatorForPost(post.postType);
         return `<li class="flex gap-6 py-2 group">
-      <span class="font-mono text-sm w-12 shrink-0 text-secondary">${formatMonthDay(post.date)}</span>
+      <span class="font-mono text-sm w-12 shrink-0 text-secondary">${formatPostMonthDay(post.date)}</span>
       <span>${indicator}<a href="/posts/${post.slug}" class="text-primary">${escapeHtml(post.title)}</a></span>
     </li>`;
       })

@@ -2,11 +2,12 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join, basename } from "node:path";
 import { execSync } from "node:child_process";
 import fm from "front-matter";
+import { getPostDateTimestamp, resolveFrontmatterDate } from "../src/lib/post-date.ts";
 
 interface PostFrontmatter {
   title: string;
   slug: string;
-  date: string;
+  date: string | Date;
   description?: string;
   tags: string[];
   draft?: boolean;
@@ -148,20 +149,26 @@ async function buildManifest() {
       continue;
     }
 
+    const meta: PostFrontmatter = {
+      ...attributes,
+      date: resolveFrontmatterDate(content, attributes.date),
+      tags: attributes.tags || [],
+    };
+
     // Only use explicit frontmatter description (don't auto-generate)
-    allPostMetaEntries.push({ meta: { ...attributes }, file });
+    allPostMetaEntries.push({ meta, file });
     postContentEntries.push(`  "${attributes.slug}": ${varName}`);
 
     if (attributes.draft) {
       continue;
     }
 
-    postMetaEntries.push({ meta: { ...attributes }, varName, file });
+    postMetaEntries.push({ meta, varName, file });
   }
 
   // Sort posts by date descending
   postMetaEntries.sort(
-    (a, b) => new Date(b.meta.date).getTime() - new Date(a.meta.date).getTime()
+    (a, b) => getPostDateTimestamp(b.meta.date) - getPostDateTimestamp(a.meta.date)
   );
 
   // Build tag index

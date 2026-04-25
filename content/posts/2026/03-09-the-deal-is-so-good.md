@@ -1,7 +1,7 @@
 ---
 title: "The Deal Is So Good"
 slug: "the-deal-is-so-good"
-date: "2026-03-09"
+date: "2026-03-10T07:49:18+05:30"
 description: ""
 tags: ["ai", "programming", "work-culture"]
 link: "https://x.com/atmoio/status/2030289138126107074?s=12"

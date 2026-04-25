@@ -1,7 +1,7 @@
 ---
 title: "The Final Bottleneck"
 slug: "the-final-bottleneck"
-date: "2026-02-14"
+date: "2026-02-14T20:37:55+05:30"
 description: ""
 tags: ["agentic-engineering"]
 link: "https://lucumr.pocoo.org/2026/2/13/the-final-bottleneck/"
