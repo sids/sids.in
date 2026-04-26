@@ -1,5 +1,6 @@
 import type { Env } from "./types.ts";
 import { routeAdmin } from "./routes/admin.ts";
+import { routeNewsletter } from "./routes/newsletter.ts";
 import { routePages } from "./routes/pages.ts";
 
 // HTMX partial unless it's a history restore request.
@@ -31,6 +32,11 @@ export default {
       const adminResponse = await routeAdmin(path, request, env, url.origin, isPartialRequest);
       if (adminResponse) {
         return adminResponse;
+      }
+
+      const newsletterResponse = routeNewsletter(path, request);
+      if (newsletterResponse) {
+        return newsletterResponse;
       }
 
       return routePages(path, url.searchParams, url.origin, isPartialRequest, hxTarget, request, env);
