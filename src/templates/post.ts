@@ -6,39 +6,7 @@ import { postsListCompact } from "./partials/posts-list.ts";
 import { postSubscribePrompt } from "./partials/subscribe.ts";
 import { tagFilter, type TagFilterType } from "./partials/tag-filter.ts";
 import { recentPostsPartial, recentPostsSection } from "./partials/recent-posts-section.ts";
-
-function getTweetEmbedMarkup(link?: string): string {
-  if (!link) {
-    return "";
-  }
-
-  let url: URL;
-  try {
-    url = new URL(link);
-  } catch {
-    return "";
-  }
-
-  const hostname = url.hostname.toLowerCase();
-  if (hostname !== "x.com" && hostname !== "www.x.com" && hostname !== "twitter.com" && hostname !== "www.twitter.com") {
-    return "";
-  }
-
-  const match = url.pathname.match(/^\/(?:#!\/)?([^/]+)\/status\/(\d+)/);
-  if (!match) {
-    return "";
-  }
-
-  const [, username, statusId] = match;
-  const canonicalUrl = `https://twitter.com/${username}/status/${statusId}`;
-
-  return `<div class="tweet-embed my-8 not-prose">
-    <blockquote class="twitter-tweet" data-dnt="true" data-theme="light">
-      <a href="${escapeHtml(canonicalUrl)}"></a>
-    </blockquote>
-    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-  </div>`;
-}
+import { tweetEmbedMarkupFromLink } from "./tweet-embed.ts";
 
 export function postTemplate(
   post: Post,
@@ -57,7 +25,7 @@ export function postTemplate(
     ? `<p class="rss-source-link"><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>`
     : "";
 
-  const tweetEmbedMarkup = post.postType === "link" ? getTweetEmbedMarkup(post.link) : "";
+  const tweetEmbedMarkup = post.postType === "link" ? tweetEmbedMarkupFromLink(post.link) : "";
   const loginHref = draftLoginPath
     ? `/admin/login?${new URLSearchParams({ returnTo: draftLoginPath }).toString()}`
     : "/admin/login";

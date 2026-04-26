@@ -45,6 +45,8 @@ describe("postTemplate", () => {
     expect(html).toContain('class="twitter-tweet"');
     expect(html).toContain('https://twitter.com/atmoio/status/2030289138126107074');
     expect(html).toContain('https://platform.twitter.com/widgets.js');
+    expect(html).toContain('window.twttr.widgets.load(root)');
+    expect(html).toContain('data-tweet-embed-loader="true"');
   });
 
   it("does not embed non-status X links", () => {
