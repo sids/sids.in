@@ -1,11 +1,11 @@
 ---
 title: "Tim Cook Personified Big Tech's Maturity"
 slug: "tim-cook-personified-big-techs-maturity"
-date: "2026-04-26T12:48:25+05:30"
+date: "2026-04-26T07:20:51.341Z"
 description: ""
 tags: ["product-building"]
 link: "https://sharptext.net/2026/tim-cook-personified-big-techs-maturity/"
-draft: true
+draft: false
 ---
 
 Andrew Sharp:
