@@ -3,6 +3,7 @@ import { escapeHtml } from "../../markdown.ts";
 import { marked } from "marked";
 import { formatPostDate } from "../format-date.ts";
 import { noteIcon, permalinkIcon } from "../icons.ts";
+import { tweetEmbedMarkupFromLink } from "../tweet-embed.ts";
 
 export function postCard(post: Post): string {
   const hasExternalLink = !!post.link;
@@ -24,13 +25,14 @@ export function postCard(post: Post): string {
   }
 
   // Content: description with "Read Now →" link, or full markdown content
+  const tweetEmbedMarkup = post.postType === "link" ? tweetEmbedMarkupFromLink(post.link) : "";
   let contentHtml: string;
   if (hasDescription) {
     const descriptionRendered = marked.parse(post.description!, { async: false, breaks: true }) as string;
-    contentHtml = `<div class="leading-relaxed prose-sm text-secondary">${descriptionRendered}</div><a href="/posts/${post.slug}" class="link-accent inline-block">Read Now →</a>`;
+    contentHtml = `${tweetEmbedMarkup}<div class="leading-relaxed prose-sm text-secondary">${descriptionRendered}</div><a href="/posts/${post.slug}" class="link-accent inline-block">Read Now →</a>`;
   } else {
     // Render full post content as markdown (reusing post-content class)
-    contentHtml = `<div class="post-content">${post.html}</div>`;
+    contentHtml = `<div class="post-content">${tweetEmbedMarkup}${post.html}</div>`;
   }
 
   return `<article class="py-8 first:pt-0">

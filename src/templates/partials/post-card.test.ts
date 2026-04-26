@@ -26,4 +26,25 @@ describe("postCard", () => {
     expect(html).toContain('<span aria-hidden="true">↗ </span><a href="https://example.com/article" class="text-primary" target="_blank" rel="noopener noreferrer">Deep Blue</a>');
     expect(html).not.toContain('<svg class="inline-block w-5 h-5 mr-1 align-middle"');
   });
+
+  it("embeds X posts for link cards that point to a status URL", () => {
+    const post: Post = {
+      title: "Multi-Agents: What's Actually Working",
+      slug: "multi-agents-whats-actually-working",
+      date: "2026-04-25",
+      description: "",
+      tags: ["agentic-engineering"],
+      postType: "link",
+      link: "https://x.com/walden_yan/status/2047054401341370639",
+      draft: false,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const html = postCard(post);
+
+    expect(html).toContain('class="twitter-tweet"');
+    expect(html).toContain('https://twitter.com/walden_yan/status/2047054401341370639');
+    expect(html).toContain('window.twttr.widgets.load(root)');
+  });
 });
