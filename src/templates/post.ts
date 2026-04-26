@@ -6,7 +6,7 @@ import { postsListCompact } from "./partials/posts-list.ts";
 import { postSubscribePrompt } from "./partials/subscribe.ts";
 import { tagFilter, type TagFilterType } from "./partials/tag-filter.ts";
 import { recentPostsPartial, recentPostsSection } from "./partials/recent-posts-section.ts";
-import { tweetEmbedMarkupFromLink } from "./tweet-embed.ts";
+import { linkEmbedMarkupFromLink } from "./link-embed.ts";
 
 export function postTemplate(
   post: Post,
@@ -25,7 +25,7 @@ export function postTemplate(
     ? `<p class="rss-source-link"><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>`
     : "";
 
-  const tweetEmbedMarkup = post.postType === "link" ? tweetEmbedMarkupFromLink(post.link) : "";
+  const linkEmbedMarkup = post.postType === "link" ? linkEmbedMarkupFromLink(post.link, post.title) : "";
   const loginHref = draftLoginPath
     ? `/admin/login?${new URLSearchParams({ returnTo: draftLoginPath }).toString()}`
     : "/admin/login";
@@ -234,7 +234,7 @@ export function postTemplate(
   </header>
   <div class="post-content">
     ${rssSourceLink}
-    ${tweetEmbedMarkup}
+    ${linkEmbedMarkup}
     ${post.html}
   </div>
   <footer class="mt-12 flex flex-col gap-3">

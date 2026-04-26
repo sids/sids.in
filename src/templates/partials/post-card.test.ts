@@ -47,4 +47,25 @@ describe("postCard", () => {
     expect(html).toContain('https://twitter.com/walden_yan/status/2047054401341370639');
     expect(html).toContain('window.twttr.widgets.load(root)');
   });
+
+  it("embeds YouTube videos for link cards that point to a video URL", () => {
+    const post: Post = {
+      title: "You and Your Research",
+      slug: "you-and-your-research",
+      date: "2026-04-26",
+      description: "",
+      tags: ["excellence"],
+      postType: "link",
+      link: "https://youtu.be/a1zDuOPkMSw?t=42",
+      draft: false,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const html = postCard(post);
+
+    expect(html).toContain('class="youtube-embed my-8 not-prose"');
+    expect(html).toContain('src="https://www.youtube-nocookie.com/embed/a1zDuOPkMSw?start=42"');
+    expect(html).toContain('<div class="post-content"><div class="youtube-embed');
+  });
 });
