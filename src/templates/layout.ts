@@ -1,4 +1,8 @@
 import { escapeHtml } from "../markdown.ts";
+import { contentVersion } from "../manifest.ts";
+
+const assetVersion = contentVersion ? `?v=${encodeURIComponent(contentVersion)}` : "";
+const versionedAsset = (path: string): string => `${path}${assetVersion}`;
 
 const themeScript = `
 (function() {
@@ -49,19 +53,21 @@ export function layout(content: string, title: string, description?: string, tag
   ${og ? `<meta property="og:title" content="${escapeHtml(og.title)}">` : ""}
   ${og?.description ? `<meta property="og:description" content="${escapeHtml(og.description)}">` : ""}
   <link rel="icon" type="image/png" href="/images/s.png">
-  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="preload" href="/fonts/overpass-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/overpass-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="${versionedAsset("/css/styles.css")}">
   <link rel="alternate" type="application/rss+xml" title="Sid's Blog" href="/posts/feed.xml">
   <link rel="alternate" type="application/atom+xml" title="Sid's Blog" href="/posts/feed.atom">${tagFeedLinks}
   <script>${themeScript}</script>
-  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
-  <script src="https://unpkg.com/htmx-ext-head-support@2.0.2/head-support.js"></script>
+  <script defer src="${versionedAsset("/js/htmx-2.0.4.min.js")}"></script>
+  <script defer src="${versionedAsset("/js/htmx-head-support-2.0.2.js")}"></script>
 </head>
 <body hx-ext="head-support" hx-boost="true" hx-target="#content" hx-swap="innerHTML" class="min-h-screen">
   <header class="border-b border-border">
     <nav class="content-width py-8 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
       <a href="/" hx-swap="innerHTML show:none" class="group inline-flex flex-col no-underline">
         <span class="font-mono text-sm tracking-widest uppercase text-primary group-hover:text-accent transition-colors flex items-center gap-2">
-          <img src="/images/s.png" alt="" class="w-5 h-5 rounded">
+          <img src="${versionedAsset("/images/s-40.webp")}" width="20" height="20" alt="" class="w-5 h-5 rounded">
           <span class="group-hover:hidden">Sid</span>
           <span class="hidden group-hover:inline">Siddhartha Reddy Kottakapu</span>
         </span>

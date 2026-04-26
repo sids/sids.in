@@ -1,4 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=Overpass:ital,wght@0,300;0,400;0,500;1,300&family=Overpass+Mono:wght@400;500&display=swap');
+@font-face {
+  font-family: 'Overpass';
+  font-style: normal;
+  font-weight: 300 500;
+  font-display: swap;
+  src: url('/fonts/overpass-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Overpass';
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url('/fonts/overpass-italic-latin.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Overpass Mono';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('/fonts/overpass-mono-latin.woff2') format('woff2');
+}
 
 @tailwind base;
 @tailwind components;
