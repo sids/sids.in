@@ -22,19 +22,13 @@ This is effectively my (manual) workflow in almost every coding agent I have use
 
 I wouldn't want to automate it in my manual workflow though, as I tend to not accept all the review comments from the review agent. Hence why I don't use extensions such as [pi-review-loop](https://github.com/nicobailon/pi-review-loop) which exist to do just that.
 
----
-
 > **2) Large, expensive models are back - introducing "Smart Friend"**
 >
 > The actual architecture we used to achieve this was by offering the smarter/expansive model as a "smart friend" tool that the primary/smaller model could make a call out to. Basically, let the primary/smaller model decide when a situation was tricky enough to be worth consulting the smarter/expensive model.
 
 This is basically akin to Amp Code's /oracle[^1] but invoked automatically (by exposing it as a tool). Seems obviously beneficial if the primary model is not smart enough to tackle the problem at hand.
 
----
-
 > What about unstructured swarms? We think the unstructured-swarm approach, arbitrary networks of agents negotiating with each other, is mostly a distraction. The practical shape is map-reduce-and-manage: a manager splits work, children execute, the manager synthesizes and reports back. Making this type of system feel as coherent as a single agent working on a single task is at the center of some of our upcoming work in 2026.
-
----
 
 > There's a shared through-line with all of these experiments: multi-agent systems work best today when writes stay single-threaded and the additional agents contribute intelligence rather than actions. A clean-context reviewer catches bugs the coder can't see. A frontier-level smart friend catches subtleties a weaker primary misses. A manager coordinates scope across child agents without fragmenting decisions.
 >
