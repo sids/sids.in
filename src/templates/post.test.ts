@@ -69,6 +69,48 @@ describe("postTemplate", () => {
     expect(html).not.toContain('https://platform.twitter.com/widgets.js');
   });
 
+  it("embeds YouTube videos for link posts that point to a video URL", () => {
+    const post: Post = {
+      title: "You and Your Research",
+      slug: "you-and-your-research",
+      date: "2026-04-26",
+      description: "",
+      tags: ["excellence"],
+      postType: "link",
+      link: "https://www.youtube.com/watch?v=a1zDuOPkMSw",
+      draft: false,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const html = postTemplate(post, []);
+
+    expect(html).toContain('class="youtube-embed my-8 not-prose"');
+    expect(html).toContain('src="https://www.youtube-nocookie.com/embed/a1zDuOPkMSw"');
+    expect(html).toContain('title="You and Your Research - YouTube video"');
+    expect(html).toContain('class="aspect-video w-full rounded-lg border border-border bg-secondary"');
+    expect(html).toContain("allowfullscreen");
+  });
+
+  it("preserves YouTube start timestamps in embeds", () => {
+    const post: Post = {
+      title: "You and Your Research",
+      slug: "you-and-your-research",
+      date: "2026-04-26",
+      description: "",
+      tags: ["excellence"],
+      postType: "link",
+      link: "https://www.youtube.com/watch?v=a1zDuOPkMSw&start=90",
+      draft: false,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const html = postTemplate(post, []);
+
+    expect(html).toContain('src="https://www.youtube-nocookie.com/embed/a1zDuOPkMSw?start=90"');
+  });
+
   it("preserves the current post URL in the draft login link", () => {
     const post: Post = {
       title: "Draft Post",
