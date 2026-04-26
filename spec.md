@@ -90,9 +90,11 @@ sids.in/
 │           └── posts-list.ts # List renderers (cards, compact, archive)
 ├── public/                   # Static assets (served by Workers)
 │   ├── css/styles.css        # Compiled Tailwind (generated)
+│   ├── fonts/                # Self-hosted web fonts
+│   ├── images/
+│   ├── js/                   # Self-hosted browser scripts
 │   ├── robots.txt
 │   └── sitemap.xml
-│   └── images/
 ├── styles/
 │   └── input.css             # Tailwind source
 ├── scripts/
@@ -169,7 +171,7 @@ The `date` field accepts either `YYYY-MM-DD` or an ISO-style timestamp such as `
 | `/admin/api/publish` | routes/admin.ts | Authenticated API endpoint that publishes draft posts and stamps the current date/time |
 | `/robots.txt` | - | Robots file (static asset) |
 | `/sitemap.xml` | - | Sitemap generated at build time |
-| `/css/*`, `/images/*` | - | Static assets |
+| `/css/*`, `/fonts/*`, `/images/*`, `/js/*` | - | Static assets |
 
 ## Pagination
 
@@ -240,13 +242,14 @@ export const contentVersion: string | null; // git short SHA if available
 - Content lives in `content/` (outside `src/`) for clean separation
 - Excerpt: first ~150 chars of rendered content (stripped of HTML); currently unused in templates
 - Static assets served via Workers Static Assets binding
+- Versioned CSS/image URLs, fonts, and self-hosted JavaScript assets are served with long-lived immutable cache headers
 - `scripts/build-manifest.ts` writes `public/sitemap.xml` during build
 - Tailwind v3 (v4 has Cloudflare compatibility issues)
-- HTMX loaded from CDN (unpkg)
+- HTMX is self-hosted from `public/js/`
 - CSS variables defined in `:root` and `:root.dark` for theming
 - Dark mode uses class strategy with JavaScript for localStorage persistence
 - Typography-aware content width: `min(70ch, 100% - 3rem)`
-- Google Fonts: IBM Plex Sans and JetBrains Mono loaded via CSS import
+- Fonts are self-hosted Overpass and Overpass Mono web fonts
 - Admin authoring (link log + note) is protected with Sign in with Apple OAuth and uses GitHub's Contents API to create and publish markdown files.
 - Admin-created posts and draft publishes write `date` with the current ISO timestamp.
 - Admin secrets are stored as Cloudflare Worker environment variables:

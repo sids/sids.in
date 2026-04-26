@@ -13,8 +13,36 @@ function isPartialHtmxRequest(request: Request): boolean {
   return headers.get("HX-History-Restore-Request") !== "true";
 }
 
-const STATIC_PATHS = ["/css/", "/images/", "/robots.txt", "/sitemap.xml"];
+const STATIC_PATHS = ["/css/", "/fonts/", "/images/", "/js/", "/robots.txt", "/sitemap.xml"];
+const IMMUTABLE_STATIC_PATHS = ["/fonts/", "/js/"];
+const VERSIONED_STATIC_PATHS = ["/css/", "/images/"];
+const STATIC_ASSET_CACHE_CONTROL = "public, max-age=31536000, immutable";
+
 const isStaticAsset = (path: string) => STATIC_PATHS.some((p) => path.startsWith(p));
+
+function isImmutableStaticAsset(url: URL): boolean {
+  const path = url.pathname;
+  if (IMMUTABLE_STATIC_PATHS.some((p) => path.startsWith(p))) {
+    return true;
+  }
+
+  return url.searchParams.has("v") && VERSIONED_STATIC_PATHS.some((p) => path.startsWith(p));
+}
+
+async function fetchStaticAsset(request: Request, env: Env, url: URL): Promise<Response> {
+  const response = await env.ASSETS.fetch(request);
+  if (response.status !== 200 || !isImmutableStaticAsset(url)) {
+    return response;
+  }
+
+  const headers = new Headers(response.headers);
+  headers.set("Cache-Control", STATIC_ASSET_CACHE_CONTROL);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -24,7 +52,7 @@ export default {
     const hxTarget = request.headers.get("HX-Target");
 
     if (isStaticAsset(path)) {
-      return env.ASSETS.fetch(request);
+      return fetchStaticAsset(request, env, url);
     }
 
     try {
