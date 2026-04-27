@@ -70,7 +70,7 @@ describe("generateClientSecret", () => {
   it("includes correct header with alg and kid", async () => {
     const jwt = await generateClientSecret(TEST_CONFIG);
     const [headerB64] = jwt.split(".");
-    const header = JSON.parse(atob(headerB64.replace(/-/g, "+").replace(/_/g, "/")));
+    const header = JSON.parse(atob(headerB64!.replace(/-/g, "+").replace(/_/g, "/")));
 
     expect(header.alg).toBe("ES256");
     expect(header.kid).toBe("KEYID12345");
@@ -79,7 +79,7 @@ describe("generateClientSecret", () => {
   it("includes correct payload claims", async () => {
     const jwt = await generateClientSecret(TEST_CONFIG);
     const [, payloadB64] = jwt.split(".");
-    const payload = JSON.parse(atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/")));
+    const payload = JSON.parse(atob(payloadB64!.replace(/-/g, "+").replace(/_/g, "/")));
 
     expect(payload.iss).toBe("TEAMID1234");
     expect(payload.aud).toBe("https://appleid.apple.com");

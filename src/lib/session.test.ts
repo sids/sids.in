@@ -38,7 +38,7 @@ describe("session", () => {
       const match = cookie.match(/__session=([^;]+)/);
       expect(match).not.toBeNull();
 
-      const value = match![1];
+      const value = match![1]!;
       const parts = value.split(".");
       expect(parts.length).toBe(2);
     });
@@ -65,7 +65,7 @@ describe("session", () => {
     it("returns null for invalid signature", async () => {
       const cookie = await createSessionCookie("test@example.com", TEST_SECRET);
       const match = cookie.match(/__session=([^;]+)/);
-      const [payload] = match![1].split(".");
+      const [payload] = match![1]!.split(".");
       const tamperedValue = `${payload}.invalid-signature`;
 
       const request = new Request("https://example.com", {
@@ -79,7 +79,7 @@ describe("session", () => {
     it("returns null for tampered payload", async () => {
       const cookie = await createSessionCookie("test@example.com", TEST_SECRET);
       const match = cookie.match(/__session=([^;]+)/);
-      const [, signature] = match![1].split(".");
+      const [, signature] = match![1]!.split(".");
       const tamperedPayload = btoa(JSON.stringify({ email: "attacker@example.com", exp: Date.now() + 1000000 }));
 
       const request = new Request("https://example.com", {
@@ -176,7 +176,7 @@ describe("state token", () => {
 
       expect(match).not.toBeNull();
 
-      const [encodedPayload] = match![1].split(".");
+      const [encodedPayload] = match![1]!.split(".");
       const payload = decodeBase64UrlJson<{ state: string; returnTo: string }>(encodedPayload!);
 
       expect(payload).toEqual({
