@@ -18,6 +18,7 @@ import {
   clearStateCookie,
   createAdminFlagCookie,
   clearAdminFlagCookie,
+  isValidSessionSecret,
 } from "../lib/session.ts";
 import {
   buildAppleAuthUrl,
@@ -66,6 +67,10 @@ export async function routeAdmin(
 
   if (!isAdminPath && !isLegacyPath) {
     return null;
+  }
+
+  if (isAdminPath && !isValidSessionSecret(env.SESSION_SECRET)) {
+    return adminConfigurationErrorResponse();
   }
 
   const context: AdminContext = {
@@ -466,6 +471,16 @@ function redirectResponse(location: string): Response {
     status: 308,
     headers: {
       Location: location,
+    },
+  });
+}
+
+function adminConfigurationErrorResponse(): Response {
+  return new Response("Admin is not configured correctly.", {
+    status: 500,
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "private, no-store",
     },
   });
 }
