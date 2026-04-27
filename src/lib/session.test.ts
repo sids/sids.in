@@ -184,6 +184,20 @@ describe("state token", () => {
         returnTo: "/posts/draft-post?tag=ai",
       });
     });
+
+    it("stores an optional nonce", async () => {
+      const state = generateStateToken();
+      const nonce = generateStateToken();
+      const cookie = await createStateCookie(state, TEST_SECRET, undefined, nonce);
+      const match = cookie.match(/__oauth_state=([^;]+)/);
+
+      expect(match).not.toBeNull();
+
+      const [encodedPayload] = match![1]!.split(".");
+      const payload = decodeBase64UrlJson<{ state: string; nonce: string }>(encodedPayload!);
+
+      expect(payload).toEqual({ state, nonce });
+    });
   });
 
   describe("verifyStateToken", () => {
@@ -197,7 +211,7 @@ describe("state token", () => {
       });
 
       const result = await verifyStateToken(request, state, TEST_SECRET);
-      expect(result).toEqual({ valid: true, returnTo: null });
+      expect(result).toEqual({ valid: true, returnTo: null, nonce: null });
     });
 
     it("returns false for missing state cookie", async () => {
@@ -205,7 +219,7 @@ describe("state token", () => {
       const request = new Request("https://example.com");
 
       const result = await verifyStateToken(request, state, TEST_SECRET);
-      expect(result).toEqual({ valid: false, returnTo: null });
+      expect(result).toEqual({ valid: false, returnTo: null, nonce: null });
     });
 
     it("returns false for mismatched state", async () => {
@@ -218,7 +232,7 @@ describe("state token", () => {
       });
 
       const result = await verifyStateToken(request, "different-state", TEST_SECRET);
-      expect(result).toEqual({ valid: false, returnTo: null });
+      expect(result).toEqual({ valid: false, returnTo: null, nonce: null });
     });
 
     it("returns false for invalid signature", async () => {
@@ -228,7 +242,7 @@ describe("state token", () => {
       });
 
       const result = await verifyStateToken(request, state, TEST_SECRET);
-      expect(result).toEqual({ valid: false, returnTo: null });
+      expect(result).toEqual({ valid: false, returnTo: null, nonce: null });
     });
 
     it("returns a stored return path for valid state", async () => {
@@ -241,7 +255,7 @@ describe("state token", () => {
       });
 
       const result = await verifyStateToken(request, state, TEST_SECRET);
-      expect(result).toEqual({ valid: true, returnTo: "/posts/draft-post" });
+      expect(result).toEqual({ valid: true, returnTo: "/posts/draft-post", nonce: null });
     });
   });
 
@@ -256,7 +270,7 @@ describe("state token", () => {
       });
 
       const result = await readStateCookie(request, TEST_SECRET);
-      expect(result).toEqual({ state, returnTo: "/posts/draft-post" });
+      expect(result).toEqual({ state, returnTo: "/posts/draft-post", nonce: null });
     });
 
     it("returns null for an invalid state cookie", async () => {

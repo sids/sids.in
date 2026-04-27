@@ -23,7 +23,7 @@ import {
 import {
   buildAppleAuthUrl,
   exchangeCodeForTokens,
-  parseIdToken,
+  verifyIdToken,
   extractEmailFromClaims,
   type AppleAuthConfig,
 } from "../lib/apple-auth.ts";
@@ -146,8 +146,9 @@ async function handleLoginSubmit({ path, request, env, origin }: AdminContext): 
   const returnTo = sanitizeReturnTo(typeof rawReturnTo === "string" ? rawReturnTo : null);
   const config = getAppleAuthConfig(env, origin);
   const state = generateStateToken();
-  const stateCookie = await createStateCookie(state, env.SESSION_SECRET, returnTo);
-  const authUrl = buildAppleAuthUrl(config, state);
+  const nonce = generateStateToken();
+  const stateCookie = await createStateCookie(state, env.SESSION_SECRET, returnTo, nonce);
+  const authUrl = buildAppleAuthUrl(config, state, nonce);
 
   return new Response(null, {
     status: 302,
@@ -184,7 +185,7 @@ async function handleCallback({ path, request, env, origin }: AdminContext): Pro
   }
 
   const stateResult = await verifyStateToken(request, state, env.SESSION_SECRET);
-  if (!stateResult.valid) {
+  if (!stateResult.valid || !stateResult.nonce) {
     return redirectToLoginWithError("Invalid state token", storedReturnTo);
   }
   const returnTo = sanitizeReturnTo(stateResult.returnTo) || "/admin";
@@ -194,7 +195,7 @@ async function handleCallback({ path, request, env, origin }: AdminContext): Pro
   let email: string | null;
   try {
     const tokens = await exchangeCodeForTokens(code, config);
-    const claims = parseIdToken(tokens.id_token, config.clientId);
+    const claims = await verifyIdToken(tokens.id_token, config.clientId, stateResult.nonce);
     email = extractEmailFromClaims(claims);
   } catch (error) {
     console.error("Apple auth error:", error);

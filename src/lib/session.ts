@@ -13,6 +13,7 @@ interface SessionPayload {
 interface StatePayload {
   state: string;
   returnTo?: string;
+  nonce?: string;
 }
 
 export function isValidSessionSecret(secret: unknown): secret is string {
@@ -143,8 +144,19 @@ export function generateStateToken(): string {
   return base64UrlEncode(bytes);
 }
 
-export async function createStateCookie(state: string, secret: string, returnTo?: string): Promise<string> {
-  const payload: StatePayload = returnTo ? { state, returnTo } : { state };
+export async function createStateCookie(
+  state: string,
+  secret: string,
+  returnTo?: string,
+  nonce?: string,
+): Promise<string> {
+  const payload: StatePayload = { state };
+  if (returnTo) {
+    payload.returnTo = returnTo;
+  }
+  if (nonce) {
+    payload.nonce = nonce;
+  }
   const payloadStr = JSON.stringify(payload);
   const encodedPayload = base64UrlEncode(new TextEncoder().encode(payloadStr));
   const signature = await hmacSign(secret, encodedPayload);
@@ -156,7 +168,7 @@ export async function createStateCookie(state: string, secret: string, returnTo?
 export async function readStateCookie(
   request: Request,
   secret: string,
-): Promise<{ state: string; returnTo: string | null } | null> {
+): Promise<{ state: string; returnTo: string | null; nonce: string | null } | null> {
   const cookieHeader = request.headers.get("Cookie") || "";
   const cookies = parseCookies(cookieHeader);
   const storedValue = cookies[STATE_COOKIE_NAME];
@@ -193,6 +205,7 @@ export async function readStateCookie(
   return {
     state: payload.state,
     returnTo: typeof payload.returnTo === "string" ? payload.returnTo : null,
+    nonce: typeof payload.nonce === "string" ? payload.nonce : null,
   };
 }
 
@@ -200,17 +213,17 @@ export async function verifyStateToken(
   request: Request,
   state: string,
   secret: string,
-): Promise<{ valid: boolean; returnTo: string | null }> {
+): Promise<{ valid: boolean; returnTo: string | null; nonce: string | null }> {
   const payload = await readStateCookie(request, secret);
   if (!payload) {
-    return { valid: false, returnTo: null };
+    return { valid: false, returnTo: null, nonce: null };
   }
 
   if (!timingSafeEqual(payload.state, state)) {
-    return { valid: false, returnTo: null };
+    return { valid: false, returnTo: null, nonce: null };
   }
 
-  return { valid: true, returnTo: payload.returnTo };
+  return { valid: true, returnTo: payload.returnTo, nonce: payload.nonce };
 }
 
 export function clearStateCookie(): string {

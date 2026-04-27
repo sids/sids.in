@@ -2,7 +2,7 @@ import { describe, it, expect } from "bun:test";
 import {
   buildAppleAuthUrl,
   generateClientSecret,
-  parseIdToken,
+  verifyIdToken,
   extractEmailFromClaims,
   type AppleAuthConfig,
   type AppleIdTokenClaims,
@@ -22,6 +22,63 @@ const TEST_CONFIG: AppleAuthConfig = {
   privateKey: TEST_PRIVATE_KEY,
   redirectUri: "https://sids.in/admin/callback",
 };
+
+function base64UrlEncode(input: string | Uint8Array): string {
+  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
+  let binary = "";
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+async function createSignedIdToken(claims: Partial<AppleIdTokenClaims> = {}) {
+  const keyPair = await crypto.subtle.generateKey(
+    {
+      name: "RSASSA-PKCS1-v1_5",
+      modulusLength: 2048,
+      publicExponent: new Uint8Array([1, 0, 1]),
+      hash: "SHA-256",
+    },
+    true,
+    ["sign", "verify"],
+  ) as CryptoKeyPair;
+
+  const keyId = "test-key";
+  const publicJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey) as JsonWebKey & Record<string, unknown>;
+  publicJwk.kid = keyId;
+  publicJwk.alg = "RS256";
+  publicJwk.use = "sig";
+
+  const header = { alg: "RS256", kid: keyId };
+  const payload: AppleIdTokenClaims = {
+    iss: "https://appleid.apple.com",
+    aud: "in.sids.admin.auth",
+    exp: Math.floor(Date.now() / 1000) + 3600,
+    iat: Math.floor(Date.now() / 1000),
+    sub: "user123",
+    ...claims,
+  };
+
+  const signingInput = `${base64UrlEncode(JSON.stringify(header))}.${base64UrlEncode(JSON.stringify(payload))}`;
+  const signature = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    keyPair.privateKey,
+    new TextEncoder().encode(signingInput),
+  );
+
+  return {
+    token: `${signingInput}.${base64UrlEncode(new Uint8Array(signature))}`,
+    publicJwk,
+  };
+}
+
+function appleKeysFetch(publicJwk: Record<string, unknown>): (input: string) => Promise<Response> {
+  return async () => new Response(JSON.stringify({ keys: [publicJwk] }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+}
 
 describe("buildAppleAuthUrl", () => {
   it("builds URL with correct base", () => {
@@ -57,6 +114,11 @@ describe("buildAppleAuthUrl", () => {
   it("includes state parameter", () => {
     const url = buildAppleAuthUrl(TEST_CONFIG, "my-csrf-state");
     expect(url).toContain("state=my-csrf-state");
+  });
+
+  it("includes nonce when provided", () => {
+    const url = buildAppleAuthUrl(TEST_CONFIG, "test-state", "test-nonce");
+    expect(url).toContain("nonce=test-nonce");
   });
 });
 
@@ -96,48 +158,59 @@ describe("generateClientSecret", () => {
   });
 });
 
-describe("parseIdToken", () => {
-  function createTestIdToken(claims: Partial<AppleIdTokenClaims>): string {
-    const header = { alg: "RS256", kid: "test" };
-    const payload: AppleIdTokenClaims = {
-      iss: "https://appleid.apple.com",
-      aud: "in.sids.admin.auth",
-      exp: Math.floor(Date.now() / 1000) + 3600,
-      iat: Math.floor(Date.now() / 1000),
-      sub: "user123",
-      ...claims,
-    };
-
-    const encodeB64 = (obj: unknown) => btoa(JSON.stringify(obj)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-    return `${encodeB64(header)}.${encodeB64(payload)}.fake-signature`;
-  }
-
-  it("parses valid ID token", () => {
-    const token = createTestIdToken({ email: "test@example.com" });
-    const claims = parseIdToken(token, "in.sids.admin.auth");
+describe("verifyIdToken", () => {
+  it("verifies and parses a valid ID token", async () => {
+    const { token, publicJwk } = await createSignedIdToken({ email: "test@example.com" });
+    const claims = await verifyIdToken(token, "in.sids.admin.auth", undefined, appleKeysFetch(publicJwk));
 
     expect(claims.iss).toBe("https://appleid.apple.com");
     expect(claims.aud).toBe("in.sids.admin.auth");
     expect(claims.email).toBe("test@example.com");
   });
 
-  it("throws for invalid format", () => {
-    expect(() => parseIdToken("not-a-jwt", "client-id")).toThrow("Invalid ID token format");
+  it("verifies the nonce when provided", async () => {
+    const { token, publicJwk } = await createSignedIdToken({ nonce: "expected-nonce" });
+    const claims = await verifyIdToken(token, "in.sids.admin.auth", "expected-nonce", appleKeysFetch(publicJwk));
+
+    expect(claims.nonce).toBe("expected-nonce");
   });
 
-  it("throws for invalid issuer", () => {
-    const token = createTestIdToken({ iss: "https://evil.com" });
-    expect(() => parseIdToken(token, "in.sids.admin.auth")).toThrow("Invalid issuer");
+  it("throws for invalid format", async () => {
+    await expect(verifyIdToken("not-a-jwt", "client-id", undefined, appleKeysFetch({}))).rejects.toThrow("Invalid ID token format");
   });
 
-  it("throws for invalid audience", () => {
-    const token = createTestIdToken({ aud: "wrong-client-id" });
-    expect(() => parseIdToken(token, "in.sids.admin.auth")).toThrow("Invalid audience");
+  it("throws for invalid issuer", async () => {
+    const { token, publicJwk } = await createSignedIdToken({ iss: "https://evil.com" });
+    await expect(verifyIdToken(token, "in.sids.admin.auth", undefined, appleKeysFetch(publicJwk))).rejects.toThrow("Invalid issuer");
   });
 
-  it("throws for expired token", () => {
-    const token = createTestIdToken({ exp: Math.floor(Date.now() / 1000) - 100 });
-    expect(() => parseIdToken(token, "in.sids.admin.auth")).toThrow("ID token has expired");
+  it("throws for invalid audience", async () => {
+    const { token, publicJwk } = await createSignedIdToken({ aud: "wrong-client-id" });
+    await expect(verifyIdToken(token, "in.sids.admin.auth", undefined, appleKeysFetch(publicJwk))).rejects.toThrow("Invalid audience");
+  });
+
+  it("throws for expired token", async () => {
+    const { token, publicJwk } = await createSignedIdToken({ exp: Math.floor(Date.now() / 1000) - 100 });
+    await expect(verifyIdToken(token, "in.sids.admin.auth", undefined, appleKeysFetch(publicJwk))).rejects.toThrow("ID token has expired");
+  });
+
+  it("throws for invalid signature", async () => {
+    const { token } = await createSignedIdToken();
+    const { publicJwk } = await createSignedIdToken();
+
+    await expect(verifyIdToken(token, "in.sids.admin.auth", undefined, appleKeysFetch(publicJwk))).rejects.toThrow("Invalid ID token signature");
+  });
+
+  it("throws for nonce mismatch", async () => {
+    const { token, publicJwk } = await createSignedIdToken({ nonce: "actual-nonce" });
+
+    await expect(verifyIdToken(token, "in.sids.admin.auth", "expected-nonce", appleKeysFetch(publicJwk))).rejects.toThrow("Invalid nonce");
+  });
+
+  it("throws when Apple does not provide a matching public key", async () => {
+    const { token } = await createSignedIdToken();
+
+    await expect(verifyIdToken(token, "in.sids.admin.auth", undefined, appleKeysFetch({ kid: "other-key" }))).rejects.toThrow("No matching Apple public key");
   });
 });
 
