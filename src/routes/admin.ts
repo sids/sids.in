@@ -6,6 +6,7 @@ import { adminHomeTemplate } from "../templates/admin/home.ts";
 import { loginTemplate } from "../templates/admin/login.ts";
 import { json, privateHtml } from "../lib/responses.ts";
 import { requireAdminAuth } from "../lib/admin-auth.ts";
+import { getPostDateTimestamp } from "../lib/post-date.ts";
 import { normalizeTags } from "../lib/tags.ts";
 import { fetchPublicHttpUrl, normalizeHttpUrl, UnsafeUrlError } from "../lib/urls.ts";
 import {
@@ -454,7 +455,10 @@ async function handleAdminHome({ path, isPartialRequest }: AdminContext): Promis
     return null;
   }
 
-  const content = adminHomeTemplate();
+  const draftPosts = Object.values(postMetaBySlug)
+    .filter((post) => post.draft)
+    .sort((a, b) => getPostDateTimestamp(b.date) - getPostDateTimestamp(a.date));
+  const content = adminHomeTemplate(draftPosts);
   return privateHtml(content, "Admin", "Admin dashboard", isPartialRequest);
 }
 
