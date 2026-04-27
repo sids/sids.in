@@ -8,6 +8,7 @@ import { postSubscribePrompt } from "./partials/subscribe.ts";
 import { tagFilter, type TagFilterType } from "./partials/tag-filter.ts";
 import { recentPostsPartial, recentPostsSection } from "./partials/recent-posts-section.ts";
 import { linkEmbedMarkupFromLink } from "./link-embed.ts";
+import { normalizeHttpUrl } from "../lib/urls.ts";
 
 export function postTemplate(
   post: Post,
@@ -16,17 +17,19 @@ export function postTemplate(
   canPublishDraft = false,
   draftLoginPath?: string,
 ): string {
+  const externalLink = normalizeHttpUrl(post.link);
+
   // Link posts use the title itself as the external link with a text arrow marker.
   const titlePrefix = post.postType === "note" ? noteIcon : "";
   const titleInner = `${titlePrefix}${escapeHtml(post.title)}`;
-  const titleHtml = post.link
-    ? `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-2 text-primary"><span aria-hidden="true">↗ </span><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer" class="text-primary">${titleInner}</a></h1>`
+  const titleHtml = externalLink
+    ? `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-2 text-primary"><span aria-hidden="true">↗ </span><a href="${escapeHtml(externalLink)}" target="_blank" rel="noopener noreferrer" class="text-primary">${titleInner}</a></h1>`
     : `<h1 class="font-mono text-3xl md:text-4xl font-medium tracking-tight mb-2 text-primary">${titleInner}</h1>`;
-  const rssSourceLink = post.link
-    ? `<p class="rss-source-link"><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>`
+  const rssSourceLink = externalLink
+    ? `<p class="rss-source-link"><a href="${escapeHtml(externalLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>`
     : "";
 
-  const linkEmbedMarkup = post.postType === "link" ? linkEmbedMarkupFromLink(post.link, post.title) : "";
+  const linkEmbedMarkup = post.postType === "link" ? linkEmbedMarkupFromLink(externalLink, post.title) : "";
   const loginHref = draftLoginPath
     ? `/admin/login?${new URLSearchParams({ returnTo: draftLoginPath }).toString()}`
     : "/admin/login";

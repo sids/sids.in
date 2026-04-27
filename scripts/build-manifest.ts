@@ -4,6 +4,7 @@ import { execSync } from "node:child_process";
 import fm from "front-matter";
 import { getPostDateTimestamp, resolveFrontmatterDate } from "../src/lib/post-date.ts";
 import { normalizeTags, tagHref } from "../src/lib/tags.ts";
+import { normalizeHttpUrl } from "../src/lib/urls.ts";
 
 interface PostFrontmatter {
   title: string;
@@ -40,6 +41,19 @@ async function getMarkdownFiles(dir: string): Promise<string[]> {
   } catch {
     return [];
   }
+}
+
+function normalizePostLink(value: unknown, file: string): string | undefined {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+
+  const link = normalizeHttpUrl(value);
+  if (!link) {
+    throw new Error(`Invalid link URL in content/posts/${file}: ${String(value)}`);
+  }
+
+  return link;
 }
 
 function generateSitemap(
@@ -154,6 +168,7 @@ async function buildManifest() {
       ...attributes,
       date: resolveFrontmatterDate(content, attributes.date),
       tags: normalizeTags(attributes.tags || []),
+      link: normalizePostLink(attributes.link, file),
     };
 
     // Only use explicit frontmatter description (don't auto-generate)
