@@ -2,6 +2,7 @@ import { contentVersion } from "../manifest.ts";
 import { layout, partial } from "../templates/layout.ts";
 
 const CACHE_CONTROL = "public, max-age=0, s-maxage=86400, must-revalidate";
+const PRIVATE_CACHE_CONTROL = "private, no-store";
 const HTML_VARY = "HX-Request, HX-History-Restore-Request, HX-Target";
 
 export function json(payload: Record<string, unknown>, status = 200): Response {
@@ -77,8 +78,36 @@ export function html(
   return cachedResponse(body, "text/html; charset=utf-8", request, HTML_VARY, etagSuffix);
 }
 
+export function privateHtml(
+  content: string,
+  title: string,
+  description: string | undefined,
+  isHtmx: boolean,
+  tag?: string,
+  og?: { title: string; description?: string },
+): Response {
+  const body = isHtmx ? partial(content, title) : layout(content, title, description, tag, og);
+  return new Response(body, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": PRIVATE_CACHE_CONTROL,
+      "Vary": HTML_VARY,
+    },
+  });
+}
+
 export function htmlPartial(content: string, request: Request): Response {
   return cachedResponse(content, "text/html; charset=utf-8", request, HTML_VARY, "html-fragment");
+}
+
+export function privateHtmlPartial(content: string): Response {
+  return new Response(content, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": PRIVATE_CACHE_CONTROL,
+      "Vary": HTML_VARY,
+    },
+  });
 }
 
 export function xml(content: string, request: Request): Response {

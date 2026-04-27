@@ -4,7 +4,7 @@ import { linkLogTemplate } from "../templates/admin/link-log.ts";
 import { noteTemplate } from "../templates/admin/note.ts";
 import { adminHomeTemplate } from "../templates/admin/home.ts";
 import { loginTemplate } from "../templates/admin/login.ts";
-import { html, json } from "../lib/responses.ts";
+import { json, privateHtml } from "../lib/responses.ts";
 import { requireAdminAuth } from "../lib/admin-auth.ts";
 import { normalizeTags } from "../lib/tags.ts";
 import { fetchPublicHttpUrl, normalizeHttpUrl, UnsafeUrlError } from "../lib/urls.ts";
@@ -119,7 +119,7 @@ async function handleLoginPage({ path, request, isPartialRequest }: AdminContext
   const error = url.searchParams.get("error") || undefined;
   const returnTo = sanitizeReturnTo(url.searchParams.get("returnTo"));
   const content = loginTemplate({ error, returnTo });
-  return html(content, "Sign In", "Sign in to admin", isPartialRequest, request);
+  return privateHtml(content, "Sign In", "Sign in to admin", isPartialRequest);
 }
 
 async function handleLoginSubmit({ path, request, env, origin }: AdminContext): Promise<Response | null> {
@@ -434,31 +434,31 @@ async function handlePublishDraft(slug: string, env: Env): Promise<{ ok?: boolea
   return { ok: true, path: meta.sourcePath, date: publishedAt };
 }
 
-async function handleAdminHome({ path, request, isPartialRequest }: AdminContext): Promise<Response | null> {
+async function handleAdminHome({ path, isPartialRequest }: AdminContext): Promise<Response | null> {
   if (path !== "/admin") {
     return null;
   }
 
   const content = adminHomeTemplate();
-  return html(content, "Admin", "Admin dashboard", isPartialRequest, request);
+  return privateHtml(content, "Admin", "Admin dashboard", isPartialRequest);
 }
 
-async function handleAdminLinkLogPage({ path, request, origin, isPartialRequest }: AdminContext): Promise<Response | null> {
+async function handleAdminLinkLogPage({ path, origin, isPartialRequest }: AdminContext): Promise<Response | null> {
   if (path !== "/admin/link-log") {
     return null;
   }
 
   const content = linkLogTemplate(origin, allTags);
-  return html(content, "New Link Log", "Create a link log entry", isPartialRequest, request);
+  return privateHtml(content, "New Link Log", "Create a link log entry", isPartialRequest);
 }
 
-async function handleAdminNotePage({ path, request, isPartialRequest }: AdminContext): Promise<Response | null> {
+async function handleAdminNotePage({ path, isPartialRequest }: AdminContext): Promise<Response | null> {
   if (path !== "/admin/note") {
     return null;
   }
 
   const content = noteTemplate(allTags);
-  return html(content, "New Note", "Create a new note entry", isPartialRequest, request);
+  return privateHtml(content, "New Note", "Create a new note entry", isPartialRequest);
 }
 
 function redirectResponse(location: string): Response {

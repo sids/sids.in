@@ -11,7 +11,7 @@ import { tagPartial, tagTemplate } from "../templates/tag.ts";
 import { generateRssFeed } from "../rss.ts";
 import { generateAtomFeed } from "../atom.ts";
 import { filterPosts, getPageNumber, getPostFilter, paginate } from "../lib/pagination.ts";
-import { atom, html, htmlPartial, xml } from "../lib/responses.ts";
+import { atom, html, htmlPartial, privateHtml, privateHtmlPartial, xml } from "../lib/responses.ts";
 import { notFoundTemplate } from "../templates/not-found.ts";
 import { hasAdminLoginFlag } from "../lib/session.ts";
 import { layout, partial } from "../templates/layout.ts";
@@ -343,7 +343,20 @@ function handlePost({ path, params, isHtmx, hxTarget, request }: RouteContext): 
   }
 
   const postMeta = postMetaBySlug[slug];
-  const post = parsePost(raw, postMeta?.postType);
+  const parsedPost = parsePost(raw, postMeta?.postType);
+  const post = postMeta
+    ? {
+        ...parsedPost,
+        title: postMeta.title,
+        slug: postMeta.slug,
+        date: postMeta.date,
+        description: postMeta.description,
+        tags: postMeta.tags,
+        draft: postMeta.draft,
+        link: postMeta.link,
+        postType: postMeta.postType,
+      }
+    : parsedPost;
   const tagParam = params.get("tag");
   const currentTag = tagParam && post.tags.includes(tagParam) ? tagParam : "all";
   const recentPostsPool = currentTag === "all"
@@ -354,10 +367,12 @@ function handlePost({ path, params, isHtmx, hxTarget, request }: RouteContext): 
     .slice(0, 5);
 
   if (hxTarget === "posts-list") {
-    return htmlPartial(
-      postRecentPostsPartial(recentPosts, post.tags, currentTag, `/posts/${post.slug}`),
-      request
-    );
+    const content = postRecentPostsPartial(recentPosts, post.tags, currentTag, `/posts/${post.slug}`);
+    if (post.draft) {
+      return privateHtmlPartial(content);
+    }
+
+    return htmlPartial(content, request);
   }
 
   const canPublishDraft = post.draft ? hasAdminLoginFlag(request) : false;
@@ -365,6 +380,9 @@ function handlePost({ path, params, isHtmx, hxTarget, request }: RouteContext): 
   const draftLoginPath = `${requestUrl.pathname}${requestUrl.search}`;
   const content = postTemplate(post, recentPosts, currentTag, canPublishDraft, draftLoginPath);
   const og = { title: post.title, description: post.description };
+  if (post.draft) {
+    return privateHtml(content, post.title, post.description, isHtmx, undefined, og);
+  }
   return html(content, post.title, post.description, isHtmx, request, undefined, og);
 }
 

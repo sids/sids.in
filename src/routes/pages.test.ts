@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { routePages } from "./pages.ts";
+import { postMetaBySlug } from "../manifest.ts";
 
 describe("routePages legacy filter redirects", () => {
   it("redirects /posts?type=brief to type=note with 301", () => {
@@ -63,6 +64,53 @@ describe("routePages legacy filter redirects", () => {
     );
 
     expect(response.status).not.toBe(301);
+  });
+});
+
+describe("routePages cache headers", () => {
+  it("does not allow shared caching for draft post previews", () => {
+    const draft = Object.values(postMetaBySlug).find((post) => post.draft);
+    expect(draft).toBeDefined();
+
+    const request = new Request(`https://sids.in/posts/${draft!.slug}`);
+    const response = routePages(
+      `/posts/${draft!.slug}`,
+      new URLSearchParams(),
+      "https://sids.in",
+      false,
+      null,
+      request,
+      {} as never,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(response.headers.get("ETag")).toBeNull();
+  });
+
+  it("does not allow shared caching for draft post HTMX partials", () => {
+    const draft = Object.values(postMetaBySlug).find((post) => post.draft);
+    expect(draft).toBeDefined();
+
+    const request = new Request(`https://sids.in/posts/${draft!.slug}?tag=${encodeURIComponent(draft!.tags[0] ?? "all")}`, {
+      headers: {
+        "HX-Request": "true",
+        "HX-Target": "posts-list",
+      },
+    });
+    const response = routePages(
+      `/posts/${draft!.slug}`,
+      new URLSearchParams(request.url.split("?")[1]),
+      "https://sids.in",
+      true,
+      "posts-list",
+      request,
+      {} as never,
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(response.headers.get("ETag")).toBeNull();
   });
 });
 
