@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import fm from "front-matter";
 import { publishDraftMarkdown, routeAdmin } from "./admin.ts";
-import { createSessionCookie, createStateCookie, generateStateToken } from "../lib/session.ts";
+import { createSessionCookie, createStateCookie, generateStateToken, readStateCookie } from "../lib/session.ts";
 import type { Env } from "../types.ts";
 
 const TEST_SECRET = "test-secret-key-32-chars-long!!!";
@@ -270,7 +270,7 @@ describe("admin authoring dates", () => {
     let streamCancelled = false;
     let streamPulled = false;
 
-    globalThis.setTimeout = ((handler: TimerHandler, delay?: number, ...args: unknown[]) => {
+    globalThis.setTimeout = ((handler: string | ((...args: unknown[]) => void), delay?: number, ...args: unknown[]) => {
       timeoutDelay = delay;
       timeoutCallback = () => {
         if (typeof handler === "function") {
@@ -425,6 +425,37 @@ describe("routeAdmin session secret configuration", () => {
     expect(response).not.toBeNull();
     expect(response!.status).toBe(500);
     expect(response!.headers.get("Location")).toBeNull();
+  });
+});
+
+describe("routeAdmin login", () => {
+  it("sends a nonce to Apple and stores it in the signed state cookie", async () => {
+    const formData = new FormData();
+    formData.set("returnTo", "/admin");
+    const request = new Request("https://example.com/admin/login", {
+      method: "POST",
+      body: formData,
+    });
+
+    const response = await routeAdmin("/admin/login", request, TEST_ENV, "https://example.com", false);
+
+    expect(response).not.toBeNull();
+    expect(response!.status).toBe(302);
+
+    const location = response!.headers.get("Location");
+    expect(location).not.toBeNull();
+    const authUrl = new URL(location!);
+    const nonce = authUrl.searchParams.get("nonce");
+    expect(nonce).toBeTruthy();
+
+    const setCookie = response!.headers.get("Set-Cookie");
+    expect(setCookie).not.toBeNull();
+    const cookieValue = setCookie!.match(/__oauth_state=([^;]+)/)![1]!;
+    const stateRequest = new Request("https://example.com/admin/callback", {
+      headers: { Cookie: `__oauth_state=${cookieValue}` },
+    });
+    const statePayload = await readStateCookie(stateRequest, TEST_SECRET);
+    expect(statePayload?.nonce).toBe(nonce);
   });
 });
 

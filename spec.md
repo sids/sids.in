@@ -250,7 +250,7 @@ export const contentVersion: string | null; // git short SHA if available
 - Dark mode uses class strategy with JavaScript for localStorage persistence
 - Typography-aware content width: `min(70ch, 100% - 3rem)`
 - Fonts are self-hosted Overpass and Overpass Mono web fonts
-- Admin authoring (link log + note) is protected with Sign in with Apple OAuth and uses GitHub's Contents API to create and publish markdown files.
+- Admin authoring (link log + note) is protected with Sign in with Apple OAuth and uses GitHub's Contents API to create and publish markdown files. The OAuth flow stores a signed state cookie with a nonce, sends that nonce to Apple, and verifies the returned ID token signature against Apple's JWKS before accepting the email claim.
 - Admin HTML pages and draft post previews use `Cache-Control: private, no-store` and omit ETags.
 - Admin-created posts and draft publishes write `date` with the current ISO timestamp.
 - Admin secrets are stored as Cloudflare Worker environment variables:
