@@ -11,7 +11,8 @@
     "dev": "concurrently \"bun run dev:css\" \"bun run dev:worker\"",
     "deploy": "bun run build && bunx wrangler deploy",
     "types": "bunx wrangler types",
-    "test": "bun test"
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.bun.json"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251229.0",

@@ -20,7 +20,7 @@ describe("URL helpers", () => {
     globalThis.fetch = (async () => {
       fetchCalled = true;
       return new Response(null, { status: 500 });
-    }) as typeof fetch;
+    }) as unknown as typeof fetch;
 
     try {
       expect(await isPublicHttpUrl("http://127.0.0.1/")).toBe(false);

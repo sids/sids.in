@@ -91,7 +91,7 @@ describe("admin authoring dates", () => {
 
       expect(response).not.toBeNull();
       expect(response!.status).toBe(400);
-      expect(await response!.json()).toEqual({ error: "Invalid URL" });
+      expect(await response!.json() as unknown).toEqual({ error: "Invalid URL" });
       expect(fetchedTargets).toEqual(["https://example.com/"]);
     } finally {
       globalThis.fetch = originalFetch;
@@ -106,7 +106,7 @@ describe("admin authoring dates", () => {
     globalThis.fetch = (async () => {
       fetchCalled = true;
       return new Response(null, { status: 500 });
-    }) as typeof fetch;
+    }) as unknown as typeof fetch;
 
     try {
       const request = new Request("https://example.com/admin/api/link-log", {
@@ -122,7 +122,7 @@ describe("admin authoring dates", () => {
 
       expect(response).not.toBeNull();
       expect(response!.status).toBe(400);
-      expect(await response!.json()).toEqual({ error: "Invalid URL" });
+      expect(await response!.json() as unknown).toEqual({ error: "Invalid URL" });
       expect(fetchCalled).toBe(false);
     } finally {
       globalThis.fetch = originalFetch;
