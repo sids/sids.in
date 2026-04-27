@@ -1,6 +1,7 @@
 import type { Env } from "./types.ts";
 import { routeAdmin } from "./routes/admin.ts";
 import { routePages } from "./routes/pages.ts";
+import { withSecurityHeaders } from "./lib/security-headers.ts";
 
 // HTMX partial unless it's a history restore request.
 // History restore must receive full HTML so HTMX can rebuild state correctly.
@@ -52,19 +53,20 @@ export default {
     const hxTarget = request.headers.get("HX-Target");
 
     if (isStaticAsset(path)) {
-      return fetchStaticAsset(request, env, url);
+      return withSecurityHeaders(await fetchStaticAsset(request, env, url));
     }
 
     try {
       const adminResponse = await routeAdmin(path, request, env, url.origin, isPartialRequest);
       if (adminResponse) {
-        return adminResponse;
+        return withSecurityHeaders(adminResponse);
       }
 
-      return routePages(path, url.searchParams, url.origin, isPartialRequest, hxTarget, request, env);
+      const pageResponse = routePages(path, url.searchParams, url.origin, isPartialRequest, hxTarget, request, env);
+      return withSecurityHeaders(pageResponse);
     } catch (e) {
       console.error(e);
-      return new Response("Internal Server Error", { status: 500 });
+      return withSecurityHeaders(new Response("Internal Server Error", { status: 500 }));
     }
   },
 };

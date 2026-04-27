@@ -247,6 +247,7 @@ export const contentVersion: string | null; // git short SHA if available
 - Tailwind v3 (v4 has Cloudflare compatibility issues)
 - HTMX is self-hosted from `public/js/`
 - CSS variables defined in `:root` and `:root.dark` for theming
+- Worker responses include browser security headers: CSP, `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options`, and `Permissions-Policy`.
 - Dark mode uses class strategy with JavaScript for localStorage persistence
 - Typography-aware content width: `min(70ch, 100% - 3rem)`
 - Fonts are self-hosted Overpass and Overpass Mono web fonts
