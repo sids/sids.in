@@ -371,6 +371,17 @@ describe("admin authoring dates", () => {
   });
 });
 
+describe("routeAdmin routing", () => {
+  it("does not treat non-admin path prefixes as admin routes", async () => {
+    const request = new Request("https://example.com/administrator");
+    const env = { ...TEST_ENV, SESSION_SECRET: undefined as unknown as string };
+
+    const response = await routeAdmin("/administrator", request, env, "https://example.com", false);
+
+    expect(response).toBeNull();
+  });
+});
+
 describe("routeAdmin cache headers", () => {
   it("does not allow shared caching for the login page", async () => {
     const request = new Request("https://example.com/admin/login");
