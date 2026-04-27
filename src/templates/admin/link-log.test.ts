@@ -33,10 +33,10 @@ describe("linkLogTemplate", () => {
     expect(html).toContain('"web"');
   });
 
-  it("escapes special characters in tags", () => {
+  it("escapes special characters in tag script data", () => {
     const tagsWithSpecial = [{ tag: "<script>", count: 1 }];
     const html = linkLogTemplate(origin, tagsWithSpecial);
-    expect(html).toContain("&lt;script&gt;");
+    expect(html).toContain('"\\u003cscript>"');
     expect(html).not.toContain('"<script>"');
   });
 

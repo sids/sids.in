@@ -6,6 +6,7 @@ import { adminHomeTemplate } from "../templates/admin/home.ts";
 import { loginTemplate } from "../templates/admin/login.ts";
 import { html, json } from "../lib/responses.ts";
 import { requireAdminAuth } from "../lib/admin-auth.ts";
+import { normalizeTags } from "../lib/tags.ts";
 import {
   createSessionCookie,
   clearSessionCookie,
@@ -715,21 +716,6 @@ export function publishDraftMarkdown(raw: string, publishedAt: string): string |
 
 function currentPostDateTime(): string {
   return new Date().toISOString();
-}
-
-function normalizeTags(input?: string | string[]): string[] {
-  if (!input) {
-    return [];
-  }
-
-  if (Array.isArray(input)) {
-    return input.map((tag) => tag.trim()).filter(Boolean);
-  }
-
-  return input
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter(Boolean);
 }
 
 function slugify(title: string): string {

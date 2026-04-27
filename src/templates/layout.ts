@@ -1,4 +1,5 @@
 import { escapeHtml } from "../markdown.ts";
+import { tagHref } from "../lib/tags.ts";
 import { contentVersion } from "../manifest.ts";
 
 const assetVersion = contentVersion ? `?v=${encodeURIComponent(contentVersion)}` : "";
@@ -41,7 +42,7 @@ document.addEventListener('DOMContentLoaded', updateToggle);
 
 export function layout(content: string, title: string, description?: string, tag?: string, og?: { title: string; description?: string }): string {
   const tagFeedLinks = tag
-    ? `\n  <link rel="alternate" type="application/rss+xml" title="Posts tagged ${escapeHtml(tag)}" href="/tags/${tag}/feed.xml">\n  <link rel="alternate" type="application/atom+xml" title="Posts tagged ${escapeHtml(tag)}" href="/tags/${tag}/feed.atom">`
+    ? `\n  <link rel="alternate" type="application/rss+xml" title="Posts tagged ${escapeHtml(tag)}" href="${tagHref(tag, "/feed.xml")}">\n  <link rel="alternate" type="application/atom+xml" title="Posts tagged ${escapeHtml(tag)}" href="${tagHref(tag, "/feed.atom")}">`
     : "";
   return `<!DOCTYPE html>
 <html lang="en">

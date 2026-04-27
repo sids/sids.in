@@ -48,6 +48,25 @@ describe("postCard", () => {
     expect(html).toContain('window.twttr.widgets.load(root)');
   });
 
+  it("URL-encodes tag links", () => {
+    const post: Post = {
+      title: "Tagged Post",
+      slug: "tagged-post",
+      date: "2026-04-26",
+      description: "Description",
+      tags: ['x" onmouseover="alert(1)'],
+      postType: "note",
+      draft: false,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const html = postCard(post);
+
+    expect(html).toContain('href="/tags/x%22%20onmouseover%3D%22alert(1)"');
+    expect(html).not.toContain('href="/tags/x" onmouseover=');
+  });
+
   it("embeds YouTube videos for link cards that point to a video URL", () => {
     const post: Post = {
       title: "You and Your Research",

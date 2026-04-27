@@ -1,5 +1,6 @@
 import type { Post } from "../../types.ts";
 import { escapeHtml } from "../../markdown.ts";
+import { tagHref } from "../../lib/tags.ts";
 import { marked } from "marked";
 import { formatPostDate } from "../format-date.ts";
 import { noteIcon, permalinkIcon } from "../icons.ts";
@@ -42,7 +43,7 @@ export function postCard(post: Post): string {
   ${
     post.tags.length > 0
       ? `<div class="mt-4 flex gap-2 flex-wrap">
-    ${post.tags.map((tag) => `<a href="/tags/${tag}" class="tag-pill">${escapeHtml(tag)}</a>`).join("")}
+    ${post.tags.map((tag) => `<a href="${tagHref(tag)}" class="tag-pill">${escapeHtml(tag)}</a>`).join("")}
   </div>`
       : ""
   }

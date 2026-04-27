@@ -1,4 +1,5 @@
 import { escapeHtml } from "../markdown.ts";
+import { tagHref } from "../lib/tags.ts";
 
 export function feedTemplate(): string {
   return `<article class="post-content">
@@ -19,8 +20,8 @@ export function tagFeedTemplate(tag: string): string {
   <h1 class="font-mono">Feed: <span class="text-accent">${escapedTag}</span></h1>
   <p>Subscribe to posts tagged <strong>${escapedTag}</strong>:</p>
   <ul>
-    <li><a href="/tags/${tag}/feed.atom" hx-boost="false" class="link-accent">Atom</a></li>
-    <li><a href="/tags/${tag}/feed.xml" hx-boost="false" class="link-accent">RSS</a></li>
+    <li><a href="${tagHref(tag, "/feed.atom")}" hx-boost="false" class="link-accent">Atom</a></li>
+    <li><a href="${tagHref(tag, "/feed.xml")}" hx-boost="false" class="link-accent">RSS</a></li>
   </ul>
   <p>Prefer the complete stream? Use the <a href="/posts/feed" class="link-accent">global feed page</a>.</p>
 </article>`;

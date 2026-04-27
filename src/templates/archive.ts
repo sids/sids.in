@@ -1,5 +1,6 @@
 import type { PostMeta, TagInfo } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
+import { tagHref } from "../lib/tags.ts";
 import { postFilter, type PostFilterType } from "./partials/post-filter.ts";
 import { postsListArchive } from "./partials/posts-list.ts";
 
@@ -11,7 +12,7 @@ function renderTags(tags: TagInfo[]): string {
   const tagLinks = tags
     .map(
       ({ tag, count }) =>
-        `<a href="/tags/${tag}" class="tag-pill inline-flex items-center gap-1">
+        `<a href="${tagHref(tag)}" class="tag-pill inline-flex items-center gap-1">
       <span>${escapeHtml(tag)}</span>
       <span style="opacity: 0.5">${count}</span>
     </a>`
