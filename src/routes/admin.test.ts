@@ -170,6 +170,34 @@ describe("routeAdmin cache headers", () => {
   });
 });
 
+describe("routeAdmin session secret configuration", () => {
+  it("fails closed when SESSION_SECRET is missing", async () => {
+    const request = new Request("https://example.com/admin");
+    const env = { ...TEST_ENV, SESSION_SECRET: undefined as unknown as string };
+
+    const response = await routeAdmin("/admin", request, env, "https://example.com", false);
+
+    expect(response).not.toBeNull();
+    expect(response!.status).toBe(500);
+    expect(await response!.text()).toBe("Admin is not configured correctly.");
+    expect(response!.headers.get("Cache-Control")).toBe("private, no-store");
+  });
+
+  it("fails closed when SESSION_SECRET is too short", async () => {
+    const request = new Request("https://example.com/admin/login", {
+      method: "POST",
+      body: new FormData(),
+    });
+    const env = { ...TEST_ENV, SESSION_SECRET: "short" };
+
+    const response = await routeAdmin("/admin/login", request, env, "https://example.com", false);
+
+    expect(response).not.toBeNull();
+    expect(response!.status).toBe(500);
+    expect(response!.headers.get("Location")).toBeNull();
+  });
+});
+
 describe("routeAdmin callback errors", () => {
   it("preserves returnTo when Apple posts back an OAuth error", async () => {
     const state = generateStateToken();

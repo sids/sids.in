@@ -3,6 +3,7 @@ const STATE_COOKIE_NAME = "__oauth_state";
 const ADMIN_FLAG_COOKIE_NAME = "__admin_logged_in";
 const MAX_AGE_SECONDS = 604800; // 7 days
 const STATE_MAX_AGE_SECONDS = 600; // 10 minutes
+const MIN_SECRET_BYTES = 32;
 
 interface SessionPayload {
   email: string;
@@ -12,6 +13,14 @@ interface SessionPayload {
 interface StatePayload {
   state: string;
   returnTo?: string;
+}
+
+export function isValidSessionSecret(secret: unknown): secret is string {
+  if (typeof secret !== "string") {
+    return false;
+  }
+
+  return new TextEncoder().encode(secret.trim()).length >= MIN_SECRET_BYTES;
 }
 
 async function hmacSign(secret: string, data: string): Promise<string> {
