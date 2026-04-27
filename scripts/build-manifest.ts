@@ -263,4 +263,7 @@ export const allTags: TagInfo[] = ${JSON.stringify(allTags, null, 2)};
   console.log(`Sitemap generated: ${SITEMAP_FILE}`);
 }
 
-buildManifest().catch(console.error);
+buildManifest().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
