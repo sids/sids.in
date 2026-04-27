@@ -601,6 +601,9 @@ async function handleLinkLogSubmission(request: Request, env: Env): Promise<Resp
   const tags = normalizeTags(payload.tags);
   const date = currentPostDateTime();
   const slug = slugify(payload.title);
+  if (!slug) {
+    return json({ error: "Title must contain letters or numbers" }, 400);
+  }
   const filePath = buildPostPath(date, slug);
   const markdown = buildPostMarkdown({
     title: payload.title,
@@ -670,6 +673,9 @@ async function handleNoteSubmission(request: Request, env: Env): Promise<Respons
   const tags = normalizeTags(payload.tags);
   const date = currentPostDateTime();
   const slug = slugify(payload.title);
+  if (!slug) {
+    return json({ error: "Title must contain letters or numbers" }, 400);
+  }
   const filePath = buildPostPath(date, slug);
   const markdown = buildPostMarkdown({
     title: payload.title,
@@ -769,16 +775,16 @@ function buildPostMarkdown(input: {
   link?: string;
   content: string;
 }): string {
-  const descriptionLine = input.description ? `description: "${escapeYaml(input.description)}"\n` : "";
+  const descriptionLine = input.description ? `description: ${yamlQuotedString(input.description)}\n` : "";
   const tagsLine = input.tags.length
-    ? `tags: [${input.tags.map((tag) => `"${escapeYaml(tag)}"`).join(", ")}]\n`
+    ? `tags: [${input.tags.map(yamlQuotedString).join(", ")}]\n`
     : "tags: []\n";
-  const linkLine = input.link ? `link: "${escapeYaml(input.link)}"\n` : "";
+  const linkLine = input.link ? `link: ${yamlQuotedString(input.link)}\n` : "";
 
   return "---\n" +
-    `title: "${escapeYaml(input.title)}"\n` +
-    `slug: "${escapeYaml(input.slug)}"\n` +
-    `date: "${input.date}"\n` +
+    `title: ${yamlQuotedString(input.title)}\n` +
+    `slug: ${yamlQuotedString(input.slug)}\n` +
+    `date: ${yamlQuotedString(input.date)}\n` +
     descriptionLine +
     tagsLine +
     linkLine +
@@ -787,8 +793,8 @@ function buildPostMarkdown(input: {
     `${input.content.trim()}\n`;
 }
 
-function escapeYaml(value: string): string {
-  return value.replace(/"/g, "\\\"");
+function yamlQuotedString(value: string): string {
+  return JSON.stringify(value);
 }
 
 function base64DecodeUtf8(value: string): string {
