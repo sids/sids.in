@@ -141,6 +141,35 @@ describe("admin authoring dates", () => {
   });
 });
 
+describe("routeAdmin cache headers", () => {
+  it("does not allow shared caching for the login page", async () => {
+    const request = new Request("https://example.com/admin/login");
+
+    const response = await routeAdmin("/admin/login", request, TEST_ENV, "https://example.com", false);
+
+    expect(response).not.toBeNull();
+    expect(response!.status).toBe(200);
+    expect(response!.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(response!.headers.get("ETag")).toBeNull();
+  });
+
+  it("does not allow shared caching for authenticated admin pages", async () => {
+    const sessionCookie = await createSessionCookie(TEST_ENV.ADMIN_EMAIL, TEST_SECRET);
+    const request = new Request("https://example.com/admin", {
+      headers: {
+        Cookie: sessionCookie.split(";")[0]!,
+      },
+    });
+
+    const response = await routeAdmin("/admin", request, TEST_ENV, "https://example.com", false);
+
+    expect(response).not.toBeNull();
+    expect(response!.status).toBe(200);
+    expect(response!.headers.get("Cache-Control")).toBe("private, no-store");
+    expect(response!.headers.get("ETag")).toBeNull();
+  });
+});
+
 describe("routeAdmin callback errors", () => {
   it("preserves returnTo when Apple posts back an OAuth error", async () => {
     const state = generateStateToken();
