@@ -71,7 +71,7 @@ export async function routeAdmin(
   origin: string,
   isPartialRequest: boolean,
 ): Promise<Response | null> {
-  const isAdminPath = path.startsWith("/admin");
+  const isAdminPath = path === "/admin" || path.startsWith("/admin/");
   const isLegacyPath = path === "/link-log" || path.startsWith("/api/link-log");
 
   if (!isAdminPath && !isLegacyPath) {
