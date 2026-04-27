@@ -1,4 +1,5 @@
 import { describe, expect, it } from "bun:test";
+import fm from "front-matter";
 import { publishDraftMarkdown, routeAdmin } from "./admin.ts";
 import { createSessionCookie, createStateCookie, generateStateToken } from "../lib/session.ts";
 import type { Env } from "../types.ts";
@@ -17,6 +18,15 @@ const TEST_ENV: Env = {
   SESSION_SECRET: TEST_SECRET,
   ADMIN_EMAIL: "admin@example.com",
 };
+
+function base64DecodeUtf8(value: string): string {
+  const binary = atob(value.replace(/\n/g, ""));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new TextDecoder("utf-8").decode(bytes);
+}
 
 describe("admin authoring dates", () => {
   it("creates note posts with a timestamped frontmatter date", async () => {
@@ -52,6 +62,86 @@ describe("admin authoring dates", () => {
       const markdown = atob(githubRequestBody!.content);
       expect(markdown).toContain(`date: "${payload.date}"`);
       expect(markdown).toContain('tags: ["ai", "x-onmouseover-alert-1"]');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("writes frontmatter values as YAML-safe quoted scalars", async () => {
+    const originalFetch = globalThis.fetch;
+    const sessionCookie = await createSessionCookie(TEST_ENV.ADMIN_EMAIL, TEST_SECRET);
+    let githubRequestBody: { content: string } | null = null;
+    const title = "Quote \" Backslash \\ Colon: # Hash\nInjected: true";
+    const description = "Summary with \"quote\"\nsecond line \\ slash # not comment";
+
+    globalThis.fetch = (async (_input: RequestInfo | URL, init?: RequestInit) => {
+      githubRequestBody = JSON.parse(String(init?.body)) as { content: string };
+      return new Response(JSON.stringify({ content: { path: "content/posts/2026/04-25-quote-backslash-colon-hash-injected-true.md" } }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    try {
+      const request = new Request("https://example.com/admin/api/note", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: sessionCookie.split(";")[0]!,
+        },
+        body: JSON.stringify({ title, description, tags: ["ai"], content: "Body" }),
+      });
+
+      const response = await routeAdmin("/admin/api/note", request, TEST_ENV, "https://example.com", false);
+
+      expect(response).not.toBeNull();
+      expect(response!.status).toBe(200);
+      expect(githubRequestBody).not.toBeNull();
+      const markdown = base64DecodeUtf8(githubRequestBody!.content);
+      const parsed = fm<{
+        title: string;
+        slug: string;
+        description: string;
+        tags: string[];
+        draft: boolean;
+      }>(markdown);
+      expect(parsed.attributes.title).toBe(title);
+      expect(parsed.attributes.slug).toBe("quote-backslash-colon-hash-injected-true");
+      expect(parsed.attributes.description).toBe(description);
+      expect(parsed.attributes.tags).toEqual(["ai"]);
+      expect(parsed.attributes.draft).toBe(false);
+      expect(markdown).not.toContain("\nInjected: true\n");
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("rejects titles that cannot produce a slug", async () => {
+    const originalFetch = globalThis.fetch;
+    const sessionCookie = await createSessionCookie(TEST_ENV.ADMIN_EMAIL, TEST_SECRET);
+    let fetchCalled = false;
+
+    globalThis.fetch = (async () => {
+      fetchCalled = true;
+      return new Response(null, { status: 500 });
+    }) as unknown as typeof fetch;
+
+    try {
+      const request = new Request("https://example.com/admin/api/note", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: sessionCookie.split(";")[0]!,
+        },
+        body: JSON.stringify({ title: "💬✨", content: "Body" }),
+      });
+
+      const response = await routeAdmin("/admin/api/note", request, TEST_ENV, "https://example.com", false);
+
+      expect(response).not.toBeNull();
+      expect(response!.status).toBe(400);
+      expect(await response!.json() as unknown).toEqual({ error: "Title must contain letters or numbers" });
+      expect(fetchCalled).toBe(false);
     } finally {
       globalThis.fetch = originalFetch;
     }
