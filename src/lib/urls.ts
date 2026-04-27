@@ -29,21 +29,21 @@ export function normalizeHttpUrl(value: unknown): string | null {
   return url.toString();
 }
 
-export async function isPublicHttpUrl(value: unknown): Promise<boolean> {
+export async function isPublicHttpUrl(value: unknown, signal?: AbortSignal): Promise<boolean> {
   const normalized = normalizeHttpUrl(value);
   if (!normalized) {
     return false;
   }
 
   const url = new URL(normalized);
-  return isPublicHostname(url.hostname);
+  return isPublicHostname(url.hostname, signal);
 }
 
 export async function fetchPublicHttpUrl(input: string, init?: RequestInit, maxRedirects = 5): Promise<Response> {
   let current = input;
 
   for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount++) {
-    if (!(await isPublicHttpUrl(current))) {
+    if (!(await isPublicHttpUrl(current, init?.signal ?? undefined))) {
       throw new UnsafeUrlError("URL must resolve to a public HTTP(S) address");
     }
 
@@ -67,7 +67,7 @@ export async function fetchPublicHttpUrl(input: string, init?: RequestInit, maxR
   throw new UnsafeUrlError("Too many redirects");
 }
 
-async function isPublicHostname(hostname: string): Promise<boolean> {
+async function isPublicHostname(hostname: string, signal?: AbortSignal): Promise<boolean> {
   const host = normalizeHostname(hostname);
   if (!host || host === "localhost" || host.endsWith(".localhost")) {
     return false;
@@ -78,7 +78,7 @@ async function isPublicHostname(hostname: string): Promise<boolean> {
     return !isPrivateOrReservedIp(literalIp);
   }
 
-  const addresses = await resolveHostAddresses(host);
+  const addresses = await resolveHostAddresses(host, signal);
   if (addresses.length === 0) {
     return false;
   }
@@ -98,16 +98,16 @@ function normalizeHostname(hostname: string): string {
     .replace(/\.$/, "");
 }
 
-async function resolveHostAddresses(hostname: string): Promise<string[]> {
+async function resolveHostAddresses(hostname: string, signal?: AbortSignal): Promise<string[]> {
   const [aRecords, aaaaRecords] = await Promise.all([
-    resolveDnsRecords(hostname, "A"),
-    resolveDnsRecords(hostname, "AAAA"),
+    resolveDnsRecords(hostname, "A", signal),
+    resolveDnsRecords(hostname, "AAAA", signal),
   ]);
 
   return [...aRecords, ...aaaaRecords].filter((address) => parseIpAddress(address) !== null);
 }
 
-async function resolveDnsRecords(hostname: string, type: "A" | "AAAA"): Promise<string[]> {
+async function resolveDnsRecords(hostname: string, type: "A" | "AAAA", signal?: AbortSignal): Promise<string[]> {
   const url = new URL("https://cloudflare-dns.com/dns-query");
   url.searchParams.set("name", hostname);
   url.searchParams.set("type", type);
@@ -116,6 +116,7 @@ async function resolveDnsRecords(hostname: string, type: "A" | "AAAA"): Promise<
     headers: {
       "Accept": "application/dns-json",
     },
+    signal,
   });
 
   if (!response.ok) {

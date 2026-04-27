@@ -54,6 +54,15 @@ const routes: AdminHandler[] = [
 ];
 
 const PUBLIC_ADMIN_PATHS = ["/admin/login", "/admin/callback"];
+const METADATA_FETCH_TIMEOUT_MS = 5000;
+const METADATA_RESPONSE_MAX_BYTES = 256 * 1024;
+
+class MetadataResponseTooLargeError extends Error {
+  constructor() {
+    super("Metadata response is too large");
+    this.name = "MetadataResponseTooLargeError";
+  }
+}
 
 export async function routeAdmin(
   path: string,
@@ -510,30 +519,159 @@ async function handleLinkLogMetadata(request: Request, env: Env): Promise<Respon
     return json({ error: "Invalid URL" }, 400);
   }
 
-  let response: Response;
+  const abortController = new AbortController();
+  const timeout = setTimeout(() => abortController.abort(), METADATA_FETCH_TIMEOUT_MS);
+
   try {
-    response = await fetchPublicHttpUrl(target, {
+    const response = await fetchPublicHttpUrl(target, {
       headers: {
         "User-Agent": "sids.in link log bot",
       },
+      signal: abortController.signal,
     });
+
+    if (!response.ok) {
+      return json({ error: "Failed to fetch URL" }, 502);
+    }
+
+    if (!isHtmlResponse(response)) {
+      return json({ error: "URL did not return HTML" }, 415);
+    }
+
+    const htmlText = await readResponseTextWithLimit(response, METADATA_RESPONSE_MAX_BYTES, abortController.signal);
+    const title = extractTitle(htmlText);
+
+    return json({ title });
   } catch (error) {
     if (error instanceof UnsafeUrlError) {
       return json({ error: "Invalid URL" }, 400);
     }
 
+    if (error instanceof MetadataResponseTooLargeError) {
+      return json({ error: "Response too large" }, 413);
+    }
+
+    if (isAbortError(error)) {
+      return json({ error: "URL fetch timed out" }, 504);
+    }
+
     console.error(error);
     return json({ error: "Failed to fetch URL" }, 502);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function isHtmlResponse(response: Response): boolean {
+  const contentType = response.headers.get("Content-Type");
+  if (!contentType) {
+    return true;
   }
 
-  if (!response.ok) {
-    return json({ error: "Failed to fetch URL" }, 502);
+  const mediaType = contentType.split(";", 1)[0]!.trim().toLowerCase();
+  return mediaType === "text/html" || mediaType === "application/xhtml+xml";
+}
+
+async function readResponseTextWithLimit(response: Response, maxBytes: number, signal: AbortSignal): Promise<string> {
+  const contentLength = response.headers.get("Content-Length");
+  if (contentLength) {
+    const parsedLength = Number(contentLength);
+    if (Number.isFinite(parsedLength) && parsedLength > maxBytes) {
+      throw new MetadataResponseTooLargeError();
+    }
   }
 
-  const htmlText = await response.text();
-  const title = extractTitle(htmlText);
+  if (!response.body) {
+    return "";
+  }
 
-  return json({ title });
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  let shouldReleaseReader = true;
+
+  try {
+    while (true) {
+      const { done, value } = await readChunkWithAbort(reader, signal);
+      if (done) {
+        break;
+      }
+
+      if (!value) {
+        continue;
+      }
+
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel();
+        throw new MetadataResponseTooLargeError();
+      }
+
+      chunks.push(value);
+    }
+  } catch (error) {
+    if (isAbortError(error)) {
+      shouldReleaseReader = false;
+    }
+
+    throw error;
+  } finally {
+    if (shouldReleaseReader) {
+      reader.releaseLock();
+    }
+  }
+
+  const body = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+
+  return new TextDecoder("utf-8").decode(body);
+}
+
+function readChunkWithAbort(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  signal: AbortSignal,
+): Promise<ReadableStreamReadResult<Uint8Array>> {
+  if (signal.aborted) {
+    void reader.cancel();
+    return Promise.reject(createAbortError());
+  }
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+
+    const settle = (callback: () => void) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      signal.removeEventListener("abort", abortRead);
+      callback();
+    };
+
+    const abortRead = () => {
+      void reader.cancel();
+      settle(() => reject(createAbortError()));
+    };
+
+    signal.addEventListener("abort", abortRead, { once: true });
+    reader.read().then(
+      (result) => settle(() => resolve(result)),
+      (error: unknown) => settle(() => reject(error)),
+    );
+  });
+}
+
+function createAbortError(): DOMException {
+  return new DOMException("The operation was aborted.", "AbortError");
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "AbortError";
 }
 
 function extractTitle(htmlText: string): string | null {
