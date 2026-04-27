@@ -3,6 +3,7 @@ import { join, basename } from "node:path";
 import { execSync } from "node:child_process";
 import fm from "front-matter";
 import { getPostDateTimestamp, resolveFrontmatterDate } from "../src/lib/post-date.ts";
+import { normalizeTags, tagHref } from "../src/lib/tags.ts";
 
 interface PostFrontmatter {
   title: string;
@@ -94,7 +95,7 @@ function generateSitemap(
   // Tag pages
   for (const tag of Object.keys(tagIndex)) {
     urls.push(`  <url>
-    <loc>${SITE_URL}/tags/${tag}</loc>
+    <loc>${SITE_URL}${tagHref(tag)}</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>`);
@@ -152,7 +153,7 @@ async function buildManifest() {
     const meta: PostFrontmatter = {
       ...attributes,
       date: resolveFrontmatterDate(content, attributes.date),
-      tags: attributes.tags || [],
+      tags: normalizeTags(attributes.tags || []),
     };
 
     // Only use explicit frontmatter description (don't auto-generate)

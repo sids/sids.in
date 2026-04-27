@@ -1,5 +1,6 @@
 import type { Post, PostMeta } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
+import { tagHref } from "../lib/tags.ts";
 import { formatPostDate } from "./format-date.ts";
 import { noteIcon, ccIcon, ccByIcon, ccSaIcon } from "./icons.ts";
 import { postsListCompact } from "./partials/posts-list.ts";
@@ -215,7 +216,7 @@ export function postTemplate(
   // Post footer with tags and license
   const tagsMarkup =
     post.tags.length > 0
-      ? `<p class="text-secondary">Tagged as ${post.tags.map((tag) => `<a href="/tags/${tag}" class="tag-pill">${escapeHtml(tag)}</a>`).join(" ")}</p>`
+      ? `<p class="text-secondary">Tagged as ${post.tags.map((tag) => `<a href="${tagHref(tag)}" class="tag-pill">${escapeHtml(tag)}</a>`).join(" ")}</p>`
       : "";
 
   const licenseMarkup = `<p class="text-secondary text-sm">

@@ -1,5 +1,6 @@
 import type { Post, PaginationInfo } from "../types.ts";
 import { escapeHtml } from "../markdown.ts";
+import { tagHref } from "../lib/tags.ts";
 import { postFilter, type PostFilterType } from "./partials/post-filter.ts";
 import { postsListCards } from "./partials/posts-list.ts";
 
@@ -22,7 +23,7 @@ export function tagTemplate(
   paginationInfo: PaginationInfo,
   currentFilter: PostFilterType = "all"
 ): string {
-  const basePath = `/tags/${tag}`;
+  const basePath = tagHref(tag);
   const emptyMessage = currentFilter === "all"
     ? "No posts with this tag."
     : `No ${describeFilter(currentFilter)} with this tag.`;
@@ -32,7 +33,7 @@ export function tagTemplate(
     <h1 class="font-mono text-sm tracking-widest uppercase" style="color: var(--text-secondary)">
       Tagged: <span style="color: var(--accent)">${escapeHtml(tag)}</span>
     </h1>
-    <a href="/tags/${tag}/feed" class="font-mono text-xs text-secondary">Feed</a>
+    <a href="${tagHref(tag, "/feed")}" class="font-mono text-xs text-secondary">Feed</a>
   </div>
   ${postFilter(basePath, currentFilter)}
   ${postsListCards(posts, paginationInfo, basePath, currentFilter, emptyMessage)}
@@ -46,7 +47,7 @@ export function tagPartial(
   paginationInfo: PaginationInfo,
   currentFilter: PostFilterType = "all"
 ): string {
-  const basePath = `/tags/${tag}`;
+  const basePath = tagHref(tag);
   const emptyMessage = currentFilter === "all"
     ? "No posts with this tag."
     : `No ${describeFilter(currentFilter)} with this tag.`;

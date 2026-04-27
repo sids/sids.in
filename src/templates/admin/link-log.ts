@@ -4,9 +4,7 @@ import { escapeHtml } from "../../markdown.ts";
 export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
   const bookmarklet = buildBookmarklet(origin);
   const bookmarkletValue = JSON.stringify(bookmarklet);
-  const tagOptions = tags
-    .map((tag) => `"${escapeHtml(tag.tag)}"`)
-    .join(", ");
+  const tagOptions = JSON.stringify(tags.map((tag) => tag.tag)).replace(/</g, "\\u003c");
 
   return `
   <section class="flex flex-col gap-8">
@@ -77,7 +75,7 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     const tagChips = document.getElementById('tag-chips');
     const tagSuggestionsList = document.getElementById('tag-suggestions-list');
     const tagInput = document.getElementById('tags');
-    const allTags = [${tagOptions}];
+    const allTags = ${tagOptions};
     if (params.get('url')) {
       urlInput.value = params.get('url');
     }
@@ -140,19 +138,29 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     }
 
     function renderTagChips(tags) {
-      tagChips.innerHTML = tags.map(tag => (
-        '<span class="tag-pill bg-secondary flex items-center gap-1">' +
-          '<span>' + tag + '</span>' +
-          '<button type="button" data-tag="' + tag + '" class="text-secondary hover:text-accent">×</button>' +
-        '</span>'
-      )).join('');
-      tagChips.querySelectorAll('button[data-tag]').forEach((button) => {
+      tagChips.replaceChildren();
+      tags.forEach((tag) => {
+        const chip = document.createElement('span');
+        chip.className = 'tag-pill bg-secondary flex items-center gap-1';
+
+        const label = document.createElement('span');
+        label.textContent = tag;
+        chip.appendChild(label);
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.tag = tag;
+        button.className = 'text-secondary hover:text-accent';
+        button.textContent = '×';
         button.addEventListener('click', () => {
-          const nextTags = parseTags(tagInput.value).filter(item => item !== button.dataset.tag);
+          const nextTags = parseTags(tagInput.value).filter(item => item !== tag);
           tagInput.value = nextTags.join(', ');
           renderTagChips(nextTags);
           renderTagSuggestions(tagInput.value);
         });
+        chip.appendChild(button);
+
+        tagChips.appendChild(chip);
       });
     }
 
@@ -178,21 +186,23 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
         return;
       }
 
-      tagSuggestionsList.innerHTML = matches.map(tag => (
-        '<button type="button" class="block w-full px-3 py-2 text-left text-sm text-primary hover:bg-secondary" data-tag="' + tag + '">' +
-          tag +
-        '</button>'
-      )).join('');
-      tagSuggestionsList.classList.remove('hidden');
-      tagSuggestionsList.querySelectorAll('button[data-tag]').forEach((button) => {
+      tagSuggestionsList.replaceChildren();
+      matches.forEach((tag) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'block w-full px-3 py-2 text-left text-sm text-primary hover:bg-secondary';
+        button.dataset.tag = tag;
+        button.textContent = tag;
         button.addEventListener('click', () => {
-          const nextTags = [...currentTags, button.dataset.tag];
+          const nextTags = [...currentTags, tag];
           tagInput.value = nextTags.join(', ') + ', ';
           renderTagChips(nextTags);
           renderTagSuggestions(tagInput.value);
           tagInput.focus();
         });
+        tagSuggestionsList.appendChild(button);
       });
+      tagSuggestionsList.classList.remove('hidden');
     }
 
     async function hydrateTitleFromUrl() {

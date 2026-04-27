@@ -39,7 +39,7 @@ describe("admin authoring dates", () => {
           "Content-Type": "application/json",
           Cookie: sessionCookie.split(";")[0]!,
         },
-        body: JSON.stringify({ title: "Timestamped Note", content: "Body" }),
+        body: JSON.stringify({ title: "Timestamped Note", tags: 'AI, x" onmouseover="alert(1), ai', content: "Body" }),
       });
 
       const response = await routeAdmin("/admin/api/note", request, TEST_ENV, "https://example.com", false);
@@ -51,6 +51,7 @@ describe("admin authoring dates", () => {
       expect(githubRequestBody).not.toBeNull();
       const markdown = atob(githubRequestBody!.content);
       expect(markdown).toContain(`date: "${payload.date}"`);
+      expect(markdown).toContain('tags: ["ai", "x-onmouseover-alert-1"]');
     } finally {
       globalThis.fetch = originalFetch;
     }
