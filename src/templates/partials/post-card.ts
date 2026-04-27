@@ -5,9 +5,11 @@ import { marked } from "marked";
 import { formatPostDate } from "../format-date.ts";
 import { noteIcon, permalinkIcon } from "../icons.ts";
 import { linkEmbedMarkupFromLink } from "../link-embed.ts";
+import { normalizeHttpUrl } from "../../lib/urls.ts";
 
 export function postCard(post: Post): string {
-  const hasExternalLink = !!post.link;
+  const externalLink = normalizeHttpUrl(post.link);
+  const hasExternalLink = !!externalLink;
   const hasDescription = !!post.description;
   const isNote = post.postType === "note";
 
@@ -17,8 +19,8 @@ export function postCard(post: Post): string {
 
   // Title: links to external URL with icon if link exists, otherwise links to post
   let titleHtml: string;
-  if (hasExternalLink) {
-    titleHtml = `<h2 class="font-mono text-xl font-medium mb-2"><span aria-hidden="true">↗ </span><a href="${escapeHtml(post.link!)}" class="text-primary" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)}</a></h2>`;
+  if (externalLink) {
+    titleHtml = `<h2 class="font-mono text-xl font-medium mb-2"><span aria-hidden="true">↗ </span><a href="${escapeHtml(externalLink)}" class="text-primary" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)}</a></h2>`;
   } else {
     titleHtml = `<a href="/posts/${post.slug}" class="text-primary">
     <h2 class="font-mono text-xl font-medium mb-2">${isNote ? `${noteIcon}` : ""}${escapeHtml(post.title)}</h2>
@@ -26,7 +28,7 @@ export function postCard(post: Post): string {
   }
 
   // Content: description with "Read Now →" link, or full markdown content
-  const linkEmbedMarkup = post.postType === "link" ? linkEmbedMarkupFromLink(post.link, post.title) : "";
+  const linkEmbedMarkup = post.postType === "link" ? linkEmbedMarkupFromLink(externalLink, post.title) : "";
   let contentHtml: string;
   if (hasDescription) {
     const descriptionRendered = marked.parse(post.description!, { async: false, breaks: true }) as string;

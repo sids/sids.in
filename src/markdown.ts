@@ -3,6 +3,7 @@ import markedFootnote from "marked-footnote";
 import fm from "front-matter";
 import type { PageMeta, PostMeta, Page, Post, PostType } from "./types.ts";
 import { resolveFrontmatterDate } from "./lib/post-date.ts";
+import { normalizeHttpUrl } from "./lib/urls.ts";
 
 marked.use(markedFootnote());
 
@@ -36,8 +37,10 @@ export function parsePost(rawMarkdown: string, postTypeOverride?: PostType): Pos
   // Only use explicit frontmatter description (don't auto-generate)
   const description = attributes.description;
 
+  const link = normalizeHttpUrl(attributes.link) ?? undefined;
+
   // Determine post type based on optional override or whether link exists
-  const postType = postTypeOverride ?? (attributes.link ? "link" : "note");
+  const postType = postTypeOverride ?? (link ? "link" : "note");
 
   return {
     title: attributes.title,
@@ -46,7 +49,7 @@ export function parsePost(rawMarkdown: string, postTypeOverride?: PostType): Pos
     description,
     tags: attributes.tags || [],
     draft: attributes.draft,
-    link: attributes.link,
+    link,
     postType,
     html,
     excerpt,

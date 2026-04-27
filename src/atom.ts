@@ -1,6 +1,7 @@
 import type { Post } from "./types.ts";
 import { escapeHtml } from "./markdown.ts";
 import { getPostDate } from "./lib/post-date.ts";
+import { normalizeHttpUrl } from "./lib/urls.ts";
 
 interface FeedOptions {
   title: string;
@@ -18,20 +19,22 @@ export function generateAtomFeed(posts: Post[], options: FeedOptions): string {
       const permalinkUrl = `${siteUrl}/posts/${post.slug}`;
       const published = formatAtomDate(post.date);
 
+      const externalLink = normalizeHttpUrl(post.link);
+
       // Add indicators for link and note posts
-      const titleWithIndicator = post.link
+      const titleWithIndicator = externalLink
         ? `↗ ${escapeHtml(post.title)}`
         : post.postType === "note"
         ? `💬 ${escapeHtml(post.title)}`
         : escapeHtml(post.title);
 
       // For link posts, prepend the external link at the top of content
-      const content = post.link
-        ? `<p><a href="${escapeHtml(post.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>${post.html}`
+      const content = externalLink
+        ? `<p><a href="${escapeHtml(externalLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>${post.html}`
         : post.html;
 
-      const relatedLink = post.link
-        ? `\n    <link rel="related" type="text/html" href="${escapeHtml(post.link)}" />`
+      const relatedLink = externalLink
+        ? `\n    <link rel="related" type="text/html" href="${escapeHtml(externalLink)}" />`
         : "";
 
       const summary = post.description

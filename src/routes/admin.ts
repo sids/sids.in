@@ -7,6 +7,7 @@ import { loginTemplate } from "../templates/admin/login.ts";
 import { html, json } from "../lib/responses.ts";
 import { requireAdminAuth } from "../lib/admin-auth.ts";
 import { normalizeTags } from "../lib/tags.ts";
+import { fetchPublicHttpUrl, normalizeHttpUrl, UnsafeUrlError } from "../lib/urls.ts";
 import {
   createSessionCookie,
   clearSessionCookie,
@@ -484,19 +485,28 @@ function sanitizeReturnTo(value: string | null): string | undefined {
 
 async function handleLinkLogMetadata(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
-  const target = url.searchParams.get("url");
-  if (!target) {
+  const rawTarget = url.searchParams.get("url");
+  if (!rawTarget) {
     return json({ error: "Missing url parameter" }, 400);
+  }
+
+  const target = normalizeHttpUrl(rawTarget);
+  if (!target) {
+    return json({ error: "Invalid URL" }, 400);
   }
 
   let response: Response;
   try {
-    response = await fetch(target, {
+    response = await fetchPublicHttpUrl(target, {
       headers: {
         "User-Agent": "sids.in link log bot",
       },
     });
   } catch (error) {
+    if (error instanceof UnsafeUrlError) {
+      return json({ error: "Invalid URL" }, 400);
+    }
+
     console.error(error);
     return json({ error: "Failed to fetch URL" }, 502);
   }
@@ -568,6 +578,11 @@ async function handleLinkLogSubmission(request: Request, env: Env): Promise<Resp
     return json({ error: "Missing url or title" }, 400);
   }
 
+  const link = normalizeHttpUrl(payload.url);
+  if (!link) {
+    return json({ error: "Invalid URL" }, 400);
+  }
+
   const tags = normalizeTags(payload.tags);
   const date = currentPostDateTime();
   const slug = slugify(payload.title);
@@ -578,7 +593,7 @@ async function handleLinkLogSubmission(request: Request, env: Env): Promise<Resp
     date,
     description: payload.description,
     tags,
-    link: payload.url,
+    link,
     content: payload.content || "",
   });
 

@@ -27,6 +27,26 @@ describe("postCard", () => {
     expect(html).not.toContain('<svg class="inline-block w-5 h-5 mr-1 align-middle"');
   });
 
+  it("does not render unsafe link schemes", () => {
+    const post: Post = {
+      title: "Unsafe Link",
+      slug: "unsafe-link",
+      date: "2026-04-26",
+      description: "Description",
+      tags: [],
+      postType: "link",
+      link: "javascript:alert(1)",
+      draft: false,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const html = postCard(post);
+
+    expect(html).not.toContain('href="javascript:alert(1)"');
+    expect(html).toContain('href="/posts/unsafe-link"');
+  });
+
   it("embeds X posts for link cards that point to a status URL", () => {
     const post: Post = {
       title: "Multi-Agents: What's Actually Working",

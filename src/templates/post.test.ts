@@ -111,6 +111,26 @@ describe("postTemplate", () => {
     expect(html).toContain('src="https://www.youtube-nocookie.com/embed/a1zDuOPkMSw?start=90"');
   });
 
+  it("does not render unsafe link schemes", () => {
+    const post: Post = {
+      title: "Unsafe Link",
+      slug: "unsafe-link",
+      date: "2026-04-26",
+      description: "",
+      tags: [],
+      postType: "link",
+      link: "javascript:alert(1)",
+      draft: false,
+      html: "<p>Body</p>",
+      excerpt: "Body",
+    };
+
+    const html = postTemplate(post, []);
+
+    expect(html).not.toContain('href="javascript:alert(1)"');
+    expect(html).not.toContain('class="rss-source-link"');
+  });
+
   it("preserves the current post URL in the draft login link", () => {
     const post: Post = {
       title: "Draft Post",

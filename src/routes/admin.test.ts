@@ -57,6 +57,78 @@ describe("admin authoring dates", () => {
     }
   });
 
+  it("rejects metadata redirects to private targets", async () => {
+    const originalFetch = globalThis.fetch;
+    const sessionCookie = await createSessionCookie(TEST_ENV.ADMIN_EMAIL, TEST_SECRET);
+    const fetchedTargets: string[] = [];
+
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.hostname === "cloudflare-dns.com") {
+        const type = url.searchParams.get("type");
+        const answers = type === "A" ? [{ data: "93.184.216.34" }] : [];
+        return Response.json({ Answer: answers });
+      }
+
+      fetchedTargets.push(url.toString());
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: "http://127.0.0.1/admin",
+        },
+      });
+    }) as typeof fetch;
+
+    try {
+      const request = new Request("https://example.com/admin/api/link-log/metadata?url=https%3A%2F%2Fexample.com%2F", {
+        method: "GET",
+        headers: {
+          Cookie: sessionCookie.split(";")[0]!,
+        },
+      });
+
+      const response = await routeAdmin("/admin/api/link-log/metadata", request, TEST_ENV, "https://example.com", false);
+
+      expect(response).not.toBeNull();
+      expect(response!.status).toBe(400);
+      expect(await response!.json()).toEqual({ error: "Invalid URL" });
+      expect(fetchedTargets).toEqual(["https://example.com/"]);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("rejects link-log submissions with unsafe URL schemes", async () => {
+    const originalFetch = globalThis.fetch;
+    const sessionCookie = await createSessionCookie(TEST_ENV.ADMIN_EMAIL, TEST_SECRET);
+    let fetchCalled = false;
+
+    globalThis.fetch = (async () => {
+      fetchCalled = true;
+      return new Response(null, { status: 500 });
+    }) as typeof fetch;
+
+    try {
+      const request = new Request("https://example.com/admin/api/link-log", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: sessionCookie.split(";")[0]!,
+        },
+        body: JSON.stringify({ title: "Unsafe", url: "javascript:alert(1)", content: "Body" }),
+      });
+
+      const response = await routeAdmin("/admin/api/link-log", request, TEST_ENV, "https://example.com", false);
+
+      expect(response).not.toBeNull();
+      expect(response!.status).toBe(400);
+      expect(await response!.json()).toEqual({ error: "Invalid URL" });
+      expect(fetchCalled).toBe(false);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   it("sets draft false and replaces the frontmatter date with the publish timestamp", () => {
     const markdown = `---\ntitle: "Draft"\nslug: "draft"\ndate: "2026-03-09"\ndraft: true\n---\n\nBody\n`;
 
