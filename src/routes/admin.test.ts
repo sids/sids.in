@@ -188,6 +188,146 @@ describe("admin authoring dates", () => {
     }
   });
 
+  it("rejects metadata responses that are not HTML", async () => {
+    const originalFetch = globalThis.fetch;
+    const sessionCookie = await createSessionCookie(TEST_ENV.ADMIN_EMAIL, TEST_SECRET);
+
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.hostname === "cloudflare-dns.com") {
+        const type = url.searchParams.get("type");
+        const answers = type === "A" ? [{ data: "93.184.216.34" }] : [];
+        return Response.json({ Answer: answers });
+      }
+
+      return new Response("not html", {
+        headers: { "Content-Type": "application/json" },
+      });
+    }) as typeof fetch;
+
+    try {
+      const request = new Request("https://example.com/admin/api/link-log/metadata?url=https%3A%2F%2Fexample.com%2F", {
+        method: "GET",
+        headers: {
+          Cookie: sessionCookie.split(";")[0]!,
+        },
+      });
+
+      const response = await routeAdmin("/admin/api/link-log/metadata", request, TEST_ENV, "https://example.com", false);
+
+      expect(response).not.toBeNull();
+      expect(response!.status).toBe(415);
+      expect(await response!.json() as unknown).toEqual({ error: "URL did not return HTML" });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("rejects metadata responses that are too large", async () => {
+    const originalFetch = globalThis.fetch;
+    const sessionCookie = await createSessionCookie(TEST_ENV.ADMIN_EMAIL, TEST_SECRET);
+
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.hostname === "cloudflare-dns.com") {
+        const type = url.searchParams.get("type");
+        const answers = type === "A" ? [{ data: "93.184.216.34" }] : [];
+        return Response.json({ Answer: answers });
+      }
+
+      return new Response(`<html>${"x".repeat(300 * 1024)}</html>`, {
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+        },
+      });
+    }) as typeof fetch;
+
+    try {
+      const request = new Request("https://example.com/admin/api/link-log/metadata?url=https%3A%2F%2Fexample.com%2F", {
+        method: "GET",
+        headers: {
+          Cookie: sessionCookie.split(";")[0]!,
+        },
+      });
+
+      const response = await routeAdmin("/admin/api/link-log/metadata", request, TEST_ENV, "https://example.com", false);
+
+      expect(response).not.toBeNull();
+      expect(response!.status).toBe(413);
+      expect(await response!.json() as unknown).toEqual({ error: "Response too large" });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  it("cancels stalled metadata response bodies when the timeout expires", async () => {
+    const originalFetch = globalThis.fetch;
+    const originalSetTimeout = globalThis.setTimeout;
+    const originalClearTimeout = globalThis.clearTimeout;
+    const sessionCookie = await createSessionCookie(TEST_ENV.ADMIN_EMAIL, TEST_SECRET);
+    let timeoutCallback: (() => void) | null = null;
+    let timeoutDelay: number | undefined;
+    let streamCancelled = false;
+    let streamPulled = false;
+
+    globalThis.setTimeout = ((handler: TimerHandler, delay?: number, ...args: unknown[]) => {
+      timeoutDelay = delay;
+      timeoutCallback = () => {
+        if (typeof handler === "function") {
+          handler(...args);
+        }
+      };
+      return 1;
+    }) as typeof setTimeout;
+    globalThis.clearTimeout = (() => {}) as typeof clearTimeout;
+
+    globalThis.fetch = (async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      if (url.hostname === "cloudflare-dns.com") {
+        const type = url.searchParams.get("type");
+        const answers = type === "A" ? [{ data: "93.184.216.34" }] : [];
+        return Response.json({ Answer: answers });
+      }
+
+      return new Response(new ReadableStream<Uint8Array>({
+        pull() {
+          streamPulled = true;
+          timeoutCallback?.();
+          return new Promise(() => {});
+        },
+        cancel() {
+          streamCancelled = true;
+        },
+      }), {
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+        },
+      });
+    }) as typeof fetch;
+
+    try {
+      const request = new Request("https://example.com/admin/api/link-log/metadata?url=https%3A%2F%2Fexample.com%2F", {
+        method: "GET",
+        headers: {
+          Cookie: sessionCookie.split(";")[0]!,
+        },
+      });
+
+      const response = await routeAdmin("/admin/api/link-log/metadata", request, TEST_ENV, "https://example.com", false);
+
+      expect(response).not.toBeNull();
+      expect(response!.status).toBe(504);
+      expect(await response!.json() as unknown).toEqual({ error: "URL fetch timed out" });
+      expect(timeoutDelay).toBe(5000);
+      expect(streamPulled).toBe(true);
+      expect(streamCancelled).toBe(true);
+    } finally {
+      globalThis.fetch = originalFetch;
+      globalThis.setTimeout = originalSetTimeout;
+      globalThis.clearTimeout = originalClearTimeout;
+    }
+  });
+
   it("rejects link-log submissions with unsafe URL schemes", async () => {
     const originalFetch = globalThis.fetch;
     const sessionCookie = await createSessionCookie(TEST_ENV.ADMIN_EMAIL, TEST_SECRET);
