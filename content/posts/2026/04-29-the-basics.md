@@ -1,11 +1,11 @@
 ---
 title: "The Basics"
 slug: "the-basics"
-date: "2026-04-29T23:06:02+05:30"
+date: "2026-04-29T17:39:58.516Z"
 description: ""
 tags: ["programming", "excellence"]
 link: "https://registerspill.thorstenball.com/p/the-basics"
-draft: true
+draft: false
 ---
 
 Thorsten Ball:
