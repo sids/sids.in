@@ -1,11 +1,11 @@
 ---
 title: "The West Forgot How to Build. Now It's Forgetting Code"
 slug: "the-west-forgot-how-to-build-now-its-forgetting-code"
-date: "2026-04-29T23:24:34+05:30"
+date: "2026-04-29T17:58:24.920Z"
 description: ""
 tags: ["agentic-engineering", "programming", "work-culture"]
 link: "https://techtrenches.dev/p/the-west-forgot-how-to-make-things"
-draft: true
+draft: false
 ---
 
 Denis Stetskov:
