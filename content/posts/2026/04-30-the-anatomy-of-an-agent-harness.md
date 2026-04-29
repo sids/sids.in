@@ -1,11 +1,11 @@
 ---
 title: "The Anatomy of an Agent Harness"
 slug: "the-anatomy-of-an-agent-harness"
-date: "2026-04-30T00:47:43+05:30"
+date: "2026-04-29T19:22:34.460Z"
 description: ""
 tags: ["agentic-engineering", "ai"]
 link: "https://x.com/aparnadhinak/status/2046980769747533830"
-draft: true
+draft: false
 ---
 
 Aparna Dhinakaran:
