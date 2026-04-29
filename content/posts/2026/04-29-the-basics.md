@@ -16,4 +16,4 @@ Thorsten Ball:
 
 What a great set of obvious but seldom articulated things that every developer would do well to go through at some regular interval (because these are easy to forget, especially in this age of agentic engineering).
 
-Old post that I discovered through last Sunday's [Joy & Curiosity](https://registerspill.thorstenball.com/p/joy-and-curiosity-83), Thorsten Ball's weekly round up of really wonderful links (a lot of them focused on agentic engineering, given Thorsten is building Amp, which I've heard described as the Porsche of coding agents).
+This is an old post that I discovered through last Sunday's [Joy & Curiosity](https://registerspill.thorstenball.com/p/joy-and-curiosity-83), Thorsten Ball's weekly round up of really wonderful links (a lot of them focused on agentic engineering, given Thorsten is building Amp, which I've heard described as the Porsche of coding agents).
