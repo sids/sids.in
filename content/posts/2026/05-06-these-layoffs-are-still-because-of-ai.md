@@ -1,5 +1,5 @@
 ---
-title: "These Layoffs Are Still Because of AI"
+title: "The layoffs will continue till we learn to use AI"
 slug: "these-layoffs-are-still-because-of-ai"
 date: "2026-05-06T21:44:06+05:30"
 description: ""
