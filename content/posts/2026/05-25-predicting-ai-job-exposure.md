@@ -1,11 +1,11 @@
 ---
 title: "Predicting AI Job Exposure"
 slug: "predicting-ai-job-exposure"
-date: "2026-05-25T22:15:00+05:30"
+date: "2026-05-25T16:56:55.724Z"
 description: ""
 tags: ["ai", "work-culture"]
 link: "https://www.ben-evans.com/benedictevans/2026/5/24/ai-job-exposure"
-draft: true
+draft: false
 ---
 
 [Benedict Evans](https://www.ben-evans.com/benedictevans/2026/5/24/ai-job-exposure):
