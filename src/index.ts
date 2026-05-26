@@ -14,7 +14,7 @@ function isPartialHtmxRequest(request: Request): boolean {
   return headers.get("HX-History-Restore-Request") !== "true";
 }
 
-const STATIC_PATHS = ["/css/", "/fonts/", "/images/", "/js/", "/robots.txt", "/sitemap.xml"];
+const STATIC_PATHS = ["/css/", "/fonts/", "/games/", "/images/", "/js/", "/robots.txt", "/sitemap.xml"];
 const IMMUTABLE_STATIC_PATHS = ["/fonts/", "/js/"];
 const VERSIONED_STATIC_PATHS = ["/css/", "/images/"];
 const STATIC_ASSET_CACHE_CONTROL = "public, max-age=31536000, immutable";

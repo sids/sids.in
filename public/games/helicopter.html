@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Helicopter</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #16324f;
+      --sky: #91dcff;
+      --deep-sky: #4aaee8;
+      --leaf: #42b56a;
+      --leaf-dark: #237a46;
+      --sun: #ffd166;
+      --copter: #ffb238;
+      --copter-dark: #df6d2e;
+      --cream: #fff8df;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: var(--sky);
+      color: var(--ink);
+      font-family: "Avenir Next Rounded", "Trebuchet MS", "Arial Rounded MT Bold", sans-serif;
+    }
+
+    main {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: stretch;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0) 26%),
+        linear-gradient(180deg, var(--sky), var(--deep-sky));
+    }
+
+    canvas {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      cursor: pointer;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .hud {
+      position: fixed;
+      top: max(16px, env(safe-area-inset-top));
+      left: max(18px, env(safe-area-inset-left));
+      right: max(18px, env(safe-area-inset-right));
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+      pointer-events: none;
+      font-size: clamp(1rem, 2.5vw, 1.45rem);
+      font-weight: 800;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
+      z-index: 2;
+    }
+
+    .hud span:last-child {
+      justify-self: end;
+    }
+
+    .practice-toggle {
+      justify-self: center;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      pointer-events: auto;
+      cursor: pointer;
+      user-select: none;
+      font-size: clamp(0.95rem, 2.2vw, 1.2rem);
+    }
+
+    .practice-toggle input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .switch {
+      position: relative;
+      width: 54px;
+      height: 30px;
+      border: 3px solid rgba(22, 50, 79, 0.65);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.65);
+      box-shadow: 0 2px 0 rgba(255, 255, 255, 0.55);
+      transition: background 150ms ease, border-color 150ms ease;
+    }
+
+    .switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f47d3d;
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.14);
+      transition: transform 150ms ease, background 150ms ease;
+    }
+
+    .practice-toggle input:checked + .switch {
+      border-color: #26794b;
+      background: rgba(137, 224, 154, 0.86);
+    }
+
+    .practice-toggle input:checked + .switch::after {
+      transform: translateX(23px);
+      background: #26794b;
+    }
+
+    .practice-toggle input:focus-visible + .switch {
+      outline: 4px solid rgba(255, 255, 255, 0.82);
+      outline-offset: 4px;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 28px;
+      background: rgba(145, 220, 255, 0.42);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 160ms ease;
+      z-index: 1;
+    }
+
+    .overlay.is-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .message {
+      width: min(92vw, 520px);
+      text-align: center;
+      transform: translateY(-5vh);
+    }
+
+    h1 {
+      margin: 0;
+      color: #0f4474;
+      font-size: clamp(3.1rem, 13vw, 7rem);
+      line-height: 0.9;
+      letter-spacing: 0;
+      text-shadow:
+        0 4px 0 rgba(255, 255, 255, 0.7),
+        0 10px 24px rgba(33, 107, 164, 0.18);
+    }
+
+    .status {
+      min-height: 1.4em;
+      margin: 18px 0 24px;
+      font-size: clamp(1.35rem, 4vw, 2rem);
+      font-weight: 800;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.65);
+    }
+
+    button {
+      appearance: none;
+      min-width: 168px;
+      min-height: 64px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--sun);
+      color: #683c00;
+      box-shadow:
+        0 7px 0 #ee9f24,
+        0 18px 32px rgba(56, 111, 162, 0.25);
+      font: inherit;
+      font-size: clamp(1.45rem, 4vw, 2.1rem);
+      font-weight: 900;
+      letter-spacing: 0;
+      cursor: pointer;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+
+    button:hover,
+    button:focus-visible {
+      transform: translateY(-2px);
+      box-shadow:
+        0 9px 0 #ee9f24,
+        0 20px 34px rgba(56, 111, 162, 0.28);
+      outline: 4px solid rgba(255, 255, 255, 0.8);
+      outline-offset: 4px;
+    }
+
+    button:active {
+      transform: translateY(5px);
+      box-shadow:
+        0 2px 0 #ee9f24,
+        0 12px 18px rgba(56, 111, 162, 0.22);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @media (max-height: 470px) {
+      .message {
+        transform: translateY(0);
+      }
+
+      h1 {
+        font-size: clamp(2.5rem, 10vw, 4.7rem);
+      }
+
+      .status {
+        margin: 10px 0 16px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .hud {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .practice-toggle {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main aria-describedby="instructions">
+    <canvas id="game" aria-label="Helicopter game"></canvas>
+    <div class="hud" aria-live="polite">
+      <span id="score">Score 0</span>
+      <label class="practice-toggle">
+        <input id="practice" type="checkbox">
+        <span class="switch" aria-hidden="true"></span>
+        <span>Practice</span>
+      </label>
+      <span id="best">Best 0</span>
+    </div>
+    <section class="overlay is-visible" id="overlay">
+      <div class="message">
+        <h1>Helicopter</h1>
+        <p class="status" id="status">Ready?</p>
+        <button id="action" type="button">Fly</button>
+      </div>
+    </section>
+    <p class="sr-only" id="instructions">
+      Press and hold the mouse, trackpad, touchscreen, or any plain key to make the helicopter climb. Let go to descend.
+    </p>
+  </main>
+
+  <script>
+    const canvas = document.querySelector("#game");
+    const context = canvas.getContext("2d");
+    const scoreElement = document.querySelector("#score");
+    const bestElement = document.querySelector("#best");
+    const overlay = document.querySelector("#overlay");
+    const statusElement = document.querySelector("#status");
+    const actionButton = document.querySelector("#action");
+    const practiceToggle = document.querySelector("#practice");
+    const startSpeed = 162;
+    const topSpeed = 202;
+    const practiceSpeedScale = 0.6;
+    const normalMotion = {
+      climbAcceleration: -910,
+      fallAcceleration: 660,
+      minVelocity: -390,
+      maxVelocity: 360
+    };
+    const practiceMotion = {
+      climbAcceleration: -520,
+      fallAcceleration: 390,
+      minVelocity: -235,
+      maxVelocity: 215
+    };
+    const practiceVehicleBounds = {
+      top: 45,
+      bottomPadding: 96
+    };
+
+    const helicopter = {
+      x: 160,
+      y: 240,
+      velocity: 0,
+      rotation: 0
+    };
+
+    const world = {
+      width: 960,
+      height: 540,
+      distance: 0,
+      speed: startSpeed,
+      score: 0,
+      best: Number(localStorage.getItem("helicopter-best") || 0),
+      spawnTimer: 1.35,
+      state: "ready",
+      obstacles: [],
+      clouds: [],
+      lastTime: 0,
+      shake: 0,
+      practice: true,
+      waitingAtObstacle: false,
+      forwardSpeed: 0
+    };
+
+    let inputActive = false;
+    let pointerActive = false;
+    const activeKeys = new Set();
+
+    function syncGameState() {
+      document.body.dataset.gameState = world.state;
+      document.body.dataset.helicopterY = helicopter.y.toFixed(1);
+      document.body.dataset.score = String(world.score);
+      document.body.dataset.inputActive = inputActive ? "true" : "false";
+      document.body.dataset.practiceMode = world.practice ? "true" : "false";
+      document.body.dataset.waitingAtObstacle = world.waitingAtObstacle ? "true" : "false";
+      document.body.dataset.forwardSpeed = world.forwardSpeed.toFixed(1);
+    }
+
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function random(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function currentForwardSpeed() {
+      return world.practice ? world.speed * practiceSpeedScale : world.speed;
+    }
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+      world.width = Math.max(320, rect.width);
+      world.height = Math.max(300, rect.height);
+      canvas.width = Math.floor(world.width * pixelRatio);
+      canvas.height = Math.floor(world.height * pixelRatio);
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+      helicopter.x = clamp(world.width * 0.24, 106, 190);
+      if (world.state !== "playing") {
+        helicopter.y = world.height * 0.46;
+      }
+      buildClouds();
+      syncGameState();
+    }
+
+    function buildClouds() {
+      world.clouds = Array.from({ length: 8 }, (_, index) => ({
+        x: random(0, world.width) + index * 80,
+        y: random(52, world.height * 0.48),
+        size: random(36, 82),
+        speed: random(10, 24)
+      }));
+    }
+
+    function updateHud() {
+      scoreElement.textContent = `Score ${world.score}`;
+      bestElement.textContent = `Best ${world.best}`;
+      syncGameState();
+    }
+
+    function startGame() {
+      world.state = "playing";
+      world.distance = 0;
+      world.speed = startSpeed;
+      world.forwardSpeed = currentForwardSpeed();
+      world.score = 0;
+      world.spawnTimer = 1.45;
+      world.obstacles = [];
+      world.shake = 0;
+      world.waitingAtObstacle = false;
+      helicopter.y = world.height * 0.46;
+      helicopter.velocity = 0;
+      helicopter.rotation = 0;
+      overlay.classList.remove("is-visible");
+      updateHud();
+      syncGameState();
+    }
+
+    function finishGame() {
+      if (world.state !== "playing") {
+        return;
+      }
+      world.state = "ended";
+      world.shake = 10;
+      if (world.score > world.best) {
+        world.best = world.score;
+        localStorage.setItem("helicopter-best", String(world.best));
+      }
+      updateHud();
+      statusElement.textContent = world.score > 0 ? "Great try!" : "Try again?";
+      actionButton.textContent = "Again";
+      overlay.classList.add("is-visible");
+      syncGameState();
+    }
+
+    function makeObstacle() {
+      const gap = clamp(world.height * 0.52, 260, 330);
+      const edge = Math.max(58, world.height * 0.12);
+      const center = random(edge + gap / 2, world.height - edge - gap / 2);
+      world.obstacles.push({
+        x: world.width + 42,
+        width: clamp(world.width * 0.085, 54, 76),
+        gapTop: center - gap / 2,
+        gapBottom: center + gap / 2,
+        scored: false,
+        hue: Math.random() > 0.5 ? "green" : "flower"
+      });
+    }
+
+    function update(dt) {
+      world.speed = clamp(startSpeed + world.score * 3, startSpeed, topSpeed);
+      world.waitingAtObstacle = world.practice && shouldWaitAtObstacle();
+      world.forwardSpeed = world.waitingAtObstacle ? 0 : currentForwardSpeed();
+      world.distance += world.forwardSpeed * dt;
+      world.spawnTimer -= world.forwardSpeed > 0 ? dt : 0;
+
+      if (world.spawnTimer <= 0) {
+        makeObstacle();
+        world.spawnTimer = random(1.55, 2.1);
+      }
+
+      const motion = world.practice ? practiceMotion : normalMotion;
+      const acceleration = inputActive ? motion.climbAcceleration : motion.fallAcceleration;
+      helicopter.velocity = clamp(helicopter.velocity + acceleration * dt, motion.minVelocity, motion.maxVelocity);
+      helicopter.y += helicopter.velocity * dt;
+      helicopter.rotation = clamp(helicopter.velocity / 700, -0.32, 0.42);
+
+      for (const obstacle of world.obstacles) {
+        obstacle.x -= world.forwardSpeed * dt;
+        if (!obstacle.scored && obstacle.x + obstacle.width < helicopter.x - 18) {
+          obstacle.scored = true;
+          world.score += 1;
+          updateHud();
+        }
+      }
+
+      world.obstacles = world.obstacles.filter((obstacle) => obstacle.x + obstacle.width > -30);
+
+      const topLimit = 24;
+      const bottomLimit = world.height - 28;
+      if (world.practice) {
+        const practiceTopLimit = practiceVehicleBounds.top;
+        const practiceBottomLimit = world.height - practiceVehicleBounds.bottomPadding;
+        if (helicopter.y < practiceTopLimit) {
+          helicopter.y = practiceTopLimit;
+          helicopter.velocity = Math.max(helicopter.velocity, 0);
+        } else if (helicopter.y > practiceBottomLimit) {
+          helicopter.y = practiceBottomLimit;
+          helicopter.velocity = Math.min(helicopter.velocity, 0);
+        }
+      } else if (helicopter.y < topLimit || helicopter.y > bottomLimit) {
+        finishGame();
+      }
+
+      if (!world.practice) {
+        for (const obstacle of world.obstacles) {
+          if (hitsObstacle(obstacle)) {
+            finishGame();
+            break;
+          }
+        }
+      }
+      syncGameState();
+    }
+
+    function shouldWaitAtObstacle() {
+      return world.obstacles.some((obstacle) => {
+        const helicopterNose = helicopter.x + 46;
+        const obstacleClose = obstacle.x <= helicopterNose + 18 && obstacle.x + obstacle.width >= helicopter.x - 28;
+        return obstacleClose && !helicopterIsInGap(obstacle);
+      });
+    }
+
+    function helicopterIsInGap(obstacle) {
+      const padding = 28;
+      return helicopter.y > obstacle.gapTop + padding && helicopter.y < obstacle.gapBottom - padding;
+    }
+
+    function hitsObstacle(obstacle) {
+      const helicopterRadius = 18;
+      const safeInset = 8;
+      return (
+        circleHitsRect(
+          helicopter.x,
+          helicopter.y,
+          helicopterRadius,
+          obstacle.x + safeInset,
+          -18,
+          obstacle.width - safeInset * 2,
+          obstacle.gapTop + 18
+        ) ||
+        circleHitsRect(
+          helicopter.x,
+          helicopter.y,
+          helicopterRadius,
+          obstacle.x + safeInset,
+          obstacle.gapBottom,
+          obstacle.width - safeInset * 2,
+          world.height - obstacle.gapBottom + 18
+        )
+      );
+    }
+
+    function circleHitsRect(cx, cy, radius, rx, ry, rw, rh) {
+      const closestX = clamp(cx, rx, rx + rw);
+      const closestY = clamp(cy, ry, ry + rh);
+      const dx = cx - closestX;
+      const dy = cy - closestY;
+      return dx * dx + dy * dy < radius * radius;
+    }
+
+    function draw() {
+      context.save();
+      context.clearRect(0, 0, world.width, world.height);
+
+      if (world.shake > 0) {
+        context.translate(random(-world.shake, world.shake), random(-world.shake, world.shake));
+        world.shake *= 0.78;
+        if (world.shake < 0.5) {
+          world.shake = 0;
+        }
+      }
+
+      drawSky();
+      drawObstacles();
+      drawHelicopter();
+      drawForeground();
+      context.restore();
+    }
+
+    function drawSky() {
+      const gradient = context.createLinearGradient(0, 0, 0, world.height);
+      gradient.addColorStop(0, "#9ee8ff");
+      gradient.addColorStop(0.62, "#66c7f0");
+      gradient.addColorStop(1, "#8bd47c");
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, world.width, world.height);
+
+      context.fillStyle = "rgba(255, 209, 102, 0.95)";
+      context.beginPath();
+      context.arc(world.width - 82, 78, 42, 0, Math.PI * 2);
+      context.fill();
+
+      for (const cloud of world.clouds) {
+        const x = ((cloud.x - world.distance * (cloud.speed / 80)) % (world.width + 180)) - 90;
+        drawCloud(x, cloud.y, cloud.size);
+      }
+    }
+
+    function drawCloud(x, y, size) {
+      context.save();
+      context.globalAlpha = 0.78;
+      context.fillStyle = "#fffdf2";
+      context.beginPath();
+      context.ellipse(x, y + size * 0.16, size * 0.5, size * 0.24, 0, 0, Math.PI * 2);
+      context.ellipse(x + size * 0.32, y + size * 0.08, size * 0.36, size * 0.28, 0, 0, Math.PI * 2);
+      context.ellipse(x - size * 0.32, y + size * 0.1, size * 0.32, size * 0.23, 0, 0, Math.PI * 2);
+      context.fill();
+      context.restore();
+    }
+
+    function drawObstacles() {
+      for (const obstacle of world.obstacles) {
+        drawObstacleBlock(obstacle.x, -22, obstacle.width, obstacle.gapTop + 22, obstacle.hue);
+        drawObstacleBlock(obstacle.x, obstacle.gapBottom, obstacle.width, world.height - obstacle.gapBottom + 24, obstacle.hue);
+      }
+    }
+
+    function drawObstacleBlock(x, y, width, height, hue) {
+      const base = hue === "green" ? "#4fbd73" : "#ff8aa2";
+      const dark = hue === "green" ? "#26794b" : "#c84d6b";
+      const light = hue === "green" ? "#89e09a" : "#ffc0ca";
+      const radius = Math.min(18, width * 0.35);
+
+      context.fillStyle = dark;
+      roundRect(x + 5, y + 8, width, height, radius);
+      context.fill();
+
+      context.fillStyle = base;
+      roundRect(x, y, width, height, radius);
+      context.fill();
+
+      context.fillStyle = light;
+      roundRect(x + 10, y + 12, Math.max(8, width * 0.2), Math.max(0, height - 24), 10);
+      context.fill();
+    }
+
+    function roundRect(x, y, width, height, radius) {
+      const r = Math.min(radius, width / 2, height / 2);
+      context.beginPath();
+      context.moveTo(x + r, y);
+      context.lineTo(x + width - r, y);
+      context.quadraticCurveTo(x + width, y, x + width, y + r);
+      context.lineTo(x + width, y + height - r);
+      context.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+      context.lineTo(x + r, y + height);
+      context.quadraticCurveTo(x, y + height, x, y + height - r);
+      context.lineTo(x, y + r);
+      context.quadraticCurveTo(x, y, x + r, y);
+      context.closePath();
+    }
+
+    function drawHelicopter() {
+      context.save();
+      context.translate(helicopter.x, helicopter.y);
+      context.rotate(helicopter.rotation);
+
+      context.strokeStyle = "#2c4f66";
+      context.lineWidth = 4;
+      context.lineCap = "round";
+      context.beginPath();
+      context.moveTo(-32, 4);
+      context.lineTo(-72, -12);
+      context.lineTo(-82, -28);
+      context.stroke();
+
+      context.strokeStyle = "#203d56";
+      context.lineWidth = 3;
+      context.beginPath();
+      context.moveTo(-22, 20);
+      context.lineTo(-8, 31);
+      context.moveTo(24, 18);
+      context.lineTo(39, 31);
+      context.moveTo(-16, 31);
+      context.lineTo(46, 31);
+      context.stroke();
+
+      context.fillStyle = "#f47d3d";
+      context.beginPath();
+      context.ellipse(4, 2, 42, 25, 0, 0, Math.PI * 2);
+      context.fill();
+
+      context.fillStyle = "#ffbf3d";
+      context.beginPath();
+      context.ellipse(12, -1, 36, 22, 0, 0, Math.PI * 2);
+      context.fill();
+
+      context.fillStyle = "#b9f0ff";
+      context.beginPath();
+      context.ellipse(29, -6, 16, 13, -0.1, 0, Math.PI * 2);
+      context.fill();
+
+      context.fillStyle = "#263f55";
+      context.fillRect(-5, -34, 7, 14);
+
+      const rotorAngle = world.distance * 0.15;
+      context.save();
+      context.translate(-2, -36);
+      context.rotate(rotorAngle);
+      context.strokeStyle = "rgba(26, 55, 75, 0.84)";
+      context.lineWidth = 5;
+      context.beginPath();
+      context.moveTo(-50, 0);
+      context.lineTo(50, 0);
+      context.stroke();
+      context.restore();
+
+      context.save();
+      context.translate(-82, -28);
+      context.rotate(-rotorAngle * 1.8);
+      context.strokeStyle = "#263f55";
+      context.lineWidth = 3;
+      context.beginPath();
+      context.moveTo(-10, 0);
+      context.lineTo(10, 0);
+      context.moveTo(0, -10);
+      context.lineTo(0, 10);
+      context.stroke();
+      context.restore();
+
+      context.restore();
+    }
+
+    function drawForeground() {
+      const hillTop = world.height - 62;
+      const offset = -(world.distance * 0.35) % 180;
+
+      context.fillStyle = "#58bd68";
+      context.beginPath();
+      context.moveTo(0, world.height);
+      for (let x = offset - 180; x <= world.width + 180; x += 90) {
+        context.quadraticCurveTo(x + 45, hillTop - 28, x + 90, hillTop);
+      }
+      context.lineTo(world.width, world.height);
+      context.closePath();
+      context.fill();
+
+      context.fillStyle = "#347b4c";
+      context.fillRect(0, world.height - 18, world.width, 18);
+    }
+
+    function frame(time) {
+      const dt = Math.min((time - world.lastTime) / 1000 || 0, 0.034);
+      world.lastTime = time;
+      if (world.state === "playing") {
+        update(dt);
+      }
+      draw();
+      requestAnimationFrame(frame);
+    }
+
+    function refreshInput() {
+      inputActive = pointerActive || activeKeys.size > 0;
+      syncGameState();
+    }
+
+    function setPracticeMode(enabled) {
+      world.practice = enabled;
+      if (!enabled) {
+        world.waitingAtObstacle = false;
+        world.forwardSpeed = world.state === "playing" ? currentForwardSpeed() : 0;
+      }
+      syncGameState();
+    }
+
+    function gameKey(event) {
+      if (event.target instanceof HTMLElement && event.target.closest(".practice-toggle")) {
+        return false;
+      }
+      return !event.metaKey && !event.ctrlKey && !event.altKey && !event.isComposing;
+    }
+
+    function keyId(event) {
+      return event.code || event.key || "key";
+    }
+
+    actionButton.addEventListener("click", startGame);
+    practiceToggle.addEventListener("change", () => setPracticeMode(practiceToggle.checked));
+
+    canvas.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
+      pointerActive = true;
+      refreshInput();
+      if (world.state !== "playing") {
+        startGame();
+      }
+    });
+
+    canvas.addEventListener("pointerup", (event) => {
+      event.preventDefault();
+      pointerActive = false;
+      refreshInput();
+      if (canvas.hasPointerCapture(event.pointerId)) {
+        canvas.releasePointerCapture(event.pointerId);
+      }
+    });
+
+    canvas.addEventListener("pointercancel", () => {
+      pointerActive = false;
+      refreshInput();
+    });
+
+    canvas.addEventListener("lostpointercapture", () => {
+      pointerActive = false;
+      refreshInput();
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (!gameKey(event)) {
+        return;
+      }
+      event.preventDefault();
+      activeKeys.add(keyId(event));
+      refreshInput();
+      if (world.state !== "playing") {
+        startGame();
+      }
+    });
+
+    window.addEventListener("keyup", (event) => {
+      if (!gameKey(event)) {
+        return;
+      }
+      event.preventDefault();
+      activeKeys.delete(keyId(event));
+      refreshInput();
+    });
+
+    window.addEventListener("blur", () => {
+      pointerActive = false;
+      activeKeys.clear();
+      refreshInput();
+    });
+    window.addEventListener("resize", resize);
+
+    statusElement.textContent = "Ready?";
+    practiceToggle.checked = world.practice;
+    updateHud();
+    resize();
+    syncGameState();
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

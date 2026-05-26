@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Games</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #16324f;
+      --sky: #91dcff;
+      --leaf: #42b56a;
+      --sun: #ffd166;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 35%),
+        linear-gradient(180deg, var(--sky), #67c7f0 70%, #8bd47c);
+      color: var(--ink);
+      font-family: "Avenir Next Rounded", "Trebuchet MS", "Arial Rounded MT Bold", sans-serif;
+    }
+
+    main {
+      width: min(92vw, 560px);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 28px;
+      font-size: clamp(3rem, 12vw, 6rem);
+      line-height: 0.9;
+      letter-spacing: 0;
+      text-shadow: 0 4px 0 rgba(255, 255, 255, 0.7);
+    }
+
+    nav {
+      display: grid;
+      gap: 16px;
+    }
+
+    a {
+      display: block;
+      padding: 20px 24px;
+      border: 4px solid rgba(22, 50, 79, 0.2);
+      border-radius: 24px;
+      background: rgba(255, 248, 223, 0.9);
+      color: inherit;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      font-weight: 900;
+      text-decoration: none;
+      box-shadow: 0 8px 0 rgba(38, 121, 75, 0.35);
+    }
+
+    a:focus-visible,
+    a:hover {
+      outline: 4px solid rgba(255, 255, 255, 0.85);
+      outline-offset: 5px;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Games</h1>
+    <nav aria-label="Games">
+      <a href="./helicopter.html">Helicopter</a>
+      <a href="./airplane.html">Aeroplane</a>
+    </nav>
+  </main>
+</body>
+</html>
