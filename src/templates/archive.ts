@@ -20,7 +20,7 @@ function renderTags(tags: TagInfo[]): string {
     .join("");
 
   return `<section class="mb-12">
-    <h2 class="font-heading text-2xl font-medium mb-4 text-primary">Tags</h2>
+    <h2 class="text-2xl font-medium mb-4 text-primary">Tags</h2>
     <div class="flex flex-wrap gap-2">
       ${tagLinks}
     </div>

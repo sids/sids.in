@@ -127,7 +127,7 @@ export function postsListArchive(
       .join("");
 
     return `<section class="mb-12">
-    <h2 class="font-heading text-2xl font-medium mb-4 text-primary">${year}</h2>
+    <h2 class="text-2xl font-medium mb-4 text-primary">${year}</h2>
     <ul>
       ${items}
     </ul>

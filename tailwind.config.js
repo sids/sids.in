@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        heading: ["Geist Pixel", "Overpass Mono", "monospace"],
+        heading: ["Geist Pixel", "Overpass", "system-ui", "-apple-system", "sans-serif"],
         mono: ["Overpass Mono", "monospace"],
         sans: ["Overpass", "system-ui", "-apple-system", "sans-serif"],
       },
@@ -43,15 +43,7 @@ export default {
               },
             },
             h1: {
-              fontFamily: "Geist Pixel, Overpass Mono, monospace",
-              fontWeight: "500",
-            },
-            h2: {
-              fontFamily: "Geist Pixel, Overpass Mono, monospace",
-              fontWeight: "500",
-            },
-            h3: {
-              fontFamily: "Geist Pixel, Overpass Mono, monospace",
+              fontFamily: "Geist Pixel, Overpass, system-ui, -apple-system, sans-serif",
               fontWeight: "500",
             },
             code: {

@@ -35,7 +35,7 @@ function draftPostsSection(draftPosts: PostMeta[]): string {
   return `
     <section class="flex flex-col gap-3" aria-labelledby="draft-posts-heading">
       <div class="flex flex-col gap-1">
-        <h2 id="draft-posts-heading" class="font-heading text-xl text-primary">Draft posts</h2>
+        <h2 id="draft-posts-heading" class="text-xl text-primary">Draft posts</h2>
         <p class="text-sm text-secondary">Preview posts that are hidden from public lists.</p>
       </div>
       ${content}

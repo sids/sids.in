@@ -20,10 +20,10 @@ export function postCard(post: Post): string {
   // Title: links to external URL with icon if link exists, otherwise links to post
   let titleHtml: string;
   if (externalLink) {
-    titleHtml = `<h2 class="font-heading text-xl font-medium mb-2"><span aria-hidden="true">↗ </span><a href="${escapeHtml(externalLink)}" class="text-primary" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)}</a></h2>`;
+    titleHtml = `<h2 class="text-xl font-medium mb-2"><span aria-hidden="true">↗ </span><a href="${escapeHtml(externalLink)}" class="text-primary" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)}</a></h2>`;
   } else {
     titleHtml = `<a href="/posts/${post.slug}" class="text-primary">
-    <h2 class="font-heading text-xl font-medium mb-2">${isNote ? `${noteIcon}` : ""}${escapeHtml(post.title)}</h2>
+    <h2 class="text-xl font-medium mb-2">${isNote ? `${noteIcon}` : ""}${escapeHtml(post.title)}</h2>
   </a>`;
   }
 

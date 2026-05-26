@@ -124,10 +124,14 @@
     background-size: 100% 1px;
   }
 
-  .post-content h1,
+  .post-content h1 {
+    @apply font-heading font-medium;
+    color: var(--text-primary);
+  }
+
   .post-content h2,
   .post-content h3 {
-    @apply font-heading font-medium;
+    @apply font-sans font-medium;
     color: var(--text-primary);
   }
 
