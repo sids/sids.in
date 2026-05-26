@@ -7,6 +7,7 @@ describe("layout feed discovery", () => {
 
     expect(html).toMatch(/<link rel="preload" href="\/fonts\/overpass-latin\.woff2(?:\?v=[a-f0-9]+)?" as="font" type="font\/woff2" crossorigin>/);
     expect(html).toMatch(/<link rel="preload" href="\/fonts\/overpass-mono-latin\.woff2(?:\?v=[a-f0-9]+)?" as="font" type="font\/woff2" crossorigin>/);
+    expect(html).toMatch(/<link rel="preload" href="\/fonts\/geist-pixel-square\.woff2(?:\?v=[a-f0-9]+)?" as="font" type="font\/woff2" crossorigin>/);
   });
 
   it("loads local deferred HTMX scripts", () => {

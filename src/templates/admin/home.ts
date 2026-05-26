@@ -7,7 +7,7 @@ export function adminHomeTemplate(draftPosts: PostMeta[]): string {
   <section class="flex flex-col gap-8">
     <header class="flex flex-col gap-3">
       <p class="font-mono text-sm text-secondary">Admin</p>
-      <h1 class="text-3xl font-mono text-primary">Admin dashboard</h1>
+      <h1 class="text-3xl font-heading text-primary">Admin dashboard</h1>
       <p class="text-secondary">Create new content for the site.</p>
     </header>
 
@@ -35,7 +35,7 @@ function draftPostsSection(draftPosts: PostMeta[]): string {
   return `
     <section class="flex flex-col gap-3" aria-labelledby="draft-posts-heading">
       <div class="flex flex-col gap-1">
-        <h2 id="draft-posts-heading" class="font-mono text-xl text-primary">Draft posts</h2>
+        <h2 id="draft-posts-heading" class="font-heading text-xl text-primary">Draft posts</h2>
         <p class="text-sm text-secondary">Preview posts that are hidden from public lists.</p>
       </div>
       ${content}

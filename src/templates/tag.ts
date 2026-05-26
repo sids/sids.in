@@ -30,7 +30,7 @@ export function tagTemplate(
 
   return `<div>
   <div class="flex items-center justify-between mb-8">
-    <h1 class="font-mono text-sm tracking-widest uppercase" style="color: var(--text-secondary)">
+    <h1 class="font-heading text-sm tracking-widest uppercase text-secondary">
       Tagged: <span style="color: var(--accent)">${escapeHtml(tag)}</span>
     </h1>
     <a href="${tagHref(tag, "/feed")}" class="font-mono text-xs text-secondary">Feed</a>

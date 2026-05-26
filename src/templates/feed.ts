@@ -3,7 +3,7 @@ import { tagHref } from "../lib/tags.ts";
 
 export function feedTemplate(): string {
   return `<article class="post-content">
-  <h1 class="font-mono">Feed</h1>
+  <h1 class="font-heading">Feed</h1>
   <p>Subscribe to all posts:</p>
   <ul>
     <li><a href="/posts/feed.atom" hx-boost="false" class="link-accent">Atom</a></li>
@@ -17,7 +17,7 @@ export function tagFeedTemplate(tag: string): string {
   const escapedTag = escapeHtml(tag);
 
   return `<article class="post-content">
-  <h1 class="font-mono">Feed: <span class="text-accent">${escapedTag}</span></h1>
+  <h1 class="font-heading">Feed: <span class="text-accent">${escapedTag}</span></h1>
   <p>Subscribe to posts tagged <strong>${escapedTag}</strong>:</p>
   <ul>
     <li><a href="${tagHref(tag, "/feed.atom")}" hx-boost="false" class="link-accent">Atom</a></li>

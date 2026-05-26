@@ -11,7 +11,7 @@ export function linkLogTemplate(origin: string, tags: TagInfo[]): string {
     <header class="flex flex-col gap-3">
       <a href="/admin" class="font-mono text-xs uppercase text-secondary link-accent">Admin home</a>
       <p class="font-mono text-sm text-secondary">Link Log</p>
-      <h1 class="text-3xl font-mono text-primary">New link log entry</h1>
+      <h1 class="text-3xl font-heading text-primary">New link log entry</h1>
     </header>
 
     <form id="link-log-form" class="flex flex-col gap-6">

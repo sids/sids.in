@@ -22,6 +22,14 @@
   src: url('/fonts/overpass-mono-latin.woff2') format('woff2');
 }
 
+@font-face {
+  font-family: 'Geist Pixel';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/geist-pixel-square.woff2') format('woff2');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -119,7 +127,7 @@
   .post-content h1,
   .post-content h2,
   .post-content h3 {
-    @apply font-mono font-medium;
+    @apply font-heading font-medium;
     color: var(--text-primary);
   }
 

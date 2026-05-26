@@ -20,7 +20,7 @@ function renderTags(tags: TagInfo[]): string {
     .join("");
 
   return `<section class="mb-12">
-    <h2 class="font-mono text-2xl font-medium mb-4 text-primary">Tags</h2>
+    <h2 class="font-heading text-2xl font-medium mb-4 text-primary">Tags</h2>
     <div class="flex flex-wrap gap-2">
       ${tagLinks}
     </div>
@@ -33,7 +33,7 @@ export function archiveTemplate(
   currentFilter: PostFilterType = "all"
 ): string {
   return `<div>
-  <h1 class="font-mono text-3xl font-medium mb-8 text-secondary">Archive</h1>
+  <h1 class="font-heading text-3xl font-medium mb-8 text-secondary">Archive</h1>
   ${renderTags(tags)}
   ${postFilter("/archive", currentFilter)}
   ${postsListArchive(posts, currentFilter)}

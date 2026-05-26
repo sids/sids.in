@@ -8,7 +8,7 @@ export function noteTemplate(tags: TagInfo[]): string {
     <header class="flex flex-col gap-3">
       <a href="/admin" class="font-mono text-xs uppercase text-secondary link-accent">Admin home</a>
       <p class="font-mono text-sm text-secondary">Note</p>
-      <h1 class="text-3xl font-mono text-primary">New note entry</h1>
+      <h1 class="text-3xl font-heading text-primary">New note entry</h1>
     </header>
 
     <form id="note-form" class="flex flex-col gap-6">

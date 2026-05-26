@@ -12,7 +12,7 @@ export function loginTemplate(options: LoginTemplateOptions = {}): string {
   <section class="flex flex-col gap-8">
     <header class="flex flex-col gap-3">
       <p class="font-mono text-sm text-secondary">Admin</p>
-      <h1 class="text-3xl font-mono text-primary">Sign in</h1>
+      <h1 class="text-3xl font-heading text-primary">Sign in</h1>
       <p class="text-secondary">Sign in with Apple to access the admin dashboard.</p>
     </header>
 

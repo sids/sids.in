@@ -7,7 +7,7 @@ export function postListTemplate(
   paginationInfo: PaginationInfo,
   currentFilter: PostFilterType = "all"
 ): string {
-  return `<h1 class="font-mono text-3xl font-medium mb-8 text-secondary">Posts</h1>
+  return `<h1 class="font-heading text-3xl font-medium mb-8 text-secondary">Posts</h1>
 ${postFilter("/posts", currentFilter)}
 ${postsListCards(posts, paginationInfo, "/posts", currentFilter)}`;
 }
