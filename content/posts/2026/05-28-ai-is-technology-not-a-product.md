@@ -1,11 +1,11 @@
 ---
 title: "AI Is Technology, Not a Product"
 slug: "ai-is-technology-not-a-product"
-date: "2026-05-28T15:31:25+05:30"
+date: "2026-05-28T10:17:46.200Z"
 description: ""
 tags: ["ai", "product-building"]
 link: "https://daringfireball.net/2026/05/ai_is_technology_not_a_product"
-draft: true
+draft: false
 ---
 
 John Gruber:
