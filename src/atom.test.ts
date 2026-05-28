@@ -29,7 +29,9 @@ describe("generateAtomFeed", () => {
     expect(feed).toContain('<link rel="alternate" type="text/html" href="https://sids.in/posts/deep-blue" />');
     expect(feed).toContain('<link rel="related" type="text/html" href="https://example.com/article?foo=1&amp;bar=2" />');
     expect(feed).toContain("<id>https://sids.in/posts/deep-blue</id>");
-    expect(feed).toContain('<a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Deep Blue ↗</a>');
+    expect(feed).toContain("<title>Deep Blue</title>");
+    expect(feed).toContain('<p>Link: <a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Deep Blue</a></p>');
+    expect(feed).not.toContain("↗");
   });
 
   it("uses the full post timestamp for published and updated dates", () => {

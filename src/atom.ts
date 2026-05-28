@@ -21,16 +21,16 @@ export function generateAtomFeed(posts: Post[], options: FeedOptions): string {
 
       const externalLink = normalizeHttpUrl(post.link);
 
-      // Add indicators for link and note posts
+      // Add indicators for note posts
       const titleWithIndicator = externalLink
-        ? `↗ ${escapeHtml(post.title)}`
+        ? escapeHtml(post.title)
         : post.postType === "note"
         ? `💬 ${escapeHtml(post.title)}`
         : escapeHtml(post.title);
 
       // For link posts, prepend the external link at the top of content
       const content = externalLink
-        ? `<p><a href="${escapeHtml(externalLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>${post.html}`
+        ? `<p>Link: <a href="${escapeHtml(externalLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)}</a></p>${post.html}`
         : post.html;
 
       const relatedLink = externalLink

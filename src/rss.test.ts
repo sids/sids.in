@@ -29,7 +29,9 @@ describe("generateRssFeed", () => {
     expect(feed).toContain("<link>https://sids.in/posts/deep-blue</link>");
     expect(feed).toContain("<guid isPermaLink=\"true\">https://sids.in/posts/deep-blue</guid>");
     expect(feed).not.toContain("<source ");
-    expect(feed).toContain('<a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Deep Blue ↗</a>');
+    expect(feed).toContain("<title>Deep Blue</title>");
+    expect(feed).toContain('<p>Link: <a href="https://example.com/article?foo=1&amp;bar=2" target="_blank" rel="noopener noreferrer">Deep Blue</a></p>');
+    expect(feed).not.toContain("↗");
   });
 
   it("uses the full post timestamp for pubDate", () => {
