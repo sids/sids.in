@@ -35,6 +35,9 @@ bun run build:manifest  # Regenerate content manifest only
 
 ## Link Handling
 
+**Link-post skill trigger:**
+- If Sid shares a link by itself or with brief context and does not specify another task, use the local `blog-link-post` skill at `.agents/skills/blog-link-post/SKILL.md`.
+
 **Post types:**
 - Posts under `content/posts/notes/` are treated as `postType: "note"`.
 - Use the `link` frontmatter field to mark a post as a `postType: "link-log"` entry.
