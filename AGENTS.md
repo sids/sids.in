@@ -35,26 +35,34 @@ bun run build:manifest  # Regenerate content manifest only
 
 ## Link Handling
 
-**Link-post skill trigger:**
+**Local skill triggers:**
 - If Sid shares a link by itself or with brief context and does not specify another task, use the local `blog-link-post` skill at `.agents/skills/blog-link-post/SKILL.md`.
+- If Sid asks to draft, post, or publish an original note that is not primarily an external link, use `.agents/skills/blog-note-post/SKILL.md`.
+- If Sid asks to add or modify a standalone game under `/games/`, use `.agents/skills/sids-static-game/SKILL.md`.
+- If Sid asks to add, fix, or verify embedded external media, use `.agents/skills/sids-embed-support/SKILL.md`.
 
 **Post types:**
-- Posts under `content/posts/notes/` are treated as `postType: "note"`.
-- Use the `link` frontmatter field to mark a post as a `postType: "link-log"` entry.
-- Other posts default to `postType: "aside"`.
-- In list views (`src/templates/partials/post-card.ts`), link-log titles point to the external URL and include the external-link icon, while the date and "Read Now →" link point to the local post page.
-- Post filtering is supported via the `type=note`, `type=aside`, and `type=link` query params on `/`, `/posts`, `/archive`, and tag pages.
-- Legacy `type=essay` URLs are permanently redirected to `type=note`; `type=brief` URLs remain redirected to `type=aside` for backwards compatibility.
+- Posts under `content/posts/articles/` are treated as `postType: "article"`.
+- Posts outside `content/posts/articles/` with a `link` frontmatter field are treated as `postType: "link"`.
+- Posts outside `content/posts/articles/` without a `link` frontmatter field are treated as `postType: "note"`.
+- In list views (`src/templates/partials/post-card.ts`), link titles point to the external URL and include the external-link icon, while the date and "Read Now →" link point to the local post page.
+- Post filtering is supported via the `type=article`, `type=note`, and `type=link` query params on `/`, `/posts`, `/archive`, and tag pages.
+- Legacy `type=essay` URLs are permanently redirected to `type=article`; legacy `type=aside` and `type=brief` URLs are permanently redirected to `type=note`.
 
 **Internal vs. external links:**
 - Default links inherit text color with underline styling from `styles/input.css`.
 - Use `.link-accent` for emphasized internal navigation links (e.g., pagination, archive/home CTAs).
 
 **Admin Section:**
-- `/admin` contains protected tools for authoring content (link log + asides).
+- `/admin` contains protected tools for authoring content (link posts + notes).
 - `src/routes/admin.ts` defines admin routes and API endpoints.
 - Sign in with Apple OAuth is used for authentication, restricted to `ADMIN_EMAIL`.
 - Session-based auth via signed cookies (no KV storage required).
+
+**Static Games:**
+- Standalone games live under `public/games/` and are served as static assets via `env.ASSETS`.
+- Update `public/games/index.html` when adding or removing games.
+- Keep game pages self-contained unless there is a clear reason to share assets.
 
 **Key Files:**
 - `src/index.ts` - Worker entry point and router (dispatches to routes)
@@ -69,6 +77,10 @@ bun run build:manifest  # Regenerate content manifest only
 
 **HTMX Partial Rendering:**
 The worker detects `HX-Request` header and returns partial HTML (content only) instead of full page. See `isPartialHtmxRequest` handling in `src/index.ts`.
+
+**Typography:**
+- `font-heading` uses the self-hosted Geist Pixel font and is reserved for `h1` headings.
+- Use sans headings for `h2`/`h3` and compact UI headings unless the surrounding code already uses `font-heading`.
 
 ## Adding Content
 
@@ -94,7 +106,3 @@ draft: false
 - Static assets (including `robots.txt` and `sitemap.xml`) served via Workers Static Assets binding (`env.ASSETS`)
 - CSS compiled to `public/css/styles.css` - don't edit directly
 - Run Wrangler via `bunx wrangler` (see scripts in `package.json`)
-
-## Documentation
-
-Keep `spec.md` updated whenever making architectural or fundamental changes, or when implementation diverges from what's documented there.

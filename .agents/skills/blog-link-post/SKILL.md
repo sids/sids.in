@@ -5,7 +5,7 @@ description: Publish link posts to Sid's blog (sids.in). Use when Sid shares a U
 
 # Blog Link Post
 
-Publish link-log entries to sids.in. Blog repo: `~/src/sids.in`
+Publish link posts to sids.in from the repo root.
 
 ## Post Format
 
@@ -20,7 +20,7 @@ date: "YYYY-MM-DDTHH:mm:ss+05:30"
 description: ""
 tags: ["tag1", "tag2"]
 link: "https://external-url.com/article"
-draft: false
+draft: true
 ---
 ```
 
@@ -30,12 +30,12 @@ draft: false
 - `tags`: Pick from existing tags (see below). Use 1-3 tags. Create new ones only if nothing fits.
 - `link`: The external URL being linked to
 - `date`: Use ISO timestamp with IST timezone offset (`+05:30`), e.g. `2026-04-25T09:03:29+05:30`. Get the current time at draft creation. Date-only (`YYYY-MM-DD`) is also accepted but timestamps are preferred.
-- `draft: false` unless told otherwise
+- `draft: true` unless Sid explicitly asks for immediate publication
 
 ### Existing Tags
 **Always discover tags at runtime** — never hardcode a tag list. Run this before every post:
 ```bash
-rg -No 'tags: \[.*?\]' ~/src/sids.in/content/posts/ --multiline | rg -o '"[^"]+"' | tr -d '"' | sort -u
+rg -No 'tags: \[.*?\]' content/posts/ --multiline | rg -o '"[^"]+"' | tr -d '"' | sort -u
 ```
 Pick from the results. Use 1-3 tags. Create new ones only if nothing fits.
 
@@ -65,17 +65,16 @@ Multiple blockquotes are fine — separate them with blank lines. Long quotes ca
 5. Assemble the post file with `draft: true`
 6. Pick appropriate tags from the existing set
 7. **Write the file to disk** at `content/posts/YYYY/MM-DD-slug.md` with `draft: true`
-8. **Send the .md file** to Sid via `message` (action=send, filePath) so he can review the actual file. Copy it to the workspace temporarily if needed for path restrictions. **Do this every time you create or edit the file** — not just the first draft.
+8. Share the file path and summarize the exact draft content so Sid can review it. Do this every time you create or edit the file, not just the first draft.
 9. Wait for Sid's approval or edits
-10. On approval: **keep `draft: true`** and commit and push from `~/src/sids.in`:
+10. On approval: **keep `draft: true`** and commit and push from the repo root:
    ```bash
    git add .
    git commit -m "Add link post: <slug>"
    git push
    ```
-9. **Monitor the deploy.** After pushing, get the commit SHA and poll the Cloudflare Workers build check run:
+11. **Monitor the deploy.** After pushing, get the commit SHA and poll the Cloudflare Workers build check run:
    ```bash
-   cd ~/src/sids.in
    COMMIT=$(git rev-parse HEAD)
    gh api repos/sids/sids.in/commits/$COMMIT/check-runs --jq '.check_runs[] | "\(.name) \(.status) \(.conclusion)"'
    ```
