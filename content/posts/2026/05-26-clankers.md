@@ -1,11 +1,11 @@
 ---
 title: "Clankers"
 slug: "clankers"
-date: "2026-05-26T22:10:13+05:30"
+date: "2026-05-28T02:47:56.115Z"
 description: ""
 tags: ["ai", "meta"]
 link: "https://lucumr.pocoo.org/2026/5/26/clankers/"
-draft: true
+draft: false
 ---
 
 [Armin Ronacher](https://lucumr.pocoo.org/2026/5/26/clankers/):
