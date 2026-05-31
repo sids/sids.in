@@ -56,7 +56,7 @@ export function layout(content: string, title: string, description?: string, tag
   <link rel="icon" type="image/png" href="/images/s.png">
   <link rel="preload" href="/fonts/overpass-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/overpass-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/geist-pixel-square.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/ZillaSlab-Medium.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="${versionedAsset("/css/styles.css")}">
   <link rel="alternate" type="application/rss+xml" title="Sid's Blog" href="/posts/feed.xml">
   <link rel="alternate" type="application/atom+xml" title="Sid's Blog" href="/posts/feed.atom">${tagFeedLinks}

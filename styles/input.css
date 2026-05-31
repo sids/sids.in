@@ -23,11 +23,11 @@
 }
 
 @font-face {
-  font-family: 'Geist Pixel';
+  font-family: 'Zilla Slab';
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('/fonts/geist-pixel-square.woff2') format('woff2');
+  src: url('/fonts/ZillaSlab-Medium.woff2') format('woff2');
 }
 
 @tailwind base;
@@ -125,7 +125,7 @@
   }
 
   .post-content h1 {
-    @apply font-heading font-medium;
+    @apply font-sans font-medium;
     color: var(--text-primary);
   }
 
@@ -247,6 +247,13 @@
   .tag-pill:hover {
     color: var(--accent);
     background-color: var(--border);
+  }
+
+  .post-title-font {
+    font-family: 'Zilla Slab', 'Overpass', system-ui, -apple-system, sans-serif;
+    font-weight: 500;
+    font-optical-sizing: auto;
+    letter-spacing: 0;
   }
 
   .alert {

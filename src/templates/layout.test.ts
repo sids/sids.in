@@ -7,7 +7,7 @@ describe("layout feed discovery", () => {
 
     expect(html).toMatch(/<link rel="preload" href="\/fonts\/overpass-latin\.woff2(?:\?v=[a-f0-9]+)?" as="font" type="font\/woff2" crossorigin>/);
     expect(html).toMatch(/<link rel="preload" href="\/fonts\/overpass-mono-latin\.woff2(?:\?v=[a-f0-9]+)?" as="font" type="font\/woff2" crossorigin>/);
-    expect(html).toMatch(/<link rel="preload" href="\/fonts\/geist-pixel-square\.woff2(?:\?v=[a-f0-9]+)?" as="font" type="font\/woff2" crossorigin>/);
+    expect(html).toMatch(/<link rel="preload" href="\/fonts\/ZillaSlab-Medium\.woff2(?:\?v=[a-f0-9]+)?" as="font" type="font\/woff2" crossorigin>/);
   });
 
   it("loads local deferred HTMX scripts", () => {
@@ -16,6 +16,14 @@ describe("layout feed discovery", () => {
     expect(html).toMatch(/<script defer src="\/js\/htmx-2\.0\.4\.min\.js(?:\?v=[a-f0-9]+)?"><\/script>/);
     expect(html).toMatch(/<script defer src="\/js\/htmx-head-support-2\.0\.2\.js(?:\?v=[a-f0-9]+)?"><\/script>/);
     expect(html).not.toContain("unpkg.com");
+  });
+
+  it("does not include the temporary post title font tester", () => {
+    const html = layout("<p>Hello</p>", "Hello");
+
+    expect(html).not.toContain("post-title-font-tester");
+    expect(html).not.toContain("data-post-title-font");
+    expect(html).not.toContain("fonts.googleapis.com");
   });
 
   it("uses the optimized logo image with explicit dimensions", () => {

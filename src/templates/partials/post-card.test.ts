@@ -21,6 +21,7 @@ describe("postCard", () => {
 
     expect(html).toContain('href="https://example.com/article"');
     expect(html).toContain('class="link-accent date-mono inline-flex items-center gap-1 mb-2"');
+    expect(html).toContain('class="post-title-font text-[22px] leading-7 mb-2"');
     expect(html).toContain("2026.FEB.16");
     expect(html).toContain('class="inline-block h-3.5 w-3.5 align-middle"');
     expect(html).toContain('<span aria-hidden="true">↗ </span><a href="https://example.com/article" class="text-primary" target="_blank" rel="noopener noreferrer">Deep Blue</a>');

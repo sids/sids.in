@@ -77,7 +77,7 @@ export function postsListCompact(
       const indicator = indicatorForPost(post.postType);
       return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-24 shrink-0 text-secondary">${formatPostDate(post.date)}</span>
-      <span>${indicator}<a href="/posts/${post.slug}" class="text-primary">${escapeHtml(post.title)}</a></span>
+      <span>${indicator}<a href="/posts/${post.slug}" class="post-title-font text-lg text-primary">${escapeHtml(post.title)}</a></span>
     </li>`;
     })
     .join("");
@@ -121,7 +121,7 @@ export function postsListArchive(
         const indicator = indicatorForPost(post.postType);
         return `<li class="flex gap-6 py-2 group">
       <span class="font-mono text-sm w-12 shrink-0 text-secondary">${formatPostMonthDay(post.date)}</span>
-      <span>${indicator}<a href="/posts/${post.slug}" class="text-primary">${escapeHtml(post.title)}</a></span>
+      <span>${indicator}<a href="/posts/${post.slug}" class="post-title-font text-lg text-primary">${escapeHtml(post.title)}</a></span>
     </li>`;
       })
       .join("");
