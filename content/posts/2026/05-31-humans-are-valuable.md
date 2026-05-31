@@ -1,11 +1,11 @@
 ---
 title: "Humans Are Valuable"
 slug: "humans-are-valuable"
-date: "2026-05-31T14:01:39+05:30"
+date: "2026-05-31T08:51:33.275Z"
 description: ""
 tags: ["ai", "quote"]
 link: "https://noperator.dev/posts/you-can-just-say-it/"
-draft: true
+draft: false
 ---
 
 Caleb Gross:
