@@ -13,15 +13,17 @@ const post: PostMeta = {
 };
 
 describe("post list title typography", () => {
-  it("marks compact post titles for font testing", () => {
+  it("aligns compact list dates with post titles", () => {
     const html = postsListCompact([post]);
 
-    expect(html).toContain('class="post-title-font text-lg text-primary"');
+    expect(html).toContain('class="flex items-baseline gap-6 py-2 group"');
+    expect(html).toContain('class="post-title-font text-lg leading-tight text-primary"');
   });
 
-  it("marks archive post titles for font testing", () => {
+  it("aligns archive list dates with post titles", () => {
     const html = postsListArchive([post]);
 
-    expect(html).toContain('class="post-title-font text-lg text-primary"');
+    expect(html).toContain('class="flex items-baseline gap-6 py-2 group"');
+    expect(html).toContain('class="post-title-font text-lg leading-tight text-primary"');
   });
 });
