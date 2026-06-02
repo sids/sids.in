@@ -1,11 +1,11 @@
 ---
 title: "Building Software is Learning"
 slug: "building-software-is-learning"
-date: "2026-06-02T22:06:24+05:30"
+date: "2026-06-02T16:41:10.614Z"
 description: ""
 tags: ["programming", "product-building", "ai"]
 link: "https://registerspill.thorstenball.com/p/building-software-is-learning"
-draft: true
+draft: false
 ---
 
 Thorsten Ball:
