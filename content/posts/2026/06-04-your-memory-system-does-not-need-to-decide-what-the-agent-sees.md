@@ -1,11 +1,11 @@
 ---
 title: "Your memory system does not need to decide what the agent sees. The agent does."
 slug: "your-memory-system-does-not-need-to-decide-what-the-agent-sees"
-date: "2026-06-04T15:08:22+05:30"
+date: "2026-06-04T09:59:55.678Z"
 description: ""
 tags: ["ai", "agentic-engineering"]
 link: "https://x.com/s_batman/status/2061878438697263219"
-draft: true
+draft: false
 ---
 
 Steven (Batman) Batchelor-Manning:
