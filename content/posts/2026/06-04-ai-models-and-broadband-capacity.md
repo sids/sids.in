@@ -1,11 +1,11 @@
 ---
 title: "AI Models and Broadband Capacity"
 slug: "ai-models-and-broadband-capacity"
-date: "2026-06-04T11:40:26+05:30"
+date: "2026-06-04T06:20:45.265Z"
 description: ""
 tags: ["ai"]
 link: "https://om.co/2026/06/02/ai-models-are-having-their-iphone-moment-whats-next/"
-draft: true
+draft: false
 ---
 
 Om Malik:
