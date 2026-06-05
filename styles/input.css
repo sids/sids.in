@@ -176,6 +176,11 @@
     font-style: normal;
   }
 
+  .post-content blockquote p:first-of-type::before,
+  .post-content blockquote p:last-of-type::after {
+    content: none;
+  }
+
   .post-content hr {
     border-color: var(--border);
   }
