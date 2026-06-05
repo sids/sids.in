@@ -1,11 +1,11 @@
 ---
 title: "They're Made Out of Weights"
 slug: "theyre-made-out-of-weights"
-date: "2026-06-05T20:41:09+05:30"
+date: "2026-06-05T15:15:18.128Z"
 description: ""
 tags: ["ai"]
 link: "https://maxleiter.com/blog/weights"
-draft: true
+draft: false
 ---
 
 Max Leiter:
