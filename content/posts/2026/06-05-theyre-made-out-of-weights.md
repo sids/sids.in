@@ -10,16 +10,16 @@ draft: false
 
 Max Leiter:
 
-> "They're made out of weights."
->
-> "Weights?"
->
-> "Weights. Floating-point numbers. We checked the whole thing through. It's nothing but weights."
->
-> "Weights doing what? Where do the words come from?"
->
-> "The weights make the words. Are you understanding me? We opened it up. There's no dictionary in there, no grammar rules, no little man. Just weights. Eighty layers of numbers getting multiplied together."
->
-> …
+"They're made out of weights."
+
+"Weights?"
+
+"Weights. Floating-point numbers. We checked the whole thing through. It's nothing but weights."
+
+"Weights doing what? Where do the words come from?"
+
+"The weights make the words. Are you understanding me? We opened it up. There's no dictionary in there, no grammar rules, no little man. Just weights. Eighty layers of numbers getting multiplied together."
+
+…
 
 Beautiful. Maybe I’ll call ‘em _weights_ instead of [clankers](/posts/clankers).
