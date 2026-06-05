@@ -1,11 +1,11 @@
 ---
 title: "Why Japanese companies do so many different things"
 slug: "why-japanese-companies-do-so-many-different-things"
-date: "2026-06-04T15:40:21+05:30"
+date: "2026-06-05T05:07:56.480Z"
 description: ""
 tags: ["work-culture", "entrepreneurship"]
 link: "https://davidoks.blog/p/why-japanese-companies-do-so-many"
-draft: true
+draft: false
 ---
 
 David Oks:
