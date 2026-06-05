@@ -26,7 +26,7 @@ export function postTemplate(
     ? `<h1 class="post-title-font text-3xl md:text-4xl mb-2 text-primary"><span aria-hidden="true">↗ </span><a href="${escapeHtml(externalLink)}" target="_blank" rel="noopener noreferrer" class="text-primary">${titleInner}</a></h1>`
     : `<h1 class="post-title-font text-3xl md:text-4xl mb-2 text-primary">${titleInner}</h1>`;
   const rssSourceLink = externalLink
-    ? `<p class="rss-source-link"><a href="${escapeHtml(externalLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)} ↗</a></p>`
+    ? `<p class="rss-source-link">Link: <a href="${escapeHtml(externalLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(post.title)}</a></p>`
     : "";
 
   const linkEmbedMarkup = post.postType === "link" ? linkEmbedMarkupFromLink(externalLink, post.title) : "";

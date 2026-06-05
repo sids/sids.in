@@ -22,7 +22,7 @@ describe("postTemplate", () => {
     expect(html).toContain("<h1");
     expect(html).toContain('class="post-title-font text-3xl md:text-4xl mb-2 text-primary"');
     expect(html).toContain('<span aria-hidden="true">↗ </span><a href="https://example.com/article" target="_blank" rel="noopener noreferrer" class="text-primary">Deep Blue</a>');
-    expect(html).toContain('<p class="rss-source-link"><a href="https://example.com/article" target="_blank" rel="noopener noreferrer">Deep Blue ↗</a></p>');
+    expect(html).toContain('<p class="rss-source-link">Link: <a href="https://example.com/article" target="_blank" rel="noopener noreferrer">Deep Blue</a></p>');
     expect(html).not.toContain("Original link ↗");
     expect(html).toContain("<p>Body</p>");
   });
