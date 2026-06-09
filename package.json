@@ -11,6 +11,8 @@
     "dev": "concurrently \"bun run dev:css\" \"bun run dev:worker\"",
     "deploy": "bun run build && bunx wrangler deploy",
     "types": "bunx wrangler types",
+    "sync:bear": "bun run scripts/sync-bear-posts.ts",
+    "sync:bear:dry-run": "bun run scripts/sync-bear-posts.ts --dry-run",
     "test": "bun test",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.bun.json"
   },
