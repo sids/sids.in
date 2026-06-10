@@ -63,6 +63,7 @@ const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run");
 const fromFiles = args.has("--from-files");
 const fromBear = args.has("--from-bear");
+const overwriteBearContent = args.has("--overwrite-bear-content");
 
 if (fromFiles && fromBear) {
   throw new Error("Use only one of --from-files or --from-bear.");
@@ -80,12 +81,18 @@ function ensureTrailingNewline(value: string): string {
   return value.endsWith("\n") ? value : `${value}\n`;
 }
 
-function parsePostFrontmatter(content: string, source: string): PostFrontmatter | undefined {
+function parsePostFrontmatter(content: string, source: string, requireSlug = true): PostFrontmatter | undefined {
   try {
     const parsed = fm<PostFrontmatter>(content);
     const attributes = parsed.attributes;
-    if (!attributes.title || !attributes.slug || !attributes.date) {
+    if (!attributes.title || !attributes.date) {
       return undefined;
+    }
+    if (!attributes.slug) {
+      if (requireSlug) {
+        return undefined;
+      }
+      attributes.slug = slugify(attributes.title);
     }
     return attributes;
   } catch (error) {
@@ -100,6 +107,176 @@ function canonicalPostContent(content: string): string {
 
 function contentForBear(post: LocalPost): string {
   return addBearTitleHeading(canonicalPostContent(post.content), post.frontmatter.title);
+}
+
+function contentForBearPreservingBody(post: LocalPost, note: BearNote): string {
+  const mergedContent = replaceContentBody(canonicalPostContent(post.content), note.normalizedContent);
+  return addBearTitleHeading(mergedContent, post.frontmatter.title);
+}
+
+function contentForBearContent(content: string, title: string): string {
+  return addBearTitleHeading(canonicalPostContent(content), title);
+}
+
+function replaceContentBody(frontmatterSource: string, bodySource: string): string {
+  const frontmatterLines = frontmatterBlockLines(frontmatterSource);
+  if (!frontmatterLines) {
+    return canonicalPostContent(frontmatterSource);
+  }
+
+  return ensureTrailingNewline([...frontmatterLines, contentBodyWithSpacing(bodySource)].join("\n").trimEnd());
+}
+
+function frontmatterBlockLines(content: string): string[] | undefined {
+  const lines = canonicalPostContent(content).split("\n");
+  if (lines[0] !== "---") {
+    return undefined;
+  }
+
+  const frontmatterEnd = findFrontmatterEnd(lines);
+  if (frontmatterEnd === undefined) {
+    return undefined;
+  }
+
+  return lines.slice(0, frontmatterEnd + 1);
+}
+
+function contentBodyWithSpacing(content: string): string {
+  const lines = canonicalPostContent(content).split("\n");
+  if (lines[0] !== "---") {
+    return canonicalPostContent(content).trimEnd();
+  }
+
+  const frontmatterEnd = findFrontmatterEnd(lines);
+  if (frontmatterEnd === undefined) {
+    return canonicalPostContent(content).trimEnd();
+  }
+
+  return lines.slice(frontmatterEnd + 1).join("\n").trimEnd();
+}
+
+function contentBody(content: string): string {
+  return contentBodyWithSpacing(content).trim();
+}
+
+function bearBodyDiffersFromLocal(post: LocalPost, note: BearNote): boolean {
+  return contentBody(post.content) !== contentBody(note.normalizedContent);
+}
+
+function bearMetadataNeedsSync(post: LocalPost, note: BearNote): boolean {
+  return bearPresentationContent(note.content) !== contentForBearPreservingBody(post, note);
+}
+
+function slugify(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/['’]/g, "")
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-{2,}/g, "-") || "post";
+}
+
+function ensureFrontmatterSlug(content: string, slug: string): string {
+  const lines = content.split("\n");
+  if (lines[0] !== "---") {
+    return content;
+  }
+
+  const frontmatterEnd = findFrontmatterEnd(lines);
+  if (frontmatterEnd === undefined) {
+    return content;
+  }
+
+  for (let index = 1; index < frontmatterEnd; index += 1) {
+    if (/^slug:\s*/.test(lines[index] || "")) {
+      lines[index] = `slug: "${slug}"`;
+      return lines.join("\n");
+    }
+  }
+
+  const titleIndex = lines.findIndex((line, index) => index > 0 && index < frontmatterEnd && /^title:\s*/.test(line));
+  lines.splice(titleIndex === -1 ? frontmatterEnd : titleIndex + 1, 0, `slug: "${slug}"`);
+  return lines.join("\n");
+}
+
+function inferTitleFromBodyHeading(content: string): string | undefined {
+  const lines = content.split("\n");
+  if (lines[0] !== "---") {
+    return undefined;
+  }
+
+  const frontmatterEnd = findFrontmatterEnd(lines);
+  if (frontmatterEnd === undefined) {
+    return undefined;
+  }
+
+  let headingIndex = frontmatterEnd + 1;
+  while (lines[headingIndex]?.trim() === "") {
+    headingIndex += 1;
+  }
+
+  const heading = lines[headingIndex]?.match(/^#\s+(.+)$/);
+  return heading?.[1]?.trim() || undefined;
+}
+
+function ensureFrontmatterTitle(content: string, title: string): string {
+  const lines = content.split("\n");
+  if (lines[0] !== "---") {
+    return content;
+  }
+
+  const frontmatterEnd = findFrontmatterEnd(lines);
+  if (frontmatterEnd === undefined) {
+    return content;
+  }
+
+  for (let index = 1; index < frontmatterEnd; index += 1) {
+    if (/^title:\s*/.test(lines[index] || "")) {
+      lines[index] = `title: ${JSON.stringify(title)}`;
+      return lines.join("\n");
+    }
+  }
+
+  lines.splice(1, 0, `title: ${JSON.stringify(title)}`);
+  return lines.join("\n");
+}
+
+function ensureFrontmatterBlock(content: string, fallbackTitle: string): string {
+  const lines = content.split("\n");
+  if (lines[0] === "---" && findFrontmatterEnd(lines) !== undefined) {
+    return content;
+  }
+
+  const title = inferTitleFromLeadingHeading(content) || fallbackTitle || "Untitled";
+  const slug = slugify(title);
+  const date = new Date().toISOString().slice(0, 10);
+  const body = content.trimStart();
+
+  return ensureTrailingNewline(
+    [
+      "---",
+      `title: ${JSON.stringify(title)}`,
+      `slug: ${JSON.stringify(slug)}`,
+      `date: ${JSON.stringify(date)}`,
+      `description: ""`,
+      `tags: []`,
+      `draft: true`,
+      "---",
+      "",
+      body,
+    ]
+      .join("\n")
+      .trimEnd()
+  );
+}
+
+function inferTitleFromLeadingHeading(content: string): string | undefined {
+  const line = content.trimStart().split("\n")[0] || "";
+  const heading = line.match(/^#\s+(.+)$/);
+  return heading?.[1]?.trim() || undefined;
 }
 
 function bearPresentationContent(content: string): string {
@@ -359,7 +536,15 @@ function readBearNoteById(id: string): BearNote | undefined {
 
 function normalizeBearNote(note: RawBearNote): BearNote {
   const content = normalizeLineEndings(note.content || "");
-  const normalizedContent = canonicalPostContent(content);
+  const contentWithoutManagedTags = stripManagedBearTagLines(content);
+  const contentWithFrontmatter = ensureFrontmatterBlock(contentWithoutManagedTags, note.title);
+  const inferredTitle = inferTitleFromBodyHeading(contentWithFrontmatter);
+  const contentWithTitle = inferredTitle ? ensureFrontmatterTitle(contentWithFrontmatter, inferredTitle) : contentWithFrontmatter;
+  const rawNormalizedContent = canonicalPostContent(contentWithTitle);
+  const frontmatter = parsePostFrontmatter(rawNormalizedContent, `Bear note ${note.id}`, false);
+  const normalizedContent = frontmatter
+    ? canonicalPostContent(ensureFrontmatterSlug(rawNormalizedContent, frontmatter.slug))
+    : rawNormalizedContent;
   return {
     id: note.id,
     title: note.title,
@@ -369,7 +554,7 @@ function normalizeBearNote(note: RawBearNote): BearNote {
     content,
     normalizedContent,
     normalizedHash: sha256(normalizedContent),
-    frontmatter: parsePostFrontmatter(normalizedContent, `Bear note ${note.id}`),
+    frontmatter: frontmatter ? { ...frontmatter, slug: frontmatter.slug } : undefined,
   };
 }
 
@@ -435,11 +620,19 @@ function planActions(localPosts: LocalPost[], bearNotes: BearNote[], state: Sync
 
     const fileChanged = fromFiles || post.hash !== effectiveEntry.lastFileHash;
     const bearChanged = fromBear || note.normalizedHash !== effectiveEntry.lastBearHash;
-    const bearPresentationChanged = bearContentNeedsSync(post, note);
+    const bearBodyChanged = bearBodyDiffersFromLocal(post, note);
+    const bearPresentationChanged = overwriteBearContent
+      ? bearContentNeedsSync(post, note)
+      : bearMetadataNeedsSync(post, note);
     const tagChanged = tagsNeedSync(note, desiredBearTags(post.path, post.frontmatter));
 
     if (fileChanged && bearChanged && !fromFiles && !fromBear) {
       actions.push({ type: "conflict", post, note, reason: "Both local file and Bear note changed" });
+    } else if (fileChanged && bearBodyChanged && !overwriteBearContent && !bearPresentationChanged) {
+      actions.push({
+        type: "skip",
+        reason: `Local body differs from Bear for ${post.path}; re-run with --overwrite-bear-content to replace Bear content`,
+      });
     } else if (fileChanged && !bearChanged) {
       actions.push({ type: "update-bear", post, note, entry: effectiveEntry });
     } else if (bearPresentationChanged && !bearChanged) {
@@ -503,7 +696,7 @@ function pathForNewBearNote(note: BearNote): string {
     throw new Error(`Bear note ${note.id} has invalid date: ${String(frontmatter.date)}`);
   }
 
-  const isArticle = note.tags.includes(ARTICLE_META_TAG);
+  const isArticle = note.tags.map(normalizeBearTag).includes(ARTICLE_META_TAG);
   if (isArticle) {
     return `content/posts/articles/${dateParts.year}-${dateParts.month}-${frontmatter.slug}.md`;
   }
@@ -571,14 +764,15 @@ async function applyAction(action: Action, state: SyncState): Promise<void> {
       break;
     }
     case "update-bear": {
-      const content = contentForBear(action.post);
+      const content = overwriteBearContent ? contentForBear(action.post) : contentForBearPreservingBody(action.post, action.note);
+      const writtenHash = sha256(canonicalPostContent(content));
       runBearCli(["overwrite", action.note.id, "--base", action.note.hash, "--force"], content);
       syncBearTags(action.note.id, [], desiredBearTags(action.post.path, action.post.frontmatter));
       state[action.post.path] = {
         bearId: action.note.id,
         slug: action.post.frontmatter.slug,
-        lastFileHash: action.post.hash,
-        lastBearHash: action.post.hash,
+        lastFileHash: writtenHash === action.post.hash ? action.post.hash : action.entry.lastFileHash,
+        lastBearHash: writtenHash,
       };
       break;
     }
@@ -586,9 +780,13 @@ async function applyAction(action: Action, state: SyncState): Promise<void> {
       const content = ensureTrailingNewline(action.note.normalizedContent.trimEnd());
       const absolutePath = join(ROOT, action.post.path);
       await writeFile(absolutePath, content);
+      runBearCli(
+        ["overwrite", action.note.id, "--base", action.note.hash, "--force"],
+        contentForBearContent(content, action.note.frontmatter?.title || action.post.frontmatter.title)
+      );
       syncBearTags(
         action.note.id,
-        action.note.tags,
+        [],
         desiredBearTags(action.post.path, action.note.frontmatter || action.post.frontmatter)
       );
       state[action.post.path] = {
@@ -604,7 +802,11 @@ async function applyAction(action: Action, state: SyncState): Promise<void> {
       const absolutePath = join(ROOT, action.path);
       await mkdir(dirname(absolutePath), { recursive: true });
       await writeFile(absolutePath, content, { flag: "wx" });
-      syncBearTags(action.note.id, action.note.tags, desiredBearTags(action.path, action.note.frontmatter!));
+      runBearCli(
+        ["overwrite", action.note.id, "--base", action.note.hash, "--force"],
+        contentForBearContent(content, action.note.frontmatter!.title)
+      );
+      syncBearTags(action.note.id, [], desiredBearTags(action.path, action.note.frontmatter!));
       state[action.path] = {
         bearId: action.note.id,
         slug: action.note.frontmatter?.slug || "",

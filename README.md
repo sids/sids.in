@@ -112,6 +112,12 @@ Apply the sync:
 bun run sync:bear
 ```
 
+By default, the script will not replace the body/content portion of an existing Bear note from local files. It may still update Bear metadata such as YAML frontmatter, the Bear-only Markdown title, and managed tags. To explicitly allow local files to overwrite Bear note bodies, pass:
+
+```sh
+bun run sync:bear -- --overwrite-bear-content
+```
+
 The sync script:
 
 - matches local posts to Bear notes using `.bear-posts-sync.json`
@@ -133,6 +139,8 @@ New Bear-created notes should contain normal post frontmatter. Path routing is:
 
 - `#sids.in/~article` → `content/posts/articles/YYYY-MM-slug.md`
 - otherwise → `content/posts/YYYY/MM-DD-slug.md`
+
+If a Bear-created note has no YAML frontmatter, the sync creates frontmatter with `draft: true`, today’s date, empty tags/description, and a title from the leading Markdown `# Title` or Bear’s note title. If a note has frontmatter but a missing or empty `title`, and has a Markdown `# Title` in the body, the sync copies that heading into frontmatter. If `slug` is missing or empty, the sync derives one from `title`. Repaired frontmatter is written back to both the Bear note and the local Markdown file.
 
 Bear inserts tag lines into note content. The sync script treats managed `#sids.in...` tag lines as Bear metadata: it ignores them for change detection and strips them before writing Bear content back to local Markdown.
 
