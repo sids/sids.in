@@ -1,11 +1,11 @@
 ---
 title: "Ask for No, Don't Ask for Yes"
 slug: "ask-for-no-dont-ask-for-yes"
-date: "2026-06-30T10:30:02+05:30"
+date: "2026-06-30T05:07:21.432Z"
 description: ""
 tags: ["productivity", "work-culture"]
 link: "https://www.mooreds.com/wordpress/archives/3518"
-draft: true
+draft: false
 ---
 
 Dan Moore:
