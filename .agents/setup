@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_root"
+
+echo "Setting up sids.in for Amp..."
+
+if ! command -v bun >/dev/null 2>&1; then
+  echo "Installing Bun..."
+  curl -fsSL https://bun.sh/install | bash
+
+  bun_bin="$HOME/.bun/bin"
+  export PATH="$bun_bin:$PATH"
+
+  profile_marker="# sids.in Bun path"
+  if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile" 2>/dev/null; then
+    cat >> "$HOME/.bash_profile" <<'EOF'
+
+# sids.in Bun path
+if [ -d "$HOME/.bun/bin" ]; then
+  export PATH="$HOME/.bun/bin:$PATH"
+fi
+EOF
+  fi
+fi
+
+echo "Installing dependencies from bun.lock..."
+bun install --frozen-lockfile
+
+echo "Generating the content manifest and compiled assets..."
+bun run build
+
+echo "Orb setup complete."
