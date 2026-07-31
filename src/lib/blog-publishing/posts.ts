@@ -1,5 +1,5 @@
-import { normalizeTags } from "./tags.ts";
-import { normalizeHttpUrl } from "./urls.ts";
+import { normalizeTags } from "../tags.ts";
+import { normalizeHttpUrl } from "../urls.ts";
 
 export type PostKind = "note" | "link" | "article";
 
@@ -10,7 +10,6 @@ export interface PostDraftInput {
   tags?: unknown;
   content: string;
   link?: string;
-  draft?: boolean;
 }
 
 export interface PreparedPost {
@@ -91,7 +90,6 @@ export function preparePostDraft(
   const description = typeof input.description === "string" ? input.description.trim() : "";
   const tags = normalizeTags(input.tags);
   const content = typeof input.content === "string" ? input.content : "";
-  const draft = input.draft ?? true;
   const path = buildPostPath(input.kind, date, slug);
   const markdown = buildPostMarkdown({
     title,
@@ -100,7 +98,6 @@ export function preparePostDraft(
     description,
     tags,
     link,
-    draft,
     content,
   });
 
@@ -158,7 +155,6 @@ function buildPostMarkdown(input: {
   description: string;
   tags: string[];
   link?: string;
-  draft: boolean;
   content: string;
 }): string {
   const tagsLine = `tags: [${input.tags.map(yamlQuotedString).join(", ")}]\n`;
@@ -171,7 +167,7 @@ function buildPostMarkdown(input: {
     `description: ${yamlQuotedString(input.description)}\n` +
     tagsLine +
     linkLine +
-    `draft: ${input.draft}\n` +
+    "draft: true\n" +
     "---\n\n" +
     (input.content.endsWith("\n") ? input.content : `${input.content}\n`);
 }

@@ -182,8 +182,8 @@ describe("GitHubPostRepository", () => {
       });
     }) as typeof fetch);
 
-    await repo.publishDraft("content/posts/2026/01-01-draft.md", {
-      publishedAt: "2026-07-23T18:00:00.000+05:30",
+    await repo.changePostStatus("content/posts/2026/01-01-draft.md", false, {
+      now: new Date("2026-07-23T12:30:00.000Z"),
     });
 
     expect(requests.map((request) => request.method)).toEqual(["GET", "PUT"]);
@@ -201,13 +201,13 @@ describe("GitHubPostRepository", () => {
       return Response.json({ content: { path: "content/posts/2026/07-23-post.md", sha: "new-sha" }, commit: { sha: "commit-sha" } });
     }) as typeof fetch);
 
-    await repo.setDraftState("content/posts/2026/07-23-post.md", true);
+    await repo.changePostStatus("content/posts/2026/07-23-post.md", true);
 
     expect(atob(String(requests[1]?.body?.content))).toContain("draft: true");
     expect(requests[1]?.body?.sha).toBe("old-sha");
   });
 
-  it("selectively edits title, tags, and content without changing the slug or path", async () => {
+  it("selectively edits fields and preserves Markdown whitespace", async () => {
     const raw = "---\ntitle: \"Old title\"\nslug: \"stable-slug\"\ndate: \"2026-07-23\"\ntags: [\"old\"]\ndraft: true\n---\n\nOld body\n";
     const requests: Array<{ method: string; body?: Record<string, unknown> }> = [];
     const repo = repository((async (_input, init) => {
@@ -223,14 +223,14 @@ describe("GitHubPostRepository", () => {
     const result = await repo.editPost("content/posts/2026/07-23-stable-slug.md", {
       title: "New title",
       tags: ["AI", "Product Building", "ai"],
-      content: "New **Markdown** body",
+      content: "    indented code\n\n",
     });
 
     const markdown = atob(String(requests[1]?.body?.content));
     expect(markdown).toContain('title: "New title"');
     expect(markdown).toContain('slug: "stable-slug"');
     expect(markdown).toContain('tags: ["ai", "product-building"]');
-    expect(markdown).toEndWith("\n\nNew **Markdown** body\n");
+    expect(markdown).toEndWith("\n\n    indented code\n\n");
     expect(result.slug).toBe("stable-slug");
     expect(result.path).toBe("content/posts/2026/07-23-stable-slug.md");
   });
@@ -288,44 +288,4 @@ describe("GitHubPostRepository", () => {
     expect(requests.at(-1)).toMatchObject({ method: "PATCH" });
   });
 
-  it("applies the list limit before reading post contents", async () => {
-    let requestCount = 0;
-    const paths = Array.from({ length: 61 }, (_, index) =>
-      `content/posts/2026/07-${String(31 - (index % 28)).padStart(2, "0")}-post-${index}.md`
-    );
-    const repo = repository((async (input) => {
-      requestCount++;
-      const url = String(input);
-      if (url.includes("/git/trees/")) {
-        return Response.json({ tree: paths.map((path) => ({ path, type: "blob" })), truncated: false });
-      }
-      const path = decodeURIComponent(url.split("/contents/")[1]!.split("?", 1)[0]!);
-      const slug = path.replace(/^.*\d{2}-\d{2}-/, "").replace(/\.md$/, "");
-      const raw = `---\ntitle: "${slug}"\nslug: "${slug}"\ndate: "2026-07-01"\ntags: []\ndraft: false\n---\n\nBody\n`;
-      return Response.json({ content: btoa(raw), sha: "sha" });
-    }) as typeof fetch);
-
-    const posts = await repo.listPosts({ limit: 25 });
-
-    expect(posts).toHaveLength(25);
-    expect(requestCount).toBe(26);
-  });
-
-  it("caps filtered list scans below the Worker subrequest limit", async () => {
-    let requestCount = 0;
-    const paths = Array.from({ length: 61 }, (_, index) => `content/posts/2026/07-01-post-${index}.md`);
-    const repo = repository((async (input) => {
-      requestCount++;
-      if (String(input).includes("/git/trees/")) {
-        return Response.json({ tree: paths.map((path) => ({ path, type: "blob" })), truncated: false });
-      }
-      return Response.json({
-        content: btoa('---\ntitle: "Post"\nslug: "post"\ndate: "2026-07-01"\ntags: []\ndraft: false\n---\n\nBody\n'),
-        sha: "sha",
-      });
-    }) as typeof fetch);
-
-    expect(await repo.listPosts({ draft: true, limit: 40 })).toEqual([]);
-    expect(requestCount).toBe(41);
-  });
 });

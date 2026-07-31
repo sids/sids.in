@@ -7,7 +7,7 @@ import {
   type PostDraftInput,
   type PreparedPost,
 } from "./posts.ts";
-import { normalizeTags } from "./tags.ts";
+import { normalizeTags } from "../tags.ts";
 
 export interface GitHubRepositoryConfig {
   owner: string;
@@ -29,7 +29,7 @@ export interface CreateDraftResult {
   commitUrl?: string;
 }
 
-export interface PublishDraftResult {
+export interface ChangePostStatusResult {
   path: string;
   date: string;
   contentSha?: string;
@@ -43,17 +43,6 @@ export interface EditPostResult {
   contentSha?: string;
   commitSha?: string;
   commitUrl?: string;
-}
-
-export interface RepositoryPost {
-  path: string;
-  slug: string;
-  kind: "note" | "link" | "article";
-  title: string;
-  date?: string;
-  tags: string[];
-  draft: boolean;
-  link?: string;
 }
 
 export type GitHubRepositoryErrorCode =
@@ -184,93 +173,11 @@ export class GitHubPostRepository {
     }
   }
 
-  async publishDraft(
-    path: string,
-    options: { publishedAt?: string; message?: string } = {},
-  ): Promise<PublishDraftResult> {
-    const apiUrl = this.contentsUrl(path);
-    const readResponse = await this.fetcher(`${apiUrl}?ref=${encodeURIComponent(this.branch)}`, {
-      headers: this.headers(),
-    });
-    if (!readResponse.ok) {
-      const details = await readResponse.text();
-      console.error("GitHub draft read failed", {
-        status: readResponse.status,
-        path,
-        response: details,
-      });
-      throw new GitHubRepositoryError(
-        "Draft post not found",
-        readResponse.status === 404 ? "not_found" : "github_error",
-        readResponse.status,
-      );
-    }
-
-    const file = await readResponse.json() as { content: string; sha: string };
-    const publishedAt = options.publishedAt ?? formatIstDateTime();
-    const next = publishDraftMarkdown(base64DecodeUtf8(file.content), publishedAt);
-    if (!next) {
-      throw new GitHubRepositoryError("Draft flag not found", "not_a_draft");
-    }
-
-    const updateResponse = await this.fetcher(apiUrl, {
-      method: "PUT",
-      headers: this.headers(),
-      body: JSON.stringify({
-        message: options.message ?? `Publish post: ${slugFromPath(path)}`,
-        content: base64EncodeUtf8(next),
-        sha: file.sha,
-        branch: this.branch,
-        committer: this.committer,
-      }),
-    });
-    if (!updateResponse.ok) {
-      const details = await updateResponse.text();
-      console.error("GitHub draft publish failed", {
-        status: updateResponse.status,
-        path,
-        response: details,
-      });
-      throw new GitHubRepositoryError("Failed to publish draft", "github_error", updateResponse.status);
-    }
-
-    const result = await updateResponse.json() as {
-      content?: { path?: string; sha?: string };
-      commit?: { sha?: string; html_url?: string };
-    };
-    return {
-      path: result.content?.path || path,
-      date: publishedAt,
-      contentSha: result.content?.sha,
-      commitSha: result.commit?.sha,
-      commitUrl: result.commit?.html_url,
-    };
-  }
-
-  async listPosts(options: { draft?: boolean; kind?: RepositoryPost["kind"]; limit?: number } = {}): Promise<RepositoryPost[]> {
-    const limit = Math.max(1, Math.min(options.limit ?? 25, 40));
-    const paths = (await this.listPostPaths())
-      .filter((path) => options.kind === "article" ? path.startsWith("content/posts/articles/") : true)
-      .filter((path) => options.kind === "note" || options.kind === "link" ? !path.startsWith("content/posts/articles/") : true)
-      .sort((a, b) => postPathSortKey(b).localeCompare(postPathSortKey(a)));
-    const posts: RepositoryPost[] = [];
-    const maxReads = Math.min(paths.length, 40);
-    for (const path of paths.slice(0, maxReads)) {
-      const post = await this.readPost(path);
-      if (!post) continue;
-      if (options.draft !== undefined && post.draft !== options.draft) continue;
-      if (options.kind && post.kind !== options.kind) continue;
-      posts.push(post);
-      if (posts.length === limit) break;
-    }
-    return posts;
-  }
-
-  async setDraftState(
+  async changePostStatus(
     slugOrPath: string,
     draft: boolean,
     options: { now?: Date; message?: string } = {},
-  ): Promise<PublishDraftResult> {
+  ): Promise<ChangePostStatusResult> {
     const path = slugOrPath.includes("/")
       ? validatePostPath(slugOrPath)
       : await this.findPostPathBySlug(slugOrPath);
@@ -278,46 +185,27 @@ export class GitHubPostRepository {
       throw new GitHubRepositoryError("Post not found", "not_found", 404);
     }
 
-    const apiUrl = this.contentsUrl(path);
-    const response = await this.fetcher(`${apiUrl}?ref=${encodeURIComponent(this.branch)}`, {
-      headers: this.headers(),
-    });
-    if (!response.ok) {
-      throw new GitHubRepositoryError("Post not found", response.status === 404 ? "not_found" : "github_error", response.status);
-    }
-    const file = await response.json() as { content: string; sha: string };
-    const raw = base64DecodeUtf8(file.content);
-    const current = /^draft:\s*(true|false)\s*$/m.exec(raw)?.[1] === "true";
+    const file = await this.readPostFile(path);
+    const draftMatch = /^draft:\s*(true|false)\s*$/m.exec(file.raw);
+    if (!draftMatch) throw new GitHubRepositoryError("Draft flag not found", "not_a_draft");
+    const current = draftMatch[1] === "true";
     if (current === draft) {
-      return { path, date: extractFrontmatterScalar(raw, "date") ?? "" };
+      return { path, date: extractFrontmatterScalar(file.raw, "date") ?? "" };
     }
 
-    let next = raw.replace(/^draft:\s*(true|false)\s*$/m, `draft: ${draft}`);
-    if (next === raw) {
-      throw new GitHubRepositoryError("Draft flag not found", "not_a_draft");
-    }
     const date = draft
-      ? extractFrontmatterScalar(raw, "date") ?? ""
+      ? extractFrontmatterScalar(file.raw, "date") ?? ""
       : formatIstDateTime(options.now);
-    if (!draft) {
-      next = next.replace(/^date:\s*.*$/m, `date: ${JSON.stringify(date)}`);
-    }
-
-    const update = await this.fetcher(apiUrl, {
-      method: "PUT",
-      headers: this.headers(),
-      body: JSON.stringify({
-        message: options.message ?? `${draft ? "Mark as draft" : "Publish post"}: ${slugFromPath(path)}`,
-        content: base64EncodeUtf8(next),
-        sha: file.sha,
-        branch: this.branch,
-        committer: this.committer,
-      }),
-    });
-    if (!update.ok) {
-      throw new GitHubRepositoryError("Failed to update post", "github_error", update.status);
-    }
-    const result = await update.json() as GitHubCreateFileResponse;
+    const next = draft
+      ? file.raw.replace(/^draft:\s*false\s*$/m, "draft: true")
+      : publishDraftMarkdown(file.raw, date)!;
+    const slug = extractFrontmatterScalar(file.raw, "slug") ?? postSlugFromPath(path)!;
+    const result = await this.updatePostFile(
+      path,
+      file.sha,
+      next,
+      options.message ?? `${draft ? "Mark as draft" : "Publish post"}: ${slug}`,
+    );
     return {
       path: result.content?.path || path,
       date,
@@ -345,13 +233,8 @@ export class GitHubPostRepository {
       : await this.findPostPathBySlug(slugOrPath);
     if (!path) throw new GitHubRepositoryError("Post not found", "not_found", 404);
 
-    const apiUrl = this.contentsUrl(path);
-    const response = await this.fetcher(`${apiUrl}?ref=${encodeURIComponent(this.branch)}`, { headers: this.headers() });
-    if (!response.ok) {
-      throw new GitHubRepositoryError("Post not found", response.status === 404 ? "not_found" : "github_error", response.status);
-    }
-    const file = await response.json() as { content: string; sha: string };
-    let next = base64DecodeUtf8(file.content);
+    const file = await this.readPostFile(path);
+    let next = file.raw;
 
     if (hasTitle) {
       const title = changes.title!.trim();
@@ -384,19 +267,8 @@ export class GitHubPostRepository {
     if (nextPath !== path) {
       return this.commitRenamedPost(path, nextPath, slug, next, options.message);
     }
-    const update = await this.fetcher(apiUrl, {
-      method: "PUT",
-      headers: this.headers(),
-      body: JSON.stringify({
-        message: options.message ?? `Edit post: ${slug}`,
-        content: base64EncodeUtf8(next),
-        sha: file.sha,
-        branch: this.branch,
-        committer: this.committer,
-      }),
-    });
-    if (!update.ok) throw new GitHubRepositoryError("Failed to edit post", "github_error", update.status);
-    const result = await update.json() as GitHubCreateFileResponse;
+    if (next === file.raw) return { path, slug };
+    const result = await this.updatePostFile(path, file.sha, next, options.message ?? `Edit post: ${slug}`);
     return {
       path: result.content?.path || path,
       slug,
@@ -409,6 +281,45 @@ export class GitHubPostRepository {
   private contentsUrl(path: string): string {
     const encodedPath = path.split("/").map(encodeURIComponent).join("/");
     return `https://api.github.com/repos/${encodeURIComponent(this.config.owner)}/${encodeURIComponent(this.config.repo)}/contents/${encodedPath}`;
+  }
+
+  private async readPostFile(path: string): Promise<{ raw: string; sha: string }> {
+    const response = await this.fetcher(
+      `${this.contentsUrl(path)}?ref=${encodeURIComponent(this.branch)}`,
+      { headers: this.headers() },
+    );
+    if (!response.ok) {
+      throw new GitHubRepositoryError(
+        "Post not found",
+        response.status === 404 ? "not_found" : "github_error",
+        response.status,
+      );
+    }
+    const file = await response.json() as { content: string; sha: string };
+    return { raw: base64DecodeUtf8(file.content), sha: file.sha };
+  }
+
+  private async updatePostFile(
+    path: string,
+    sha: string,
+    markdown: string,
+    message: string,
+  ): Promise<GitHubCreateFileResponse> {
+    const response = await this.fetcher(this.contentsUrl(path), {
+      method: "PUT",
+      headers: this.headers(),
+      body: JSON.stringify({
+        message,
+        content: base64EncodeUtf8(markdown),
+        sha,
+        branch: this.branch,
+        committer: this.committer,
+      }),
+    });
+    if (!response.ok) {
+      throw new GitHubRepositoryError("Failed to update post", "github_error", response.status);
+    }
+    return response.json() as Promise<GitHubCreateFileResponse>;
   }
 
   private async findPostPathBySlug(slug: string): Promise<string | null> {
@@ -447,28 +358,6 @@ export class GitHubPostRepository {
       .filter((entry) => entry.type === "blob" && typeof entry.path === "string")
       .map((entry) => entry.path!)
       .filter((path) => postSlugFromPath(path) !== null);
-  }
-
-  private async readPost(path: string): Promise<RepositoryPost | null> {
-    const response = await this.fetcher(`${this.contentsUrl(path)}?ref=${encodeURIComponent(this.branch)}`, { headers: this.headers() });
-    if (!response.ok) return null;
-    const file = await response.json() as { content?: string };
-    if (!file.content) return null;
-    const raw = base64DecodeUtf8(file.content);
-    const slug = extractFrontmatterScalar(raw, "slug") ?? postSlugFromPath(path);
-    const title = extractFrontmatterScalar(raw, "title");
-    if (!slug || !title) return null;
-    const link = extractFrontmatterScalar(raw, "link") ?? undefined;
-    return {
-      path,
-      slug,
-      title,
-      kind: path.startsWith("content/posts/articles/") ? "article" : link ? "link" : "note",
-      date: extractFrontmatterScalar(raw, "date") ?? undefined,
-      tags: extractFrontmatterArray(raw, "tags"),
-      draft: /^draft:\s*true\s*$/m.test(raw),
-      ...(link ? { link } : {}),
-    };
   }
 
   private async readMatchingDraft(prepared: PreparedPost): Promise<CreateDraftResult | null> {
@@ -654,10 +543,6 @@ type GitHubCreateFileResponse = {
   commit?: { sha?: string; html_url?: string };
 };
 
-function slugFromPath(path: string): string {
-  return path.split("/").at(-1)?.replace(/^\d{2}-\d{2}-/, "").replace(/\.md$/, "") || "draft";
-}
-
 function postSlugFromPath(path: string): string | null {
   const note = /^content\/posts\/\d{4}\/\d{2}-\d{2}-(.+)\.md$/.exec(path);
   if (note?.[1]) {
@@ -665,13 +550,6 @@ function postSlugFromPath(path: string): string | null {
   }
   const article = /^content\/posts\/articles\/\d{4}-\d{2}-(.+)\.md$/.exec(path);
   return article?.[1] ?? null;
-}
-
-function postPathSortKey(path: string): string {
-  const note = /^content\/posts\/(\d{4})\/(\d{2})-(\d{2})-/.exec(path);
-  if (note) return `${note[1]}-${note[2]}-${note[3]}`;
-  const article = /^content\/posts\/articles\/(\d{4})-(\d{2})-/.exec(path);
-  return article ? `${article[1]}-${article[2]}-00` : "";
 }
 
 function validatePostPath(path: string): string {
@@ -700,17 +578,6 @@ function extractFrontmatterScalar(raw: string, key: string): string | null {
   }
 }
 
-function extractFrontmatterArray(raw: string, key: string): string[] {
-  const value = extractFrontmatterScalar(raw, key);
-  if (!value) return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
-  } catch {
-    return value.replace(/^\[|\]$/g, "").split(",").map((item) => item.trim().replace(/^['\"]|['\"]$/g, "")).filter(Boolean);
-  }
-}
-
 function replaceFrontmatterField(raw: string, key: string, value: string): string {
   const frontmatter = /^---\s*\n([\s\S]*?)\n---/.exec(raw);
   if (!frontmatter?.[1]) throw new GitHubRepositoryError("Post frontmatter not found", "github_error");
@@ -725,7 +592,7 @@ function replaceFrontmatterField(raw: string, key: string, value: string): strin
 function replaceMarkdownBody(raw: string, content: string): string {
   const frontmatter = /^---\s*\n[\s\S]*?\n---/.exec(raw);
   if (!frontmatter) throw new GitHubRepositoryError("Post frontmatter not found", "github_error");
-  return `${frontmatter[0]}\n\n${content.replace(/^\n+|\n+$/g, "")}\n`;
+  return `${frontmatter[0]}\n\n${content}${content.endsWith("\n") ? "" : "\n"}`;
 }
 
 function base64DecodeUtf8(value: string): string {

@@ -52,16 +52,15 @@ describe("post draft preparation", () => {
     expect(prepared.markdown).toContain("draft: true");
   });
 
-  it("creates articles in the article directory and can publish immediately", () => {
+  it("creates articles in the article directory as drafts", () => {
     const prepared = preparePostDraft({
       kind: "article",
       title: "A Longer Essay",
       content: "Body",
-      draft: false,
     }, { now });
 
     expect(prepared.path).toBe("content/posts/articles/2026-07-a-longer-essay.md");
-    expect(prepared.markdown).toContain("draft: false");
+    expect(prepared.markdown).toContain("draft: true");
   });
 
   it("quotes multiline YAML values without permitting frontmatter injection", () => {

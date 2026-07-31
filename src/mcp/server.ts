@@ -1,9 +1,12 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import { createMcpHandler, getMcpAuthContext } from "agents/mcp/server";
 import { z } from "zod";
-import { allTags } from "../manifest.ts";
+import { allTags, postMetaBySlug } from "../manifest.ts";
+import { getPostDateTimestamp } from "../lib/post-date.ts";
 import type { Env } from "../types.ts";
-import { GitHubPostRepository, GitHubRepositoryError, PublishingValidationError } from "../../packages/blog-publishing/src/index.ts";
+import { GitHubPostRepository, GitHubRepositoryError } from "../lib/blog-publishing/github.ts";
+import { PublishingValidationError } from "../lib/blog-publishing/posts.ts";
+import { MCP_ROUTE, type BlogScope } from "./config.ts";
 
 const SERVER_INSTRUCTIONS = `Use this server to administer posts on sids.in.
 
@@ -32,11 +35,25 @@ function createServer(env: Env) {
   }, async () => requireScope("blog:read", async () => ({ tags: allTags })));
 
   server.registerTool("list_posts", {
-    description: "List blog posts from the source repository, optionally filtered by draft state or kind.",
-    inputSchema: { draft: z.boolean().optional(), kind: z.enum(["link", "note", "article"]).optional(), limit: z.number().int().min(1).max(40).default(25) },
+    description: "List posts in the current blog deployment, optionally filtered by draft state or kind.",
+    inputSchema: { draft: z.boolean().optional(), kind: z.enum(["link", "note", "article"]).optional(), limit: z.number().int().min(1).max(100).default(25) },
     annotations: { readOnlyHint: true },
   }, async ({ draft, kind, limit }) => requireScope("blog:read", async () => {
-    const posts = await repository(env).listPosts({ draft, kind, limit });
+    const posts = Object.values(postMetaBySlug)
+      .filter((post) => draft === undefined || Boolean(post.draft) === draft)
+      .filter((post) => !kind || post.postType === kind)
+      .sort((a, b) => getPostDateTimestamp(b.date) - getPostDateTimestamp(a.date))
+      .slice(0, limit)
+      .map((post) => ({
+        path: post.sourcePath,
+        slug: post.slug,
+        kind: post.postType,
+        title: post.title,
+        date: post.date,
+        tags: post.tags,
+        draft: Boolean(post.draft),
+        ...(post.link ? { link: post.link } : {}),
+      }));
     return { posts };
   }));
 
@@ -47,7 +64,7 @@ function createServer(env: Env) {
       tags: z.array(z.string()).optional(), content: z.string().default(""),
       link: z.url().optional().describe("Required for kind=link; omit for notes and articles."),
     }, annotations: { destructiveHint: false, idempotentHint: true },
-  }, async (input) => requireScope("blog:write", async () => repository(env).createDraft({ ...input, draft: true })));
+  }, async (input) => requireScope("blog:write", async () => repository(env).createDraft(input)));
 
   server.registerTool("change_post_status", {
     description: "Change an existing post to published or draft. Publishing updates its publication timestamp; moving to draft removes it from public post lists.",
@@ -58,7 +75,7 @@ function createServer(env: Env) {
     annotations: { destructiveHint: false, idempotentHint: true },
   }, async ({ slug_or_path, status }) => requireScope(
     "blog:write",
-    async () => repository(env).setDraftState(slug_or_path, status === "draft"),
+    async () => repository(env).changePostStatus(slug_or_path, status === "draft"),
   ));
 
   server.registerTool("edit_post", {
@@ -93,7 +110,7 @@ async function run(operation: () => Promise<unknown>) {
   }
 }
 
-function requireScope(scope: string, operation: () => Promise<unknown>) {
+function requireScope(scope: BlogScope, operation: () => Promise<unknown>) {
   const granted = getMcpAuthContext()?.props.scopes;
   if (!Array.isArray(granted) || !granted.includes(scope)) {
     return Promise.resolve({ ...result({ error: "insufficient_scope", message: `This tool requires ${scope}` }), isError: true });
@@ -103,15 +120,8 @@ function requireScope(scope: string, operation: () => Promise<unknown>) {
 
 export const mcpHandler = {
   fetch(request, env, ctx) {
-    const props = readOAuthProps(ctx);
     return createMcpHandler(() => createServer(env), {
-      route: "/admin/mcp",
-      authContext: { props },
+      route: MCP_ROUTE,
     })(request, env, ctx);
   },
 } satisfies Pick<Required<ExportedHandler<Env>>, "fetch">;
-
-function readOAuthProps(ctx: ExecutionContext): Record<string, unknown> {
-  const props = (ctx as ExecutionContext & { props?: unknown }).props;
-  return props !== null && typeof props === "object" ? props as Record<string, unknown> : {};
-}

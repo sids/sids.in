@@ -10,7 +10,11 @@ function context(scopes: string[] = []): ExecutionContext {
   } as unknown as ExecutionContext;
 }
 
-function toolRequest(path = "/admin/mcp"): Parameters<typeof mcpHandler.fetch>[0] {
+function toolRequest(
+  path = "/admin/mcp",
+  name = "list_tags",
+  args: Record<string, unknown> = {},
+): Parameters<typeof mcpHandler.fetch>[0] {
   return new Request(`https://sids.in${path}`, {
     method: "POST",
     headers: {
@@ -18,7 +22,7 @@ function toolRequest(path = "/admin/mcp"): Parameters<typeof mcpHandler.fetch>[0
       "Accept": "application/json, text/event-stream",
       "MCP-Protocol-Version": "2025-06-18",
     },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "list_tags", arguments: {} } }),
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }),
   }) as unknown as Parameters<typeof mcpHandler.fetch>[0];
 }
 
@@ -34,6 +38,18 @@ describe("blog MCP transport", () => {
   it("does not serve the SDK default /mcp route", async () => {
     const response = await mcpHandler.fetch(toolRequest("/mcp"), env, context(["blog:read"]));
     expect(response.status).toBe(404);
+  });
+
+  it("lists posts from the bundled manifest without GitHub credentials", async () => {
+    const response = await mcpHandler.fetch(
+      toolRequest("/admin/mcp", "list_posts", { limit: 2 }),
+      env,
+      context(["blog:read"]),
+    );
+    expect(response.status).toBe(200);
+    const body = await response.text();
+    expect(body).toContain('"posts"');
+    expect(body).not.toContain("configuration_error");
   });
 
   it("authorizes tools from OAuth scopes carried in provider props", async () => {

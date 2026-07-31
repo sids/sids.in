@@ -10,6 +10,10 @@ import { getPostDateTimestamp } from "../lib/post-date.ts";
 import { normalizeTags } from "../lib/tags.ts";
 import { fetchPublicHttpUrl, normalizeHttpUrl, UnsafeUrlError } from "../lib/urls.ts";
 import {
+  publishDraftMarkdown,
+  slugify,
+} from "../lib/blog-publishing/posts.ts";
+import {
   createSessionCookie,
   clearSessionCookie,
   generateStateToken,
@@ -38,6 +42,8 @@ type AdminContext = {
 };
 
 type AdminHandler = (context: AdminContext) => Promise<Response | null>;
+
+export { publishDraftMarkdown };
 
 const routes: AdminHandler[] = [
   handleLegacyRedirects,
@@ -868,40 +874,8 @@ async function handleNoteSubmission(request: Request, env: Env): Promise<Respons
   });
 }
 
-export function publishDraftMarkdown(raw: string, publishedAt: string): string | null {
-  const frontmatterMatch = raw.match(/^---\s*\n([\s\S]*?)\n---/);
-  if (!frontmatterMatch) {
-    return null;
-  }
-
-  const frontmatter = frontmatterMatch[1]!;
-  const draftUpdated = frontmatter.replace(/^draft:\s*true\s*$/m, "draft: false");
-  if (draftUpdated === frontmatter) {
-    return null;
-  }
-
-  const dateLine = `date: "${publishedAt}"`;
-  let nextFrontmatter: string;
-  if (/^date:\s*.*$/m.test(draftUpdated)) {
-    nextFrontmatter = draftUpdated.replace(/^date:\s*.*$/m, dateLine);
-  } else if (/^slug:\s*.*$/m.test(draftUpdated)) {
-    nextFrontmatter = draftUpdated.replace(/^slug:\s*.*$/m, (line) => `${line}\n${dateLine}`);
-  } else {
-    nextFrontmatter = `${dateLine}\n${draftUpdated}`;
-  }
-
-  return `---\n${nextFrontmatter}\n---${raw.slice(frontmatterMatch[0]!.length)}`;
-}
-
 function currentPostDateTime(): string {
   return new Date().toISOString();
-}
-
-function slugify(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 function buildPostPath(date: string, slug: string): string {

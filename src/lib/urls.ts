@@ -40,6 +40,9 @@ export async function isPublicHttpUrl(value: unknown, signal?: AbortSignal): Pro
 }
 
 export async function fetchPublicHttpUrl(input: string, init?: RequestInit, maxRedirects = 5): Promise<Response> {
+  // DNS validation rejects private targets before each hop. The connection-time
+  // boundary is enforced by global_fetch_strictly_public in every Worker that
+  // consumes this package, so a later DNS answer cannot route fetch() privately.
   let current = input;
 
   for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount++) {
@@ -123,7 +126,7 @@ async function resolveDnsRecords(hostname: string, type: "A" | "AAAA", signal?: 
     return [];
   }
 
-  const payload = await response.json<{ Answer?: Array<{ data?: string }> }>();
+  const payload = await response.json() as { Answer?: Array<{ data?: string }> };
   return (payload.Answer ?? [])
     .map((answer) => answer.data)
     .filter((data): data is string => typeof data === "string");
