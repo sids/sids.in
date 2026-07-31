@@ -94,6 +94,34 @@ which runs the build and then `bunx wrangler deploy`.
 
 The `/admin` section contains protected tools for authoring link posts and notes. Authentication uses Sign in with Apple, restricted by `ADMIN_EMAIL`, with signed-cookie sessions and no KV dependency.
 
+### MCP blog admin
+
+The remote MCP endpoint is `https://sids.in/admin/mcp`. It uses OAuth 2.1 with PKCE, Sign in with Apple for administrator authentication, an explicit client-consent screen, and separate `blog:read` and `blog:write` scopes.
+
+Available tools:
+
+- `list_tags`
+- `list_posts`
+- `create_draft_post` for draft links, notes, and articles
+- `edit_post` to selectively replace a post's title, slug, tags, or Markdown content
+- `change_post_status` to publish a draft or move a published post back to draft
+
+OAuth clients, grants, and tokens use the `OAUTH_KV` binding declared in `wrangler.jsonc`. Wrangler can provision this namespace during deployment. To bind an existing namespace instead, create one explicitly:
+
+```sh
+bunx wrangler kv namespace create OAUTH_KV
+```
+
+Then add the returned namespace ID to the existing binding in `wrangler.jsonc`:
+
+```jsonc
+"kv_namespaces": [
+  { "binding": "OAUTH_KV", "id": "<namespace-id>" }
+]
+```
+
+The MCP OAuth endpoints are `/admin/oauth/authorize`, `/admin/oauth/token`, and `/admin/oauth/register`.
+
 Standalone games live under `public/games/` and are served as static assets. Update `public/games/index.html` when adding or removing games.
 
 ## Bear post sync

@@ -7,6 +7,8 @@ import type { Env } from "../types.ts";
 const TEST_SECRET = "test-secret-key-32-chars-long!!!";
 
 const TEST_ENV: Env = {
+  OAUTH_KV: {} as KVNamespace,
+  OAUTH_PROVIDER: {} as Env["OAUTH_PROVIDER"],
   ASSETS: {} as Fetcher,
   GITHUB_TOKEN: "token",
   GITHUB_OWNER: "owner",

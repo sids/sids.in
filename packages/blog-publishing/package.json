@@ -1,0 +1,19 @@
+{
+  "name": "@sids/blog-publishing",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./tags": "./src/tags.ts",
+    "./urls": "./src/urls.ts"
+  },
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "front-matter": "^4.0.2",
+    "typescript": "^5"
+  }
+}

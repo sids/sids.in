@@ -55,4 +55,6 @@ export interface Env {
   SESSION_SECRET: string;
   // Authorization
   ADMIN_EMAIL: string;
+  OAUTH_KV: KVNamespace;
+  OAUTH_PROVIDER: import("@cloudflare/workers-oauth-provider").OAuthHelpers;
 }

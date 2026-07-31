@@ -30,8 +30,12 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@cloudflare/workers-oauth-provider": "^0.8.3",
+    "@modelcontextprotocol/server": "2.0.0",
+    "agents": "^0.20.1",
     "front-matter": "^4.0.2",
     "marked": "^17.0.1",
-    "marked-footnote": "^1.4.0"
+    "marked-footnote": "^1.4.0",
+    "zod": "^4.4.3"
   }
 }
