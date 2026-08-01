@@ -1,11 +1,11 @@
 ---
 title: "Pure and Impure Software Engineering"
 slug: "pure-and-impure-software-engineering"
-date: "2026-07-23T06:05:06+05:30"
+date: "2026-08-01T12:55:44.945Z"
 description: ""
 tags: ["programming", "work-culture"]
 link: "https://www.seangoedecke.com/pure-and-impure-engineering/"
-draft: true
+draft: false
 ---
 
 Sean Goedecke:
