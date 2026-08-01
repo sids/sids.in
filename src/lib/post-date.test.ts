@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from "vitest";
 import { extractFrontmatterDate, getPostDateTimestamp, normalizePostDateForParsing, resolveFrontmatterDate } from "./post-date.ts";
 import { formatPostDate } from "../templates/format-date.ts";
 

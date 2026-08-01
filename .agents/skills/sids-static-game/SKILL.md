@@ -24,7 +24,7 @@ Build games as standalone static pages under `public/games/`.
 
 ## Verification
 
-1. Run `bun run build` if shared site assets or generated files changed.
-2. Start the dev server with `bun run dev` when browser verification is needed.
+1. Run `pnpm run build` if shared site assets or generated files changed.
+2. Start the dev server with `pnpm run dev` when browser verification is needed.
 3. Open `/games/` and the changed game page in the browser.
 4. Verify the game renders, starts, responds to keyboard and pointer input, and remains usable on a mobile-sized viewport.

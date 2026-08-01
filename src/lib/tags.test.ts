@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import { normalizeTag, normalizeTags, tagHref } from "./tags.ts";
 
 describe("tag helpers", () => {

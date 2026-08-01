@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
@@ -52,7 +53,7 @@ type Action =
   | { type: "conflict"; post: LocalPost; note: BearNote; reason: string }
   | { type: "skip"; reason: string };
 
-const ROOT = join(import.meta.dir, "..");
+const ROOT = join(import.meta.dirname, "..");
 const POSTS_DIR = join(ROOT, "content", "posts");
 const STATE_FILE = join(ROOT, ".bear-posts-sync.json");
 const MANAGED_TAG_PREFIX = "sids.in";
@@ -473,16 +474,19 @@ async function saveState(state: SyncState): Promise<void> {
 }
 
 function runBearCli(args: string[], input?: string): string {
-  const result = Bun.spawnSync(["bearcli", ...args], {
+  const result = spawnSync("bearcli", args, {
     cwd: ROOT,
-    stdin: input ? new TextEncoder().encode(input) : undefined,
-    stdout: "pipe",
-    stderr: "pipe",
+    input,
+    encoding: "utf-8",
   });
 
-  const stdout = new TextDecoder().decode(result.stdout).trim();
-  const stderr = new TextDecoder().decode(result.stderr).trim();
-  if (result.exitCode !== 0) {
+  if (result.error) {
+    throw new Error(`bearcli ${args.join(" ")} failed: ${result.error.message}`);
+  }
+
+  const stdout = result.stdout.trim();
+  const stderr = result.stderr.trim();
+  if (result.status !== 0) {
     throw new Error(`bearcli ${args.join(" ")} failed: ${stderr || stdout}`);
   }
   return stdout;

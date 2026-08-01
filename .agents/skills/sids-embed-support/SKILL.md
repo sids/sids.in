@@ -28,5 +28,5 @@ Use this when changing how posts render embedded external media.
 ## Verification
 
 1. Add or update focused tests for the parser/template/CSP behavior.
-2. Run `bun test` and `bun run typecheck` when code changes are involved.
+2. Run `pnpm test` and `pnpm run typecheck` when code changes are involved.
 3. For Twitter/X embed behavior, do not stop at local tests. Commit and push after approval, monitor the Cloudflare deploy check, then verify the live page renders an actual embed iframe rather than only fallback text.

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from "vitest";
 import fm from "front-matter";
 import { publishDraftMarkdown, routeAdmin } from "./admin.ts";
 import { createSessionCookie, createStateCookie, generateStateToken, readStateCookie } from "../lib/session.ts";

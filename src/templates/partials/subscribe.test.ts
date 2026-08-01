@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from "vitest";
 import { newsletterSection, postSubscribePrompt } from "./subscribe.ts";
 
 describe("newsletter subscribe forms", () => {

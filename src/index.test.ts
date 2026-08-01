@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import { contentVersion } from "./manifest.ts";
 
 // Test the caching logic directly by re-implementing the core function

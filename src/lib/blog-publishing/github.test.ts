@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from "vitest";
 import { GitHubPostRepository, GitHubRepositoryError } from "./github.ts";
 import { preparePostDraft } from "./posts.ts";
 
@@ -124,7 +124,7 @@ describe("GitHubPostRepository", () => {
     const result = await repo.createDraft(prepared);
 
     expect(result.commitSha).toBe("commit-sha");
-    expect(result.commitUrl).toEndWith("/commit/commit-sha");
+    expect(result.commitUrl?.endsWith("/commit/commit-sha")).toBe(true);
     expect(requests).toHaveLength(3);
     expect(requests.some((url) => url.includes("/commits?"))).toBe(true);
   });
@@ -230,7 +230,7 @@ describe("GitHubPostRepository", () => {
     expect(markdown).toContain('title: "New title"');
     expect(markdown).toContain('slug: "stable-slug"');
     expect(markdown).toContain('tags: ["ai", "product-building"]');
-    expect(markdown).toEndWith("\n\n    indented code\n\n");
+    expect(markdown.endsWith("\n\n    indented code\n\n")).toBe(true);
     expect(result.slug).toBe("stable-slug");
     expect(result.path).toBe("content/posts/2026/07-23-stable-slug.md");
   });
@@ -249,7 +249,7 @@ describe("GitHubPostRepository", () => {
     const markdown = atob(String(updateBody?.content));
     expect(markdown).toContain('title: "Title"');
     expect(markdown).toContain("tags: []");
-    expect(markdown).toEndWith("\n\nOriginal body\n");
+    expect(markdown.endsWith("\n\nOriginal body\n")).toBe(true);
   });
 
   it("changes the slug and source path in one Git commit", async () => {

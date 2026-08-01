@@ -1,4 +1,4 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from "vitest";
 import fm from "front-matter";
 import {
   PublishingValidationError,
@@ -101,7 +101,7 @@ describe("post draft preparation", () => {
     }, { now });
 
     expect(prepared.content).toBe(content);
-    expect(prepared.markdown).toEndWith(`---\n\n${content}`);
+    expect(prepared.markdown.endsWith(`---\n\n${content}`)).toBe(true);
   });
 
   it("rejects missing titles, unusable slugs, and invalid link schemes", () => {

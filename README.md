@@ -30,20 +30,22 @@ Draft posts use `draft: true` frontmatter and are included in internal indexes b
 
 ## Common commands
 
+Requires Node.js 22.13.0 or newer.
+
 ```sh
-bun install
-bun run dev
-bun run build
-bun run deploy
+pnpm install
+pnpm run dev
+pnpm run build
+pnpm run deploy
 ```
 
 Other useful commands:
 
 ```sh
-bun run build:css       # Compile Tailwind CSS to public/css/styles.css
-bun run build:manifest  # Regenerate src/manifest.ts and public/sitemap.xml
-bun run typecheck
-bun test
+pnpm run build:css       # Compile Tailwind CSS to public/css/styles.css
+pnpm run build:manifest  # Regenerate src/manifest.ts and public/sitemap.xml
+pnpm run typecheck
+pnpm test
 ```
 
 ## Content and build flow
@@ -85,10 +87,10 @@ The site runs as a Cloudflare Worker configured in `wrangler.jsonc`:
 Deployment is:
 
 ```sh
-bun run deploy
+pnpm run deploy
 ```
 
-which runs the build and then `bunx wrangler deploy`.
+which runs the build and then deploys with Wrangler.
 
 ## Admin and authoring
 
@@ -109,7 +111,7 @@ Available tools:
 OAuth clients, grants, and tokens use the `OAUTH_KV` binding declared in `wrangler.jsonc`. Wrangler can provision this namespace during deployment. To bind an existing namespace instead, create one explicitly:
 
 ```sh
-bunx wrangler kv namespace create OAUTH_KV
+pnpm exec wrangler kv namespace create OAUTH_KV
 ```
 
 Then add the returned namespace ID to the existing binding in `wrangler.jsonc`:
@@ -131,19 +133,19 @@ Posts in `content/posts/**/*.md` can be synced two-way with Bear using `bearcli`
 Run a safe preview first:
 
 ```sh
-bun run sync:bear:dry-run
+pnpm run sync:bear:dry-run
 ```
 
 Apply the sync:
 
 ```sh
-bun run sync:bear
+pnpm run sync:bear
 ```
 
 By default, the script will not replace the body/content portion of an existing Bear note from local files. It may still update Bear metadata such as YAML frontmatter, the Bear-only Markdown title, and managed tags. To explicitly allow local files to overwrite Bear note bodies, pass:
 
 ```sh
-bun run sync:bear -- --overwrite-bear-content
+pnpm run sync:bear -- --overwrite-bear-content
 ```
 
 The sync script:

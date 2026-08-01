@@ -6,29 +6,25 @@ cd "$repo_root"
 
 echo "Setting up sids.in for Amp..."
 
-if ! command -v bun >/dev/null 2>&1; then
-  echo "Installing Bun..."
-  curl -fsSL https://bun.sh/install | bash
-
-  bun_bin="$HOME/.bun/bin"
-  export PATH="$bun_bin:$PATH"
-
-  profile_marker="# sids.in Bun path"
-  if ! grep -Fqx "$profile_marker" "$HOME/.bash_profile" 2>/dev/null; then
-    cat >> "$HOME/.bash_profile" <<'EOF'
-
-# sids.in Bun path
-if [ -d "$HOME/.bun/bin" ]; then
-  export PATH="$HOME/.bun/bin:$PATH"
-fi
-EOF
-  fi
+if ! command -v node >/dev/null 2>&1; then
+  echo "Node.js 22.13.0 or newer is required."
+  exit 1
 fi
 
-echo "Installing dependencies from bun.lock..."
-bun install --frozen-lockfile
+if ! node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major > 22 || (major === 22 && minor >= 13) ? 0 : 1)'; then
+  echo "Node.js 22.13.0 or newer is required (found $(node --version))."
+  exit 1
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "Installing pnpm..."
+  npm install --global "$(node -p 'require("./package.json").packageManager')"
+fi
+
+echo "Installing dependencies from pnpm-lock.yaml..."
+pnpm install --frozen-lockfile
 
 echo "Generating the content manifest and compiled assets..."
-bun run build
+pnpm run build
 
 echo "Orb setup complete."

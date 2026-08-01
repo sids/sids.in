@@ -21,9 +21,10 @@ interface PageFrontmatter {
   description?: string;
 }
 
-const CONTENT_DIR = join(import.meta.dir, "..", "content");
-const OUTPUT_FILE = join(import.meta.dir, "..", "src", "manifest.ts");
-const SITEMAP_FILE = join(import.meta.dir, "..", "public", "sitemap.xml");
+const ROOT = join(import.meta.dirname, "..");
+const CONTENT_DIR = join(ROOT, "content");
+const OUTPUT_FILE = join(ROOT, "src", "manifest.ts");
+const SITEMAP_FILE = join(ROOT, "public", "sitemap.xml");
 const SITE_URL = "https://sids.in";
 
 function getGitCommitHash(): string | null {

@@ -17,12 +17,12 @@ These classes are defined in `styles/input.css` and automatically adapt to light
 ## Commands
 
 ```bash
-bun install          # Install dependencies
-bun run dev          # Start dev server (CSS watch + Wrangler dev)
-bun run build        # Build CSS + generate manifest
-bun run deploy       # Build and deploy to Cloudflare
-bun run build:css    # Build Tailwind CSS only
-bun run build:manifest  # Regenerate content manifest only
+pnpm install          # Install dependencies
+pnpm run dev          # Start dev server (CSS watch + Wrangler dev)
+pnpm run build        # Build CSS + generate manifest
+pnpm run deploy       # Build and deploy to Cloudflare
+pnpm run build:css    # Build Tailwind CSS only
+pnpm run build:manifest  # Regenerate content manifest only
 ```
 
 ## Architecture
@@ -85,8 +85,8 @@ The worker detects `HX-Request` header and returns partial HTML (content only) i
 ## Adding Content
 
 1. Create markdown file in `content/pages/` or `content/posts/` with frontmatter
-2. Run `bun run build` to regenerate manifest
-3. Deploy with `bun run deploy`
+2. Run `pnpm run build` to regenerate manifest
+3. Deploy with `pnpm run deploy`
 
 Post frontmatter:
 ```yaml
@@ -105,4 +105,4 @@ draft: false
 - Tailwind v3 (v4 has Cloudflare compatibility issues)
 - Static assets (including `robots.txt` and `sitemap.xml`) served via Workers Static Assets binding (`env.ASSETS`)
 - CSS compiled to `public/css/styles.css` - don't edit directly
-- Run Wrangler via `bunx wrangler` (see scripts in `package.json`)
+- Run Wrangler via `pnpm exec wrangler` (see scripts in `package.json`)

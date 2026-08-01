@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, it, expect } from "vitest";
 import { linkLogTemplate } from "./link-log.ts";
 
 describe("linkLogTemplate", () => {
