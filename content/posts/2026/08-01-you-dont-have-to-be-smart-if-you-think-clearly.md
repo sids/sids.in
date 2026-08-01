@@ -1,11 +1,11 @@
 ---
 title: "You Don't Have to Be Smart If You Can Think Clearly"
 slug: "you-dont-have-to-be-smart-if-you-think-clearly"
-date: "2026-08-01T17:52:34+05:30"
+date: "2026-08-01T12:45:51.497Z"
 description: ""
 tags: ["programming", "excellence"]
 link: "https://seangoedecke.com/you-dont-have-to-be-smart-if-you-think-clearly/"
-draft: true
+draft: false
 ---
 
 Sean Goedecke:
