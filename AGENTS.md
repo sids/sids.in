@@ -33,13 +33,15 @@ pnpm run build:manifest  # Regenerate content manifest only
 3. Worker (`src/index.ts`) dispatches to route handlers for pages and admin tools
 4. `scripts/build-manifest.ts` also generates `public/sitemap.xml` during builds
 
-## Link Handling
+## Local Skills
 
-**Local skill triggers:**
-- If Sid shares a link by itself or with brief context and does not specify another task, use the local `blog-link-post` skill at `.agents/skills/blog-link-post/SKILL.md`.
-- If Sid asks to draft, post, or publish an original note that is not primarily an external link, use `.agents/skills/blog-note-post/SKILL.md`.
+**Triggers:**
+- After every `git push`, regardless of the type of change, invoke `.agents/skills/cloudflare-deployment-monitor/SKILL.md` to monitor and verify the commit-specific Cloudflare Worker build and deployment.
+- If Sid shares a link by itself or with brief context and does not specify another task, or asks to draft, post, or publish a link post, note, or article, use the local `blog-post` skill at `.agents/skills/blog-post/SKILL.md`.
 - If Sid asks to add or modify a standalone game under `/games/`, use `.agents/skills/sids-static-game/SKILL.md`.
 - If Sid asks to add, fix, or verify embedded external media, use `.agents/skills/sids-embed-support/SKILL.md`.
+
+## Link Handling
 
 **Post types:**
 - Posts under `content/posts/articles/` are treated as `postType: "article"`.
