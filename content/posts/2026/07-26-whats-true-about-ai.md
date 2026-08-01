@@ -1,11 +1,11 @@
 ---
 title: "What's True About AI"
 slug: "whats-true-about-ai"
-date: "2026-07-26T10:22:12+05:30"
+date: "2026-08-01T12:56:04.279Z"
 description: ""
 tags: ["ai", "agentic-engineering"]
 link: "https://cosmastech.com/2026/07/22/ai-truisms.html"
-draft: true
+draft: false
 ---
 
 Luke Kuzmish:
