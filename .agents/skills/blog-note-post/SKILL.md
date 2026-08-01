@@ -40,7 +40,7 @@ rg -No 'tags: \[.*?\]' content/posts/ --multiline | rg -o '"[^"]+"' | tr -d '"' 
 2. Give brief editorial feedback before drafting if there are obvious typos, repetition, or unclear phrasing.
 3. Write a draft markdown file under the current year directory.
 4. Run `bun run build:manifest` or `bun run build` if the manifest/sitemap needs to be updated in the working tree.
-5. Share the file path and concise draft summary for review.
+5. Share the file path, a concise draft summary, and **attach the Markdown file for Sid to review**. Do this every time you create or edit the file, not just the first draft.
 6. Commit and push only after Sid approves.
 
 ## Rules

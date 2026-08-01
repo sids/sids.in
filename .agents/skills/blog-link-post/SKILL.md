@@ -65,7 +65,7 @@ Multiple blockquotes are fine — separate them with blank lines. Long quotes ca
 5. Assemble the post file with `draft: true`
 6. Pick appropriate tags from the existing set
 7. **Write the file to disk** at `content/posts/YYYY/MM-DD-slug.md` with `draft: true`
-8. Share the file path and summarize the exact draft content so Sid can review it. Do this every time you create or edit the file, not just the first draft.
+8. Share the file path, summarize the exact draft content, and **attach the Markdown file for Sid to review**. Do this every time you create or edit the file, not just the first draft.
 9. Wait for Sid's approval or edits
 10. On approval: **keep `draft: true`** and commit and push from the repo root:
    ```bash
