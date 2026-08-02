@@ -38,6 +38,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .wrangler
 
 # Generated files
+.bear-posts-sync.json
 src/manifest.ts
 public/css/styles.css
 public/sitemap.xml
