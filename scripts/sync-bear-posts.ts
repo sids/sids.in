@@ -1,8 +1,9 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import { pathToFileURL } from "node:url";
 import fm from "front-matter";
 
 interface PostFrontmatter {
@@ -43,6 +44,12 @@ interface SyncEntry {
 
 type SyncState = Record<string, SyncEntry>;
 
+export interface PlanOptions {
+  fromFiles?: boolean;
+  fromBear?: boolean;
+  overwriteBearContent?: boolean;
+}
+
 type Action =
   | { type: "create-bear"; post: LocalPost }
   | { type: "update-bear"; post: LocalPost; note: BearNote; entry: SyncEntry }
@@ -56,15 +63,18 @@ type Action =
 const ROOT = join(import.meta.dirname, "..");
 const POSTS_DIR = join(ROOT, "content", "posts");
 const STATE_FILE = join(ROOT, ".bear-posts-sync.json");
+const PENDING_GIT_PATHS_FILE = join(ROOT, ".bear-posts-sync-pending.json");
 const MANAGED_TAG_PREFIX = "sids.in";
 const ARTICLE_META_TAG = `${MANAGED_TAG_PREFIX}/~article`;
 const DRAFT_META_TAG = `${MANAGED_TAG_PREFIX}/~draft`;
+const WIP_TAG = "wip";
 
 const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run");
 const fromFiles = args.has("--from-files");
 const fromBear = args.has("--from-bear");
 const overwriteBearContent = args.has("--overwrite-bear-content");
+const commitAndPush = args.has("--commit-and-push");
 
 if (fromFiles && fromBear) {
   throw new Error("Use only one of --from-files or --from-bear.");
@@ -418,6 +428,10 @@ function normalizeBearTag(tag: string): string {
   return tag.replace(/^#/, "").trim();
 }
 
+function hasBearTag(note: BearNote, tag: string): boolean {
+  return note.tags.map(normalizeBearTag).includes(tag);
+}
+
 function tagsNeedSync(note: BearNote, desiredTags: string[]): boolean {
   const current = new Set(note.tags.map(normalizeBearTag).filter((tag) => tag.startsWith(MANAGED_TAG_PREFIX)));
   const desired = new Set(desiredTags);
@@ -490,6 +504,24 @@ function runBearCli(args: string[], input?: string): string {
     throw new Error(`bearcli ${args.join(" ")} failed: ${stderr || stdout}`);
   }
   return stdout;
+}
+
+function runGit(args: string[]): string {
+  const result = spawnSync("git", args, {
+    cwd: ROOT,
+    encoding: "utf-8",
+  });
+
+  if (result.error) {
+    throw new Error(`git ${args.join(" ")} failed: ${result.error.message}`);
+  }
+
+  const stdout = result.stdout.trim();
+  const stderr = result.stderr.trim();
+  if (result.status !== 0) {
+    throw new Error(`git ${args.join(" ")} failed: ${stderr || stdout}`);
+  }
+  return stdout || stderr;
 }
 
 async function readBearNotes(): Promise<BearNote[]> {
@@ -574,7 +606,22 @@ function indexByUnique<T>(items: T[], keyFor: (item: T) => string | undefined): 
   return index;
 }
 
-function planActions(localPosts: LocalPost[], bearNotes: BearNote[], state: SyncState): Action[] {
+function bearToFileSkip(note: BearNote): Extract<Action, { type: "skip" }> | undefined {
+  if (!hasBearTag(note, WIP_TAG)) {
+    return undefined;
+  }
+  return { type: "skip", reason: `Bear note ${note.id} (${note.title}) is tagged #${WIP_TAG}` };
+}
+
+export function planActions(
+  localPosts: LocalPost[],
+  bearNotes: BearNote[],
+  state: SyncState,
+  options: PlanOptions = {}
+): Action[] {
+  const planFromFiles = options.fromFiles ?? false;
+  const planFromBear = options.fromBear ?? false;
+  const planOverwriteBearContent = options.overwriteBearContent ?? false;
   const actions: Action[] = [];
   const notesById = new Map(bearNotes.map((note) => [note.id, note]));
   const postsByPath = new Map(localPosts.map((post) => [post.path, post]));
@@ -622,17 +669,17 @@ function planActions(localPosts: LocalPost[], bearNotes: BearNote[], state: Sync
       lastBearHash: note.normalizedHash,
     };
 
-    const fileChanged = fromFiles || post.hash !== effectiveEntry.lastFileHash;
-    const bearChanged = fromBear || note.normalizedHash !== effectiveEntry.lastBearHash;
+    const fileChanged = planFromFiles || post.hash !== effectiveEntry.lastFileHash;
+    const bearChanged = planFromBear || note.normalizedHash !== effectiveEntry.lastBearHash;
     const bearBodyChanged = bearBodyDiffersFromLocal(post, note);
-    const bearPresentationChanged = overwriteBearContent
+    const bearPresentationChanged = planOverwriteBearContent
       ? bearContentNeedsSync(post, note)
       : bearMetadataNeedsSync(post, note);
     const tagChanged = tagsNeedSync(note, desiredBearTags(post.path, post.frontmatter));
 
-    if (fileChanged && bearChanged && !fromFiles && !fromBear) {
+    if (fileChanged && bearChanged && !planFromFiles && !planFromBear) {
       actions.push({ type: "conflict", post, note, reason: "Both local file and Bear note changed" });
-    } else if (fileChanged && bearBodyChanged && !overwriteBearContent && !bearPresentationChanged) {
+    } else if (fileChanged && bearBodyChanged && !planOverwriteBearContent && !bearPresentationChanged) {
       actions.push({
         type: "skip",
         reason: `Local body differs from Bear for ${post.path}; re-run with --overwrite-bear-content to replace Bear content`,
@@ -642,11 +689,11 @@ function planActions(localPosts: LocalPost[], bearNotes: BearNote[], state: Sync
     } else if (bearPresentationChanged && !bearChanged) {
       actions.push({ type: "update-bear", post, note, entry: effectiveEntry });
     } else if (bearChanged && !fileChanged) {
-      actions.push({ type: "update-file", post, note, entry: effectiveEntry });
-    } else if (fromFiles) {
+      actions.push(bearToFileSkip(note) ?? { type: "update-file", post, note, entry: effectiveEntry });
+    } else if (planFromFiles) {
       actions.push({ type: "update-bear", post, note, entry: effectiveEntry });
-    } else if (fromBear) {
-      actions.push({ type: "update-file", post, note, entry: effectiveEntry });
+    } else if (planFromBear) {
+      actions.push(bearToFileSkip(note) ?? { type: "update-file", post, note, entry: effectiveEntry });
     } else {
       state[post.path] = {
         bearId: note.id,
@@ -672,6 +719,11 @@ function planActions(localPosts: LocalPost[], bearNotes: BearNote[], state: Sync
 
   for (const note of bearNotes) {
     if (matchedNoteIds.has(note.id)) {
+      continue;
+    }
+    const wipSkip = bearToFileSkip(note);
+    if (wipSkip) {
+      actions.push(wipSkip);
       continue;
     }
     if (!note.frontmatter) {
@@ -834,6 +886,79 @@ async function applyAction(action: Action, state: SyncState): Promise<void> {
   }
 }
 
+type GitRunner = (args: string[]) => string;
+
+interface GitPublication {
+  commitOutput?: string;
+  pushOutput?: string;
+}
+
+export interface PendingGitPathsStore {
+  load: () => Promise<string[]>;
+  save: (paths: string[]) => Promise<void>;
+}
+
+const pendingGitPathsStore: PendingGitPathsStore = {
+  async load(): Promise<string[]> {
+    if (!existsSync(PENDING_GIT_PATHS_FILE)) {
+      return [];
+    }
+
+    const paths: unknown = JSON.parse(await readFile(PENDING_GIT_PATHS_FILE, "utf-8"));
+    if (!Array.isArray(paths) || !paths.every((path): path is string => typeof path === "string")) {
+      throw new Error(`${PENDING_GIT_PATHS_FILE} must contain an array of file paths.`);
+    }
+    return paths;
+  },
+  async save(paths: string[]): Promise<void> {
+    if (paths.length === 0) {
+      await rm(PENDING_GIT_PATHS_FILE, { force: true });
+      return;
+    }
+    await writeFile(PENDING_GIT_PATHS_FILE, `${JSON.stringify(paths, null, 2)}\n`);
+  },
+};
+
+export function commitAndPushFiles(paths: string[], git: GitRunner = runGit): GitPublication {
+  const uniquePaths = [...new Set(paths)].sort();
+  let commitOutput: string | undefined;
+
+  if (uniquePaths.length > 0 && git(["status", "--porcelain", "--", ...uniquePaths])) {
+    git(["add", "--", ...uniquePaths]);
+    commitOutput = git([
+      "commit",
+      "--only",
+      "-m",
+      "chore: sync posts from Bear",
+      "--",
+      ...uniquePaths,
+    ]);
+  }
+
+  const ahead = Number.parseInt(git(["rev-list", "--count", "@{upstream}..HEAD"]), 10);
+  if (Number.isNaN(ahead)) {
+    throw new Error("Could not determine whether the current branch is ahead of its upstream.");
+  }
+
+  const pushOutput = ahead > 0 ? git(["push"]) : undefined;
+  return { commitOutput, pushOutput };
+}
+
+export async function publishPendingGitFiles(
+  paths: string[],
+  store: PendingGitPathsStore = pendingGitPathsStore,
+  git: GitRunner = runGit
+): Promise<GitPublication> {
+  const pendingPaths = [...new Set([...(await store.load()), ...paths])].sort();
+  if (pendingPaths.length > 0) {
+    await store.save(pendingPaths);
+  }
+
+  const publication = commitAndPushFiles(pendingPaths, git);
+  await store.save([]);
+  return publication;
+}
+
 function describeAction(action: Action): string {
   switch (action.type) {
     case "create-bear":
@@ -859,7 +984,7 @@ async function main(): Promise<void> {
   const localPosts = await readLocalPosts();
   const bearNotes = await readBearNotes();
   const state = await loadState();
-  const actions = planActions(localPosts, bearNotes, state);
+  const actions = planActions(localPosts, bearNotes, state, { fromFiles, fromBear, overwriteBearContent });
   const actionable = actions.filter((action) => action.type !== "skip" && action.type !== "conflict");
 
   console.log(`${dryRun ? "Dry run:" : "Sync:"} ${localPosts.length} local posts, ${bearNotes.length} Bear notes.`);
@@ -876,14 +1001,31 @@ async function main(): Promise<void> {
     return;
   }
 
+  const changedFilePaths: string[] = [];
   for (const action of actions) {
     await applyAction(action, state);
+    if (action.type === "update-file") {
+      changedFilePaths.push(action.post.path);
+    } else if (action.type === "create-file") {
+      changedFilePaths.push(action.path);
+    }
   }
   await saveState(state);
+  if (commitAndPush) {
+    const publication = await publishPendingGitFiles(changedFilePaths);
+    if (publication.commitOutput) {
+      console.log(publication.commitOutput);
+    }
+    if (publication.pushOutput) {
+      console.log(publication.pushOutput);
+    }
+  }
   console.log(`Applied ${actionable.length} action(s).`);
 }
 
-main().catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
+}

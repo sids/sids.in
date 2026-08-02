@@ -148,15 +148,25 @@ By default, the script will not replace the body/content portion of an existing 
 pnpm run sync:bear -- --overwrite-bear-content
 ```
 
+For an automated run, explicitly enable committing and pushing files created or updated from Bear:
+
+```sh
+pnpm run sync:bear -- --commit-and-push
+```
+
+This mode retains Bear-produced file paths until publication succeeds, retrying failed commits and pending pushes on later runs.
+
 The sync script:
 
 - matches local posts to Bear notes using `.bear-posts-sync.json`
 - creates missing Bear notes from local posts
 - creates local Markdown files from new Bear notes tagged under `#sids.in`
 - updates the side that changed when only one side changed
+- skips syncing Bear notes tagged `#wip` from Bear to local files
 - reports and skips conflicts when both sides changed
 - archives Bear notes when their local post was deleted
 - keeps Bear tags in sync from frontmatter tags as nested tags under `#sids.in`
+- with `--commit-and-push`, commits and pushes files created or updated from Bear using `chore: sync posts from Bear`
 
 Managed Bear tags:
 

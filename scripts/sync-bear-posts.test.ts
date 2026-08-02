@@ -1,0 +1,244 @@
+import { describe, expect, it } from "vitest";
+import { commitAndPushFiles, planActions, publishPendingGitFiles } from "./sync-bear-posts.ts";
+import type { PendingGitPathsStore } from "./sync-bear-posts.ts";
+
+type LocalPost = Parameters<typeof planActions>[0][number];
+type BearNote = Parameters<typeof planActions>[1][number];
+type SyncState = Parameters<typeof planActions>[2];
+
+const frontmatter = {
+  title: "Test post",
+  slug: "test-post",
+  date: "2026-06-07",
+  tags: [],
+  draft: false,
+};
+
+const localContent = `---
+title: "Test post"
+slug: "test-post"
+date: "2026-06-07"
+tags: []
+draft: false
+---
+
+Body
+`;
+
+const bearContent = `---
+title: "Test post"
+slug: "test-post"
+date: "2026-06-07"
+tags: []
+draft: false
+---
+
+# Test post
+
+Body
+`;
+
+function makePost(overrides: Partial<LocalPost> = {}): LocalPost {
+  return {
+    path: "content/posts/2026/06-07-test-post.md",
+    content: localContent,
+    hash: "local-hash",
+    frontmatter,
+    ...overrides,
+  };
+}
+
+function makeNote(overrides: Partial<BearNote> = {}): BearNote {
+  return {
+    id: "bear-id",
+    title: "Test post",
+    tags: ["sids.in"],
+    hash: "bear-cli-hash",
+    content: bearContent,
+    normalizedContent: localContent,
+    normalizedHash: "bear-hash",
+    frontmatter,
+    ...overrides,
+  };
+}
+
+function makeState(overrides: Partial<SyncState[string]> = {}): SyncState {
+  return {
+    "content/posts/2026/06-07-test-post.md": {
+      bearId: "bear-id",
+      slug: "test-post",
+      lastFileHash: "local-hash",
+      lastBearHash: "bear-hash",
+      ...overrides,
+    },
+  };
+}
+
+describe("Bear #wip imports", () => {
+  it("does not create a local file for a new #wip note", () => {
+    const actions = planActions(
+      [],
+      [makeNote({ tags: ["sids.in", "wip"], frontmatter: { ...frontmatter, date: "invalid" } })],
+      {}
+    );
+
+    expect(actions).toEqual([
+      {
+        type: "skip",
+        reason: "Bear note bear-id (Test post) is tagged #wip",
+      },
+    ]);
+  });
+
+  it("does not update a local file from an existing #wip note", () => {
+    const actions = planActions(
+      [makePost()],
+      [makeNote({ tags: ["sids.in", "#wip"], normalizedHash: "changed-bear-hash" })],
+      makeState({ lastBearHash: "old-bear-hash" })
+    );
+
+    expect(actions).toEqual([
+      {
+        type: "skip",
+        reason: "Bear note bear-id (Test post) is tagged #wip",
+      },
+    ]);
+  });
+
+  it("still updates a #wip Bear note from a changed local file", () => {
+    const post = makePost({ hash: "changed-local-hash" });
+    const note = makeNote({ tags: ["sids.in", "wip"] });
+    const actions = planActions([post], [note], makeState({ lastFileHash: "old-local-hash" }));
+
+    expect(actions).toEqual([
+      {
+        type: "update-bear",
+        post,
+        note,
+        entry: makeState({ lastFileHash: "old-local-hash" })[post.path],
+      },
+    ]);
+  });
+
+  it("does not force a #wip note into a local file with --from-bear", () => {
+    const actions = planActions(
+      [makePost({ hash: "changed-local-hash" })],
+      [makeNote({ tags: ["sids.in", "wip"], normalizedHash: "changed-bear-hash" })],
+      makeState(),
+      { fromBear: true }
+    );
+
+    expect(actions).toEqual([
+      {
+        type: "skip",
+        reason: "Bear note bear-id (Test post) is tagged #wip",
+      },
+    ]);
+  });
+});
+
+function makePendingGitPathsStore() {
+  let pendingPaths: string[] = [];
+  const store: PendingGitPathsStore = {
+    async load() {
+      return pendingPaths;
+    },
+    async save(paths) {
+      pendingPaths = paths;
+    },
+  };
+  return { store, pendingPaths: () => pendingPaths };
+}
+
+describe("Git publication", () => {
+  it("commits only Bear-produced files and pushes when the branch is ahead", () => {
+    const calls: string[][] = [];
+    const git = (args: string[]): string => {
+      calls.push(args);
+      if (args[0] === "status") return " M content/posts/from-bear.md";
+      if (args[0] === "commit") return "committed";
+      if (args[0] === "rev-list") return "1";
+      if (args[0] === "push") return "pushed";
+      return "";
+    };
+
+    const result = commitAndPushFiles(["content/posts/from-bear.md"], git);
+
+    expect(result).toEqual({ commitOutput: "committed", pushOutput: "pushed" });
+    expect(calls).toContainEqual(["add", "--", "content/posts/from-bear.md"]);
+    expect(calls).toContainEqual([
+      "commit",
+      "--only",
+      "-m",
+      "chore: sync posts from Bear",
+      "--",
+      "content/posts/from-bear.md",
+    ]);
+    expect(calls.flat()).not.toContain("content/posts/unrelated.md");
+  });
+
+  it("retains Bear-produced paths and retries a failed commit", async () => {
+    const pending = makePendingGitPathsStore();
+    let commitAttempts = 0;
+    const git = (args: string[]): string => {
+      if (args[0] === "status") return "M  content/posts/from-bear.md";
+      if (args[0] === "commit") {
+        commitAttempts += 1;
+        if (commitAttempts === 1) throw new Error("commit failed");
+        return "committed";
+      }
+      if (args[0] === "rev-list") return "1";
+      if (args[0] === "push") return "pushed";
+      return "";
+    };
+
+    await expect(
+      publishPendingGitFiles(["content/posts/from-bear.md"], pending.store, git)
+    ).rejects.toThrow("commit failed");
+    expect(pending.pendingPaths()).toEqual(["content/posts/from-bear.md"]);
+
+    await expect(publishPendingGitFiles([], pending.store, git)).resolves.toEqual({
+      commitOutput: "committed",
+      pushOutput: "pushed",
+    });
+    expect(pending.pendingPaths()).toEqual([]);
+    expect(commitAttempts).toBe(2);
+  });
+
+  it("retains Bear-produced paths and retries a failed push", async () => {
+    const pending = makePendingGitPathsStore();
+    let statusChecks = 0;
+    let pushAttempts = 0;
+    let commits = 0;
+    const git = (args: string[]): string => {
+      if (args[0] === "status") {
+        statusChecks += 1;
+        return statusChecks === 1 ? "M  content/posts/from-bear.md" : "";
+      }
+      if (args[0] === "commit") {
+        commits += 1;
+        return "committed";
+      }
+      if (args[0] === "rev-list") return "1";
+      if (args[0] === "push") {
+        pushAttempts += 1;
+        if (pushAttempts === 1) throw new Error("push failed");
+        return "pushed";
+      }
+      return "";
+    };
+
+    await expect(
+      publishPendingGitFiles(["content/posts/from-bear.md"], pending.store, git)
+    ).rejects.toThrow("push failed");
+    expect(pending.pendingPaths()).toEqual(["content/posts/from-bear.md"]);
+
+    await expect(publishPendingGitFiles([], pending.store, git)).resolves.toEqual({
+      commitOutput: undefined,
+      pushOutput: "pushed",
+    });
+    expect(pending.pendingPaths()).toEqual([]);
+    expect(commits).toBe(1);
+    expect(pushAttempts).toBe(2);
+  });
+});

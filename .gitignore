@@ -39,6 +39,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Generated files
 .bear-posts-sync.json
+.bear-posts-sync-pending.json
 src/manifest.ts
 public/css/styles.css
 public/sitemap.xml
