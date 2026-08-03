@@ -524,51 +524,69 @@ function runGit(args: string[]): string {
   return stdout || stderr;
 }
 
-async function readBearNotes(): Promise<BearNote[]> {
-  const state = await loadState();
+type BearCliRunner = (args: string[], input?: string) => string;
+type SyncStateLoader = () => Promise<SyncState>;
+
+export async function readBearNotes(
+  bearCli: BearCliRunner = runBearCli,
+  stateLoader: SyncStateLoader = loadState
+): Promise<BearNote[]> {
+  const state = await stateLoader();
   const notesById = new Map<string, BearNote>();
   for (const entry of Object.values(state)) {
-    const note = readBearNoteById(entry.bearId);
+    const note = readBearNoteById(entry.bearId, bearCli);
     if (note) {
       notesById.set(note.id, note);
     }
   }
 
-  const output = runBearCli([
+  const output = bearCli([
     "list",
     "--tag",
     MANAGED_TAG_PREFIX,
     "--format",
     "json",
     "--fields",
-    "id,title,tags,hash,location,content",
+    "id,title,tags,location",
   ]);
-  const rawNotes = JSON.parse(output || "[]") as RawBearNote[];
+  const rawNotes = JSON.parse(output || "[]") as RawBearNoteMetadata[];
 
-  for (const note of rawNotes.map(normalizeBearNote)) {
+  for (const rawNote of rawNotes) {
+    const note = readBearNote(rawNote, bearCli);
     notesById.set(note.id, note);
   }
 
   return [...notesById.values()];
 }
 
-interface RawBearNote {
+interface RawBearNoteMetadata {
   id: string;
   title: string;
   tags?: string[];
-  hash: string;
   location?: string;
-  content?: string;
 }
 
-function readBearNoteById(id: string): BearNote | undefined {
+interface RawBearNoteContent {
+  hash: string;
+  content: string;
+}
+
+function readBearNote(metadata: RawBearNoteMetadata, bearCli: BearCliRunner): BearNote {
+  const output = bearCli(["cat", metadata.id, "--format", "json"]);
+  const noteContent = JSON.parse(output) as RawBearNoteContent;
+  return normalizeBearNote({ ...metadata, ...noteContent });
+}
+
+function readBearNoteById(id: string, bearCli: BearCliRunner): BearNote | undefined {
   try {
-    const output = runBearCli(["show", id, "--format", "json", "--fields", "id,title,tags,hash,location,content"]);
-    return normalizeBearNote(JSON.parse(output) as RawBearNote);
+    const output = bearCli(["show", id, "--format", "json", "--fields", "id,title,tags,location"]);
+    return readBearNote(JSON.parse(output) as RawBearNoteMetadata, bearCli);
   } catch {
     return undefined;
   }
 }
+
+interface RawBearNote extends RawBearNoteMetadata, RawBearNoteContent {}
 
 function normalizeBearNote(note: RawBearNote): BearNote {
   const content = normalizeLineEndings(note.content || "");
@@ -806,9 +824,9 @@ async function applyAction(action: Action, state: SyncState): Promise<void> {
         "--format",
         "json",
         "--fields",
-        "id,hash",
+        "id",
       ]);
-      const created = JSON.parse(createOutput) as { id: string; hash: string };
+      const created = JSON.parse(createOutput) as { id: string };
       runBearCli(["overwrite", created.id, "--force"], content);
       syncBearTags(created.id, [], desiredBearTags(action.post.path, action.post.frontmatter));
       state[action.post.path] = {

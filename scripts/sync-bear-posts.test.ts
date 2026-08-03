@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { commitAndPushFiles, planActions, publishPendingGitFiles } from "./sync-bear-posts.ts";
+import { commitAndPushFiles, planActions, publishPendingGitFiles, readBearNotes } from "./sync-bear-posts.ts";
 import type { PendingGitPathsStore } from "./sync-bear-posts.ts";
 
 type LocalPost = Parameters<typeof planActions>[0][number];
@@ -73,6 +73,48 @@ function makeState(overrides: Partial<SyncState[string]> = {}): SyncState {
     },
   };
 }
+
+describe("Bear CLI reads", () => {
+  it("gets metadata from list and content hashes from cat", async () => {
+    const calls: string[][] = [];
+    const bearCli = (args: string[]): string => {
+      calls.push(args);
+      if (args[0] === "list") {
+        return JSON.stringify([
+          { id: "bear-id", title: "Test post", tags: ["#sids.in"], location: "notes" },
+        ]);
+      }
+      if (args[0] === "cat") {
+        return JSON.stringify({ content: bearContent, hash: "bear-cli-hash" });
+      }
+      throw new Error(`Unexpected bearcli command: ${args.join(" ")}`);
+    };
+
+    const notes = await readBearNotes(bearCli, async () => ({}));
+
+    expect(calls).toEqual([
+      [
+        "list",
+        "--tag",
+        "sids.in",
+        "--format",
+        "json",
+        "--fields",
+        "id,title,tags,location",
+      ],
+      ["cat", "bear-id", "--format", "json"],
+    ]);
+    expect(notes).toHaveLength(1);
+    expect(notes[0]).toMatchObject({
+      id: "bear-id",
+      title: "Test post",
+      tags: ["#sids.in"],
+      location: "notes",
+      content: bearContent,
+      hash: "bear-cli-hash",
+    });
+  });
+});
 
 describe("Bear #wip imports", () => {
   it("does not create a local file for a new #wip note", () => {
