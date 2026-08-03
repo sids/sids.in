@@ -1,11 +1,11 @@
 ---
 title: "In Defense of Not Understanding Your Codebase"
 slug: "in-defense-of-not-understanding-your-codebase"
-date: "2026-08-03T09:43:33+05:30"
+date: "2026-08-03T04:20:28.621Z"
 description: ""
 tags: ["programming", "work-culture"]
 link: "https://www.seangoedecke.com/in-defense-of-not-understanding-your-codebase/"
-draft: true
+draft: false
 ---
 
 Sean Goedecke:
