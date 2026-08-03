@@ -937,6 +937,22 @@ const pendingGitPathsStore: PendingGitPathsStore = {
   },
 };
 
+function pushHeadToUpstream(git: GitRunner): string {
+  const branch = git(["branch", "--show-current"]);
+  if (!branch) {
+    throw new Error("Cannot push Bear sync changes from a detached HEAD.");
+  }
+
+  const remote = git(["config", "--get", `branch.${branch}.remote`]);
+  const mergeRef = git(["config", "--get", `branch.${branch}.merge`]);
+  const headsPrefix = "refs/heads/";
+  if (!remote || !mergeRef.startsWith(headsPrefix)) {
+    throw new Error(`Could not determine the upstream destination for branch ${branch}.`);
+  }
+
+  return git(["push", remote, `HEAD:${mergeRef.slice(headsPrefix.length)}`]);
+}
+
 export function commitAndPushFiles(paths: string[], git: GitRunner = runGit): GitPublication {
   const uniquePaths = [...new Set(paths)].sort();
   let commitOutput: string | undefined;
@@ -958,7 +974,7 @@ export function commitAndPushFiles(paths: string[], git: GitRunner = runGit): Gi
     throw new Error("Could not determine whether the current branch is ahead of its upstream.");
   }
 
-  const pushOutput = ahead > 0 ? git(["push"]) : undefined;
+  const pushOutput = ahead > 0 ? pushHeadToUpstream(git) : undefined;
   return { commitOutput, pushOutput };
 }
 

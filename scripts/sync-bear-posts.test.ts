@@ -192,11 +192,20 @@ function makePendingGitPathsStore() {
   return { store, pendingPaths: () => pendingPaths };
 }
 
+function gitUpstreamOutput(args: string[]): string | undefined {
+  if (args[0] === "branch") return "bear-sync";
+  if (args[0] === "config" && args[2]?.endsWith(".remote")) return "origin";
+  if (args[0] === "config" && args[2]?.endsWith(".merge")) return "refs/heads/main";
+  return undefined;
+}
+
 describe("Git publication", () => {
-  it("commits only Bear-produced files and pushes when the branch is ahead", () => {
+  it("commits only Bear-produced files and pushes HEAD to the tracked upstream branch", () => {
     const calls: string[][] = [];
     const git = (args: string[]): string => {
       calls.push(args);
+      const upstreamOutput = gitUpstreamOutput(args);
+      if (upstreamOutput !== undefined) return upstreamOutput;
       if (args[0] === "status") return " M content/posts/from-bear.md";
       if (args[0] === "commit") return "committed";
       if (args[0] === "rev-list") return "1";
@@ -208,6 +217,7 @@ describe("Git publication", () => {
 
     expect(result).toEqual({ commitOutput: "committed", pushOutput: "pushed" });
     expect(calls).toContainEqual(["add", "--", "content/posts/from-bear.md"]);
+    expect(calls).toContainEqual(["push", "origin", "HEAD:main"]);
     expect(calls).toContainEqual([
       "commit",
       "--only",
@@ -223,6 +233,8 @@ describe("Git publication", () => {
     const pending = makePendingGitPathsStore();
     let commitAttempts = 0;
     const git = (args: string[]): string => {
+      const upstreamOutput = gitUpstreamOutput(args);
+      if (upstreamOutput !== undefined) return upstreamOutput;
       if (args[0] === "status") return "M  content/posts/from-bear.md";
       if (args[0] === "commit") {
         commitAttempts += 1;
@@ -253,6 +265,8 @@ describe("Git publication", () => {
     let pushAttempts = 0;
     let commits = 0;
     const git = (args: string[]): string => {
+      const upstreamOutput = gitUpstreamOutput(args);
+      if (upstreamOutput !== undefined) return upstreamOutput;
       if (args[0] === "status") {
         statusChecks += 1;
         return statusChecks === 1 ? "M  content/posts/from-bear.md" : "";
