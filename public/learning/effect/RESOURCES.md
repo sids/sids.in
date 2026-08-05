@@ -2,16 +2,14 @@
 
 ## Knowledge
 
-- [Effect 3 documentation: Introduction](https://www.effect.website/docs/v3/getting-started/introduction)
-  The official learning path and feature map. Use for: orienting each migration lesson in the stable API.
-- [Effect 3 documentation: The Effect Type](https://www.effect.website/docs/v3/getting-started/the-effect-type)
-  Defines the success, error, and requirements parameters. Use for: reading every Effect signature in this repo.
-- [Effect 3 documentation: Creating Effects](https://www.effect.website/docs/v3/getting-started/creating-effects)
-  Official constructors, including `tryPromise`. Use for: bringing existing Promise APIs into Effect.
-- [Effect 3 documentation: Running Effects](https://www.effect.website/docs/v3/getting-started/running-effects)
-  Official runtime functions, including `runPromise`. Use for: keeping compatibility boundaries explicit.
-- [Effect 3 documentation: Using Generators](https://www.effect.website/docs/v3/getting-started/using-generators)
-  Composition with `Effect.gen` and `yield*`. Use for: a later lesson after the first boundary is comfortable.
+- [Effect v4 Beta announcement](https://www.effect.website/blog/releases/effect/40-beta)
+  Official status, installation command, stability contract, and production warning. Use for: deciding when and how to update the pinned beta.
+- [Official v3 to v4 migration guide](https://github.com/Effect-TS/effect/blob/main/MIGRATION.md)
+  The evolving map of structural changes and focused migration guides. Use for: every API or package migration in this repository.
+- [Effect v4 API reference: Effect](https://effect-ts.github.io/effect/effect/Effect.ts.html)
+  Generated reference for `Effect<A, E, R>`, constructors, combinators, and runners. Use for: verifying exact signatures such as `tryPromise` and `runPromise`.
+- [Effect v4 error-handling migration guide](https://github.com/Effect-TS/effect/blob/main/migration/error-handling.md)
+  Official rename map and new error-handling APIs. Use for: the next lesson on eliminating a handled error from the error channel.
 
 ## Wisdom (Communities)
 
@@ -20,4 +18,4 @@
 
 ## Gaps
 
-- Effect 4 migration guidance will be reconsidered after the stable release; beta material is intentionally excluded from the current learning path.
+- Effect v4 is still beta and its migration guide is explicitly evolving; lessons must verify APIs against the exact installed package rather than assuming examples remain current.

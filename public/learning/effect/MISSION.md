@@ -12,9 +12,10 @@ Use this production TypeScript codebase as a practical lab for learning Effect. 
 ## Constraints
 - Learn by doing, one tightly scoped concept and migration slice at a time.
 - Keep the Cloudflare Worker deployable and existing behavior covered by tests.
-- Use the stable Effect 3 line while Effect 4 remains beta.
+- Learn against Effect 4 beta, pinned to an exact version because beta releases may contain breaking changes.
 
 ## Out of scope
 - A wholesale rewrite.
+- Using `effect/unstable/*` modules before a repository problem specifically calls for one.
 - Adopting advanced Effect APIs before a concrete repository problem needs them.
 - Migrating pure rendering helpers merely to increase Effect usage.

@@ -37,7 +37,7 @@
 </head>
 <body>
 <main>
-  <div class="eyebrow">Effect migration · Lesson 0001 · 10 minutes</div>
+  <div class="eyebrow">Effect v4 beta.103 · Lesson 0001 · 10 minutes</div>
   <h1>Cross the boundary once.</h1>
   <p class="lede">Turn one existing Promise operation into a lazy Effect with a typed failure, then hand a Promise back to the unchanged Worker.</p>
 
@@ -53,7 +53,7 @@
     <div class="channel"><b>StaticAssetFetchError</b>can fail with</div>
     <div class="channel"><b>never</b>requires no services</div>
   </div>
-  <p>A Promise exposes only its success value in <code>Promise&lt;Response&gt;</code>. Effect gives expected errors and required services their own type channels. This three-part interpretation comes directly from the official <a href="https://www.effect.website/docs/v3/getting-started/the-effect-type">Effect type documentation</a>.</p>
+  <p>A Promise exposes only its success value in <code>Promise&lt;Response&gt;</code>. Effect gives expected errors and required services their own type channels. Effect v4 keeps this core programming model while changing package organization and parts of the API; see the official <a href="https://github.com/Effect-TS/effect/blob/main/MIGRATION.md">v4 migration guide</a>.</p>
 
   <h2>2. Enter Effect at the leaf</h2>
   <p>Open <code>src/lib/static-assets.ts</code>. The existing Cloudflare binding still returns a Promise; <code>tryPromise</code> describes that operation and maps a rejection into our domain-specific error.</p>
@@ -63,7 +63,7 @@
 }).pipe(
   Effect.map((response) =&gt; /* add immutable cache headers */),
 )</code></pre>
-  <p><code>tryPromise</code> is used because the underlying Promise may reject. The official <a href="https://www.effect.website/docs/v3/getting-started/creating-effects#trypromise">constructor docs</a> distinguish it from <code>Effect.promise</code>, which does not model rejection in the error channel.</p>
+  <p><code>tryPromise</code> is used because the underlying Promise may reject. The v4 <a href="https://effect-ts.github.io/effect/effect/Effect.ts.html#trypromise">API reference</a> distinguishes it from <code>Effect.promise</code>, which does not model rejection in the error channel.</p>
 
   <section class="card">
     <strong>Prediction check</strong>
@@ -79,7 +79,7 @@
   <h2>3. Exit Effect at the existing boundary</h2>
   <p><code>src/app.ts</code> is still a Promise-based Cloudflare handler. One runner executes the program there:</p>
   <pre><code>await Effect.runPromise(fetchStaticAsset(request, env, url))</code></pre>
-  <p>This is the incremental adoption seam: Promise API → Effect program → Promise caller. The <a href="https://www.effect.website/docs/v3/getting-started/running-effects#runpromise">runner docs</a> describe <code>runPromise</code> specifically as the compatibility tool for Promise-based code.</p>
+  <p>This is the incremental adoption seam: Promise API → Effect program → Promise caller. The v4 <a href="https://effect-ts.github.io/effect/effect/Effect.ts.html#runpromise">API reference</a> describes <code>runPromise</code> as the compatibility tool for Promise-based code.</p>
 
   <h2>4. Run the feedback loop</h2>
   <div class="card command">
