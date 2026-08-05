@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 2 — Handle one tagged error</title>
+  <style>
+    :root { color-scheme:light dark; --bg:#f4f1ea; --card:#fffdf8; --ink:#18212f; --muted:#657080; --line:#d8d2c6; --purple:#6d28d9; --green:#047857; --red:#b91c1c; --code:#151821; }
+    @media (prefers-color-scheme:dark) { :root { --bg:#111318; --card:#191c23; --ink:#f1f1f3; --muted:#a3a8b3; --line:#343844; --purple:#c4b5fd; --green:#6ee7b7; --red:#fca5a5; --code:#0b0d12; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:radial-gradient(circle at 15% 0%,color-mix(in srgb,var(--purple) 12%,transparent),transparent 32%),var(--bg); color:var(--ink); font:17px/1.65 ui-sans-serif,system-ui,-apple-system,sans-serif; }
+    main { width:min(860px,calc(100% - 32px)); margin:0 auto; padding:54px 0 80px; }
+    .eyebrow { color:var(--purple); font:700 12px/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { max-width:760px; margin:14px 0 10px; font:750 clamp(38px,8vw,72px)/.98 ui-monospace,SFMono-Regular,monospace; letter-spacing:-.06em; }
+    h2 { margin-top:42px; line-height:1.2; letter-spacing:-.025em; }
+    .lede { max-width:700px; color:var(--muted); font-size:20px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px; margin:24px 0; box-shadow:0 16px 40px rgba(0,0,0,.05); }
+    .goal { border-left:5px solid var(--purple); }
+    code { font:0.9em ui-monospace,SFMono-Regular,monospace; }
+    p code,li code { padding:.12em .32em; border-radius:4px; background:color-mix(in srgb,var(--purple) 10%,transparent); }
+    pre { overflow:auto; background:var(--code); color:#f8fafc; padding:19px; border-radius:10px; font:14px/1.6 ui-monospace,SFMono-Regular,monospace; }
+    .types { display:grid; grid-template-columns:1fr auto 1fr; gap:12px; align-items:center; margin:22px 0; }
+    .type { border:1px solid var(--line); border-radius:9px; padding:16px; text-align:center; font-family:ui-monospace,SFMono-Regular,monospace; }
+    .type.after { border-color:var(--green); color:var(--green); }
+    .choices { display:grid; gap:9px; margin-top:14px; }
+    button { appearance:none; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); padding:12px 14px; text-align:left; font:inherit; cursor:pointer; }
+    button:hover { border-color:var(--purple); }
+    .feedback { min-height:1.6em; margin:12px 0 0; font-weight:700; }
+    .feedback.good { color:var(--green); } .feedback.bad { color:var(--red); }
+    details { border-top:1px solid var(--line); padding:14px 0; }
+    details:last-child { border-bottom:1px solid var(--line); }
+    summary { color:var(--purple); cursor:pointer; font-weight:700; }
+    .checkpoint { border:2px dashed var(--purple); }
+    a { color:var(--purple); }
+    footer { margin-top:46px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
+    @media (max-width:650px) { .types { grid-template-columns:1fr; } .arrow { transform:rotate(90deg); text-align:center; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Effect v4 beta.103 · Lesson 0002 · 15 minutes</div>
+  <h1>Make one expected error disappear.</h1>
+  <p class="lede">Recover <code>StaticAssetFetchError</code> inside the Effect program so the Worker boundary receives an Effect whose expected-error channel is <code>never</code>.</p>
+
+  <section class="card goal">
+    <strong>Tangible win</strong>
+    <p>When the Cloudflare assets binding rejects, the blog will return a security-header-protected 500 response instead of rejecting the Worker request.</p>
+  </section>
+
+  <h2>1. Start with a failing behavior test</h2>
+  <p>In <code>src/app.test.ts</code>, add a test whose asset binding returns <code>Promise.reject(cause)</code>. Call <code>blogHandler.fetch</code> and require all three outcomes:</p>
+  <ul>
+    <li>the Promise resolves rather than rejects;</li>
+    <li>the response status is <code>500</code> and its body is <code>Internal Server Error</code>;</li>
+    <li>the response still has <code>X-Content-Type-Options: nosniff</code>.</li>
+  </ul>
+  <pre><code>pnpm exec vitest run src/app.test.ts</code></pre>
+  <p>Your new test should fail first. That red test is the feedback loop for the production edit.</p>
+
+  <h2>2. Notice the discriminator you already have</h2>
+  <pre><code>class StaticAssetFetchError extends Error {
+  readonly _tag = "StaticAssetFetchError"
+}</code></pre>
+  <p>Effect’s <code>catchTag</code> selects recoverable errors through this readonly <code>_tag</code>. The official v4 migration guide confirms that <code>catchTag</code> is unchanged in v4.</p>
+
+  <div class="types">
+    <div class="type">Effect&lt;Response,<br>StaticAssetFetchError&gt;</div>
+    <div class="arrow">→ catchTag →</div>
+    <div class="type after">Effect&lt;Response,<br>never&gt;</div>
+  </div>
+
+  <section class="card">
+    <strong>Prediction check</strong>
+    <p>If <code>StaticAssetFetchError</code> is the only member of <code>E</code>, and its recovery handler cannot fail, what is the resulting error type?</p>
+    <div class="choices" data-quiz>
+      <button data-answer="wrong"><code>StaticAssetFetchError</code> — recovery does not change types</button>
+      <button data-answer="right"><code>never</code> — every expected error has been handled</button>
+      <button data-answer="wrong"><code>unknown</code> — the original cause is unknown</button>
+    </div>
+    <p class="feedback" aria-live="polite"></p>
+  </section>
+
+  <h2>3. Change the production pipeline</h2>
+  <p>Work only in the static-assets branch of <code>src/app.ts</code>. Keep <code>fetchStaticAsset</code> unchanged. Your final pipeline must:</p>
+  <ol>
+    <li>start from <code>fetchStaticAsset(request, env, url)</code>;</li>
+    <li>recover only <code>StaticAssetFetchError</code> using <code>Effect.catchTag</code>;</li>
+    <li>log the error and produce the 500 response inside an <code>Effect.sync</code> handler;</li>
+    <li>apply <code>withSecurityHeaders</code> to both normal and recovered responses;</li>
+    <li>call <code>Effect.runPromise</code> only after recovery and header mapping.</li>
+  </ol>
+  <p>Add the annotation <code>const program: Effect.Effect&lt;Response&gt;</code>. Because omitted <code>E</code> and <code>R</code> default to <code>never</code>, TypeScript will reject an incomplete recovery.</p>
+
+  <h2>Progressive hints</h2>
+  <details><summary>Hint 1 — pipeline order</summary><p>Recover first, then map <code>withSecurityHeaders</code>. That single map will cover both the asset response and the fallback response.</p></details>
+  <details><summary>Hint 2 — catchTag shape</summary><pre><code>Effect.catchTag("StaticAssetFetchError", (error) =&gt;
+  Effect.sync(() =&gt; {
+    // log, then return a Response
+  })
+)</code></pre></details>
+  <details><summary>Hint 3 — complete pipeline skeleton</summary><pre><code>const program: Effect.Effect&lt;Response&gt; = fetchStaticAsset(...).pipe(
+  Effect.catchTag(/* tag */, /* recovery */),
+  Effect.map(/* apply headers */),
+)
+
+return Effect.runPromise(program)</code></pre></details>
+  <details><summary>Final reveal — compare only after attempting it</summary><pre><code>const program: Effect.Effect&lt;Response&gt; = fetchStaticAsset(request, env, url).pipe(
+  Effect.catchTag("StaticAssetFetchError", (error) =&gt;
+    Effect.sync(() =&gt; {
+      console.error(error);
+      return new Response("Internal Server Error", { status: 500 });
+    })
+  ),
+  Effect.map(withSecurityHeaders),
+);
+
+return Effect.runPromise(program);</code></pre></details>
+
+  <h2>4. Close the loop</h2>
+  <pre><code>pnpm exec vitest run src/app.test.ts
+pnpm run typecheck</code></pre>
+  <p>Then run the full test suite. Do not move <code>runPromise</code> further yet; the rest of request routing is not an Effect program, so the current branch remains a deliberate migration seam.</p>
+
+  <section class="card checkpoint">
+    <strong>Your checkpoint</strong>
+    <p>Reply in one or two sentences: why can the expected-error channel become <code>never</code> after this <code>catchTag</code>, and what kind of failure can still escape it?</p>
+    <p>Ask your agent for feedback on your failing test or implementation before opening the final reveal.</p>
+  </section>
+
+  <footer>
+    Previous: <a href="./0001-promise-effect-promise">Promise → Effect → Promise</a>. Quick review: <a href="../reference/tagged-error-recovery">tagged error recovery</a>. Sources: <a href="https://github.com/Effect-TS/effect/blob/main/migration/error-handling.md">v4 error-handling migration guide</a> and <a href="https://effect-ts.github.io/effect/effect/Effect.ts.html#catchtag">Effect API reference</a>.
+  </footer>
+</main>
+<script>
+  for (const quiz of document.querySelectorAll('[data-quiz]')) {
+    const feedback = quiz.nextElementSibling;
+    quiz.addEventListener('click', (event) => {
+      const button = event.target.closest('button');
+      if (!button) return;
+      const right = button.dataset.answer === 'right';
+      feedback.className = `feedback ${right ? 'good' : 'bad'}`;
+      feedback.textContent = right
+        ? 'Correct. The handler removes that tag, and it introduces no replacement error.'
+        : 'Not quite. catchTag subtracts the handled tag from E, then adds any error produced by the handler.';
+    });
+  }
+</script>
+</body>
+</html>

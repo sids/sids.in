@@ -19,4 +19,23 @@ describe("blogHandler static learning assets", () => {
     expect(response.status).toBe(200);
     expect(await response.text()).toBe("/learning/effect/");
   });
+
+  it("turns static asset binding failures into secure 500 responses", async () => {
+    const cause = new Error("asset binding unavailable");
+    const request = new Request("https://sids.in/learning/effect/");
+    const env = {
+      ASSETS: {
+        fetch: () => Promise.reject(cause),
+      },
+    } as unknown as Env;
+
+    const response = await blogHandler.fetch(
+      request as Request<unknown, IncomingRequestCfProperties>,
+      env,
+    );
+
+    expect(response.status).toBe(500);
+    expect(await response.text()).toBe("Internal Server Error");
+    expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
+  });
 });

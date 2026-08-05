@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tagged error recovery in Effect v4</title>
+  <style>
+    :root { color-scheme:light dark; --paper:#faf8f3; --ink:#1e293b; --muted:#64748b; --line:#d8d4ca; --accent:#7c3aed; --good:#047857; --code:#171923; }
+    @media (prefers-color-scheme:dark) { :root { --paper:#15171c; --ink:#ececf1; --muted:#a8a8b3; --line:#363842; --accent:#c4b5fd; --good:#6ee7b7; --code:#0d0f14; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif; }
+    main { width:min(920px,calc(100% - 32px)); margin:40px auto; }
+    h1 { margin:0 0 6px; font:700 clamp(28px,5vw,44px)/1.05 ui-monospace,SFMono-Regular,monospace; letter-spacing:-.04em; }
+    h2 { margin-top:30px; }
+    .sub { color:var(--muted); margin:0 0 28px; }
+    pre { overflow:auto; background:var(--code); color:#f8fafc; padding:18px; border-radius:10px; font:14px/1.55 ui-monospace,SFMono-Regular,monospace; }
+    code { font-family:ui-monospace,SFMono-Regular,monospace; }
+    p code,li code { color:var(--accent); }
+    .equation { display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:center; margin:24px 0; }
+    .type { border:1px solid var(--line); border-radius:10px; padding:18px; text-align:center; }
+    .type b { display:block; color:var(--accent); font-family:ui-monospace,SFMono-Regular,monospace; }
+    .type.good { border-color:var(--good); } .type.good b { color:var(--good); }
+    table { border-collapse:collapse; width:100%; margin:20px 0; }
+    th,td { text-align:left; border-bottom:1px solid var(--line); padding:10px 8px; vertical-align:top; }
+    th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+    a { color:var(--accent); }
+    .warning { border-left:4px solid var(--accent); padding:8px 16px; background:color-mix(in srgb,var(--accent) 8%,transparent); }
+    footer { color:var(--muted); margin-top:30px; font-size:13px; }
+    @media print { main { margin:0 auto; } .type,pre { break-inside:avoid; } }
+    @media (max-width:650px) { .equation { grid-template-columns:1fr; } .arrow { transform:rotate(90deg); text-align:center; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Effect.catchTag</h1>
+  <p class="sub">Effect v4 beta.103 · recover one expected error by its discriminator.</p>
+
+  <pre><code>class StaticAssetFetchError extends Error {
+  readonly _tag = "StaticAssetFetchError"
+}</code></pre>
+  <p><code>catchTag</code> uses the readonly <code>_tag</code> field to select one recoverable error from the error channel.</p>
+
+  <div class="equation">
+    <div class="type"><b>Before</b>Effect&lt;Response,<br>StaticAssetFetchError&gt;</div>
+    <div class="arrow">→ catchTag →</div>
+    <div class="type good"><b>After</b>Effect&lt;Response,<br>never&gt;</div>
+  </div>
+
+  <pre><code>program.pipe(
+  Effect.catchTag("StaticAssetFetchError", (error) =&gt;
+    Effect.succeed(fallbackResponse)
+  )
+)</code></pre>
+
+  <table>
+    <thead><tr><th>Situation</th><th>Resulting error channel</th></tr></thead>
+    <tbody>
+      <tr><td>The selected tag is the only error, and the handler cannot fail.</td><td><code>never</code></td></tr>
+      <tr><td>Other tagged errors remain in the original union.</td><td>Those unhandled errors remain in <code>E</code>.</td></tr>
+      <tr><td>The recovery handler can fail with <code>FallbackError</code>.</td><td><code>FallbackError</code> is added to <code>E</code>.</td></tr>
+      <tr><td>The Effect dies with a defect.</td><td>A defect is not an expected error in <code>E</code>; <code>catchTag</code> does not catch it.</td></tr>
+    </tbody>
+  </table>
+
+  <p class="warning"><strong>Typed recovery is subtraction.</strong> Handle one member of the error union, then add any errors introduced by the recovery handler.</p>
+  <p>Lesson: <a href="../lessons/0002-handle-one-tagged-error">handle one tagged error</a>. Previous reference: <a href="./effect-type">Effect&lt;A, E, R&gt;</a>.</p>
+  <footer>Sources: the official <a href="https://github.com/Effect-TS/effect/blob/main/migration/error-handling.md">Effect v4 error-handling migration guide</a> and <a href="https://effect-ts.github.io/effect/effect/Effect.ts.html#catchtag">Effect API reference</a>.</footer>
+</main>
+</body>
+</html>

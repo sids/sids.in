@@ -68,9 +68,21 @@
       <strong>0001 · Promise → Effect → Promise</strong>
       <span>Model one rejecting Cloudflare API with a typed error, then run it at the existing application boundary.</span>
     </a>
+    <a class="card" href="./lessons/0002-handle-one-tagged-error">
+      <strong>0002 · Handle one tagged error</strong>
+      <span>Recover a static-asset failure with <code>catchTag</code> and watch the expected-error channel become <code>never</code>.</span>
+    </a>
+  </div>
+
+  <h2>Reference</h2>
+  <div class="grid">
     <a class="card" href="./reference/effect-type">
       <strong>Reference · Effect&lt;A, E, R&gt;</strong>
       <span>A printable card for the three type channels and incremental migration boundary.</span>
+    </a>
+    <a class="card" href="./reference/tagged-error-recovery">
+      <strong>Reference · Tagged error recovery</strong>
+      <span>How <code>catchTag</code> removes one handled error from <code>E</code> while leaving defects alone.</span>
     </a>
   </div>
 
@@ -81,7 +93,7 @@
     <a class="card state" href="./NOTES.md"><strong>Teaching notes</strong><span>Preferences and constraints steering future lessons.</span></a>
   </div>
 
-  <footer>Next: complete lesson 0001 and answer its checkpoint before another production slice is migrated.</footer>
+  <footer>Current lesson: handle one tagged error, then explain why the expected-error channel becomes <code>never</code>.</footer>
 </main>
 </body>
 </html>
