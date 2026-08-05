@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 1 — Promise → Effect → Promise</title>
+  <style>
+    :root { color-scheme:light dark; --bg:#f4f1ea; --card:#fffdf8; --ink:#18212f; --muted:#657080; --line:#d8d2c6; --purple:#6d28d9; --green:#047857; --red:#b91c1c; --code:#151821; }
+    @media (prefers-color-scheme:dark) { :root { --bg:#111318; --card:#191c23; --ink:#f1f1f3; --muted:#a3a8b3; --line:#343844; --purple:#c4b5fd; --green:#6ee7b7; --red:#fca5a5; --code:#0b0d12; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:radial-gradient(circle at 15% 0%,color-mix(in srgb,var(--purple) 12%,transparent),transparent 32%),var(--bg); color:var(--ink); font:17px/1.65 ui-sans-serif,system-ui,-apple-system,sans-serif; }
+    main { width:min(860px,calc(100% - 32px)); margin:0 auto; padding:54px 0 80px; }
+    .eyebrow { color:var(--purple); font:700 12px/1 ui-monospace,SFMono-Regular,monospace; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { max-width:680px; margin:14px 0 10px; font:750 clamp(38px,8vw,72px)/.98 ui-monospace,SFMono-Regular,monospace; letter-spacing:-.06em; }
+    h2 { margin-top:42px; line-height:1.2; letter-spacing:-.025em; }
+    .lede { max-width:680px; color:var(--muted); font-size:20px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px; margin:24px 0; box-shadow:0 16px 40px rgba(0,0,0,.05); }
+    .goal { border-left:5px solid var(--purple); }
+    code { font:0.9em ui-monospace,SFMono-Regular,monospace; }
+    p code,li code { padding:.12em .32em; border-radius:4px; background:color-mix(in srgb,var(--purple) 10%,transparent); }
+    pre { overflow:auto; background:var(--code); color:#f8fafc; padding:19px; border-radius:10px; font:14px/1.6 ui-monospace,SFMono-Regular,monospace; }
+    .channels { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .channel { border:1px solid var(--line); border-radius:9px; padding:14px; }
+    .channel b { color:var(--purple); display:block; font-family:ui-monospace,SFMono-Regular,monospace; }
+    .choices { display:grid; gap:9px; margin-top:14px; }
+    button { appearance:none; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--ink); padding:12px 14px; text-align:left; font:inherit; cursor:pointer; }
+    button:hover { border-color:var(--purple); }
+    .feedback { min-height:1.6em; margin:12px 0 0; font-weight:700; }
+    .feedback.good { color:var(--green); } .feedback.bad { color:var(--red); }
+    .command { display:flex; justify-content:space-between; gap:10px; align-items:center; }
+    .command pre { flex:1; margin:0; }
+    a { color:var(--purple); }
+    .checkpoint { border:2px dashed var(--purple); }
+    footer { margin-top:46px; padding-top:20px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
+    @media (max-width:650px) { .channels { grid-template-columns:1fr; } .command { display:block; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Effect migration · Lesson 0001 · 10 minutes</div>
+  <h1>Cross the boundary once.</h1>
+  <p class="lede">Turn one existing Promise operation into a lazy Effect with a typed failure, then hand a Promise back to the unchanged Worker.</p>
+
+  <section class="card goal">
+    <strong>Tangible win</strong>
+    <p>The static asset binding can reject. That failure is now visible in the program’s type as <code>StaticAssetFetchError</code>, while the Worker’s public <code>fetch</code> boundary still returns a Promise.</p>
+  </section>
+
+  <h2>1. Read the type as a sentence</h2>
+  <pre><code>Effect.Effect&lt;Response, StaticAssetFetchError, never&gt;</code></pre>
+  <div class="channels">
+    <div class="channel"><b>Response</b>succeeds with</div>
+    <div class="channel"><b>StaticAssetFetchError</b>can fail with</div>
+    <div class="channel"><b>never</b>requires no services</div>
+  </div>
+  <p>A Promise exposes only its success value in <code>Promise&lt;Response&gt;</code>. Effect gives expected errors and required services their own type channels. This three-part interpretation comes directly from the official <a href="https://www.effect.website/docs/v3/getting-started/the-effect-type">Effect type documentation</a>.</p>
+
+  <h2>2. Enter Effect at the leaf</h2>
+  <p>Open <code>src/lib/static-assets.ts</code>. The existing Cloudflare binding still returns a Promise; <code>tryPromise</code> describes that operation and maps a rejection into our domain-specific error.</p>
+  <pre><code>return Effect.tryPromise({
+  try: () =&gt; env.ASSETS.fetch(request),
+  catch: (cause) =&gt; new StaticAssetFetchError(cause),
+}).pipe(
+  Effect.map((response) =&gt; /* add immutable cache headers */),
+)</code></pre>
+  <p><code>tryPromise</code> is used because the underlying Promise may reject. The official <a href="https://www.effect.website/docs/v3/getting-started/creating-effects#trypromise">constructor docs</a> distinguish it from <code>Effect.promise</code>, which does not model rejection in the error channel.</p>
+
+  <section class="card">
+    <strong>Prediction check</strong>
+    <p>Immediately after calling <code>fetchStaticAsset(...)</code>, how many times has <code>env.ASSETS.fetch</code> run?</p>
+    <div class="choices" data-quiz>
+      <button data-answer="wrong">Once — constructing the Effect starts it</button>
+      <button data-answer="right">Zero — the Effect only describes the work</button>
+      <button data-answer="wrong">It depends on whether the URL is immutable</button>
+    </div>
+    <p class="feedback" aria-live="polite"></p>
+  </section>
+
+  <h2>3. Exit Effect at the existing boundary</h2>
+  <p><code>src/app.ts</code> is still a Promise-based Cloudflare handler. One runner executes the program there:</p>
+  <pre><code>await Effect.runPromise(fetchStaticAsset(request, env, url))</code></pre>
+  <p>This is the incremental adoption seam: Promise API → Effect program → Promise caller. The <a href="https://www.effect.website/docs/v3/getting-started/running-effects#runpromise">runner docs</a> describe <code>runPromise</code> specifically as the compatibility tool for Promise-based code.</p>
+
+  <h2>4. Run the feedback loop</h2>
+  <div class="card command">
+    <pre><code>pnpm exec vitest run src/lib/static-assets.test.ts</code></pre>
+  </div>
+  <p>The first test proves laziness: the fetch count remains zero until <code>runPromise</code>. The second uses <code>Effect.flip</code> to inspect the typed error as a success value.</p>
+
+  <section class="card checkpoint">
+    <strong>Your checkpoint</strong>
+    <p>Reply to your agent in one sentence: as more leaf functions return Effects, where should <code>Effect.runPromise</code> move—and why?</p>
+    <p>This is the evidence check for the first learning record. Ask any follow-up question if the distinction between describing and executing work is unclear.</p>
+  </section>
+
+  <footer>
+    Quick review: <a href="../reference/effect-type">Effect type and boundary card</a>. Mission: evolve sids.in in small, behavior-preserving slices; no wholesale rewrite.
+  </footer>
+</main>
+<script>
+  for (const quiz of document.querySelectorAll('[data-quiz]')) {
+    const feedback = quiz.nextElementSibling;
+    quiz.addEventListener('click', (event) => {
+      const button = event.target.closest('button');
+      if (!button) return;
+      const right = button.dataset.answer === 'right';
+      feedback.className = `feedback ${right ? 'good' : 'bad'}`;
+      feedback.textContent = right
+        ? 'Correct. Effect values are lazy descriptions; a runner starts the work.'
+        : 'Not quite. No fetch occurs until a runtime function executes the Effect.';
+    });
+  }
+</script>
+</body>
+</html>

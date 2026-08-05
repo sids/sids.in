@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning Effect through sids.in</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f4f1ea;
+      --card: #fffdf8;
+      --ink: #18212f;
+      --muted: #657080;
+      --line: #d8d2c6;
+      --accent: #6d28d9;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111318;
+        --card: #191c23;
+        --ink: #f1f1f3;
+        --muted: #a3a8b3;
+        --line: #343844;
+        --accent: #c4b5fd;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 15% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 32%), var(--bg);
+      color: var(--ink);
+      font: 17px/1.6 ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+    main { width: min(900px, calc(100% - 32px)); margin: 0 auto; padding: 64px 0 88px; }
+    .eyebrow { color: var(--accent); font: 700 12px/1 ui-monospace, SFMono-Regular, monospace; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { max-width: 760px; margin: 16px 0 12px; font: 750 clamp(42px, 8vw, 76px)/.98 ui-monospace, SFMono-Regular, monospace; letter-spacing: -.06em; }
+    .lede { max-width: 680px; color: var(--muted); font-size: 20px; }
+    h2 { margin-top: 46px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .card {
+      display: block;
+      min-height: 150px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      color: inherit;
+      text-decoration: none;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, .05);
+    }
+    .card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .card strong { display: block; margin-bottom: 8px; color: var(--accent); font-family: ui-monospace, SFMono-Regular, monospace; }
+    .card span { color: var(--muted); }
+    .state { min-height: auto; }
+    footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+    @media (max-width: 650px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">sids.in · hands-on learning path</div>
+  <h1>Learning Effect by evolving a real Worker.</h1>
+  <p class="lede">Small, behavior-preserving migrations. Each lesson introduces one Effect concept through production code and a runnable feedback loop.</p>
+
+  <h2>Lessons</h2>
+  <div class="grid">
+    <a class="card" href="./lessons/0001-promise-effect-promise">
+      <strong>0001 · Promise → Effect → Promise</strong>
+      <span>Model one rejecting Cloudflare API with a typed error, then run it at the existing application boundary.</span>
+    </a>
+    <a class="card" href="./reference/effect-type">
+      <strong>Reference · Effect&lt;A, E, R&gt;</strong>
+      <span>A printable card for the three type channels and incremental migration boundary.</span>
+    </a>
+  </div>
+
+  <h2>Learning state</h2>
+  <div class="grid">
+    <a class="card state" href="./MISSION.md"><strong>Mission</strong><span>Why this migration exists and what success looks like.</span></a>
+    <a class="card state" href="./RESOURCES.md"><strong>Resources</strong><span>Curated official documentation and community links.</span></a>
+    <a class="card state" href="./NOTES.md"><strong>Teaching notes</strong><span>Preferences and constraints steering future lessons.</span></a>
+  </div>
+
+  <footer>Next: complete lesson 0001 and answer its checkpoint before another production slice is migrated.</footer>
+</main>
+</body>
+</html>

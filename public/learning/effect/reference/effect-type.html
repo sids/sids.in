@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Effect type and boundary card</title>
+  <style>
+    :root { color-scheme: light dark; --paper:#faf8f3; --ink:#1e293b; --muted:#64748b; --line:#d8d4ca; --accent:#7c3aed; --code:#171923; }
+    @media (prefers-color-scheme: dark) { :root { --paper:#15171c; --ink:#ececf1; --muted:#a8a8b3; --line:#363842; --accent:#c4b5fd; --code:#0d0f14; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif; }
+    main { width:min(900px,calc(100% - 32px)); margin:40px auto; }
+    h1 { margin:0 0 6px; font:700 clamp(28px,5vw,44px)/1.05 ui-monospace,SFMono-Regular,monospace; letter-spacing:-.04em; }
+    .sub { color:var(--muted); margin:0 0 28px; }
+    .type { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:22px 0; }
+    .slot { border:1px solid var(--line); border-top:4px solid var(--accent); border-radius:10px; padding:16px; }
+    .slot code { color:var(--accent); font-weight:700; }
+    pre { overflow:auto; background:var(--code); color:#f8fafc; padding:18px; border-radius:10px; font:14px/1.55 ui-monospace,SFMono-Regular,monospace; }
+    table { border-collapse:collapse; width:100%; margin:20px 0; }
+    th,td { text-align:left; border-bottom:1px solid var(--line); padding:10px 8px; vertical-align:top; }
+    th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+    a { color:var(--accent); }
+    .boundary { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:10px; padding:20px; border:1px solid var(--line); border-radius:10px; font-family:ui-monospace,SFMono-Regular,monospace; }
+    .boundary b { padding:8px 12px; border-radius:7px; background:color-mix(in srgb,var(--accent) 14%,transparent); }
+    footer { color:var(--muted); margin-top:30px; font-size:13px; }
+    @media print { main { margin:0 auto; } .boundary,.slot { break-inside:avoid; } }
+    @media (max-width:650px) { .type { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Effect&lt;A, E, R&gt;</h1>
+  <p class="sub">The three-channel type and the incremental migration boundary.</p>
+
+  <div class="type">
+    <section class="slot"><code>A — Success</code><br>The value produced when the program succeeds.</section>
+    <section class="slot"><code>E — Error</code><br>The expected failures callers must consider.</section>
+    <section class="slot"><code>R — Requirements</code><br>The services the program needs. No requirements is <code>never</code>.</section>
+  </div>
+
+  <pre><code>fetchStaticAsset(...)
+// Effect&lt;Response, StaticAssetFetchError, never&gt;</code></pre>
+
+  <div class="boundary" aria-label="Incremental migration boundary">
+    <b>Promise API</b><span>→</span><code>Effect.tryPromise</code><span>→</span><b>Effect program</b><span>→</span><code>Effect.runPromise</code><span>→</span><b>Promise caller</b>
+  </div>
+
+  <table>
+    <thead><tr><th>Operation</th><th>Purpose</th><th>Rule of thumb</th></tr></thead>
+    <tbody>
+      <tr><td><code>Effect.tryPromise</code></td><td>Describe a rejecting Promise as an Effect and map <code>unknown</code> into a typed error.</td><td>Use for existing async APIs that may reject.</td></tr>
+      <tr><td><code>Effect.map</code></td><td>Transform the success value without changing the error channel.</td><td>Like mapping the resolved value, but still lazy.</td></tr>
+      <tr><td><code>Effect.runPromise</code></td><td>Execute an Effect and expose a Promise.</td><td>Keep runners at application or compatibility boundaries.</td></tr>
+      <tr><td><code>Effect.flip</code></td><td>Swap success and error channels.</td><td>Handy in a focused test of a failure value.</td></tr>
+    </tbody>
+  </table>
+
+  <p>Key distinction: constructing an Effect describes work; a runtime function executes it.</p>
+  <footer>Sources: <a href="https://www.effect.website/docs/v3/getting-started/the-effect-type">The Effect Type</a>, <a href="https://www.effect.website/docs/v3/getting-started/creating-effects">Creating Effects</a>, and <a href="https://www.effect.website/docs/v3/getting-started/running-effects">Running Effects</a>.</footer>
+</main>
+</body>
+</html>
