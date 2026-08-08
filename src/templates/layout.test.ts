@@ -51,4 +51,13 @@ describe("layout feed discovery", () => {
 
     expect(html).toContain('<a href="/posts/feed" class="font-mono text-xs text-secondary">RSS/Atom Feed</a>');
   });
+
+  it("uses a two-state theme control with a system-following default", () => {
+    const html = layout("<p>Hello</p>", "Hello");
+
+    expect(html).toContain("if (isDark === systemTheme.matches)");
+    expect(html).toContain("localStorage.removeItem('theme')");
+    expect(html).toContain("systemTheme.addEventListener('change'");
+    expect(html).toContain('aria-label="Switch to dark theme"');
+  });
 });

@@ -9,34 +9,52 @@ const themeScript = `
 (function() {
   const stored = localStorage.getItem('theme');
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (stored === 'dark' || (!stored && prefersDark)) {
-    document.documentElement.classList.add('dark');
-  }
+  const isDark = stored === 'dark' || (stored !== 'light' && prefersDark);
+  document.documentElement.classList.toggle('dark', isDark);
 })();
 `;
 
 const toggleScript = `
+const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+
 function toggleTheme() {
-  const isDark = document.documentElement.classList.toggle('dark');
-  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  const isDark = !document.documentElement.classList.contains('dark');
+  document.documentElement.classList.toggle('dark', isDark);
+
+  if (isDark === systemTheme.matches) {
+    localStorage.removeItem('theme');
+  } else {
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }
+
   updateToggle();
 }
+
 function updateToggle() {
   const isDark = document.documentElement.classList.contains('dark');
   const toggle = document.getElementById('theme-switch');
   const icon = document.getElementById('theme-icon');
-  const knob = document.getElementById('theme-knob');
 
   if (isDark) {
     toggle.classList.add('dark');
     icon.textContent = '☾';
-    knob.style.transform = 'translateX(0)';
   } else {
     toggle.classList.remove('dark');
     icon.textContent = '☀';
-    knob.style.transform = 'translateX(16px)';
   }
+
+  const nextTheme = isDark ? 'light' : 'dark';
+  toggle.setAttribute('aria-label', 'Switch to ' + nextTheme + ' theme');
+  toggle.setAttribute('title', 'Switch to ' + nextTheme + ' theme');
 }
+
+systemTheme.addEventListener('change', function(event) {
+  if (localStorage.getItem('theme') !== 'dark' && localStorage.getItem('theme') !== 'light') {
+    document.documentElement.classList.toggle('dark', event.matches);
+    updateToggle();
+  }
+});
+
 document.addEventListener('DOMContentLoaded', updateToggle);
 `;
 
@@ -93,9 +111,9 @@ export function layout(content: string, title: string, description?: string, tag
         <a href="/posts/feed" class="font-mono text-xs text-secondary">RSS/Atom Feed</a>
         <span class="text-secondary font-mono text-xs">🫶🏽</span>
         <a href="/newsletter" class="font-mono text-xs text-secondary">Newsletter</a>
-        <button onclick="toggleTheme()" class="theme-switch" id="theme-switch" aria-label="Toggle theme">
-          <span class="theme-switch-icon" id="theme-icon">☀</span>
-          <span class="theme-switch-knob" id="theme-knob"></span>
+        <button type="button" onclick="toggleTheme()" class="theme-switch" id="theme-switch" aria-label="Switch to dark theme" title="Switch to dark theme">
+          <span class="theme-switch-icon" id="theme-icon" aria-hidden="true">☀</span>
+          <span class="theme-switch-knob" id="theme-knob" aria-hidden="true"></span>
         </button>
       </div>
       <span class="font-mono text-xs text-secondary tracking-wide text-center">
