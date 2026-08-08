@@ -16,7 +16,7 @@ function draftPost(overrides: Partial<PostMeta> = {}): PostMeta {
 }
 
 describe("adminHomeTemplate", () => {
-  it("renders draft posts with escaped titles, preview links, formatted dates, and labels", () => {
+  it("renders each draft as a linked row with escaped titles, formatted dates, and labels", () => {
     const html = adminHomeTemplate([
       draftPost({
         title: "Draft <Post> & \"Quote\"",
@@ -27,7 +27,7 @@ describe("adminHomeTemplate", () => {
     ]);
 
     expect(html).toContain("Draft posts");
-    expect(html).toContain('href="/posts/draft-post"');
+    expect(html).toMatch(/<a href="\/posts\/draft-post"[^>]*>[\s\S]*Draft &lt;Post&gt;[\s\S]*2026\.APR\.25[\s\S]*Link log[\s\S]*<\/a>/);
     expect(html).toContain("Draft &lt;Post&gt; &amp; &quot;Quote&quot;");
     expect(html).not.toContain("Draft <Post>");
     expect(html).toContain("2026.APR.25");

@@ -49,16 +49,18 @@ function draftPostItem(post: PostMeta): string {
     : "";
 
   return `
-    <li class="flex flex-col gap-2 p-4 sm:flex-row sm:items-start sm:justify-between">
-      <div class="min-w-0">
-        <a href="/posts/${escapeHtml(post.slug)}" class="link-accent font-mono text-sm">${escapeHtml(post.title)}</a>
-        ${sourcePath}
-      </div>
-      <div class="flex shrink-0 flex-wrap gap-2 font-mono text-xs text-secondary sm:justify-end">
-        <span>${escapeHtml(formatPostDate(post.date))}</span>
-        <span aria-hidden="true">·</span>
-        <span>${escapeHtml(formatPostType(post.postType))}</span>
-      </div>
+    <li>
+      <a href="/posts/${escapeHtml(post.slug)}" class="group flex flex-col gap-2 p-4 no-underline sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+          <span class="link-accent font-mono text-sm">${escapeHtml(post.title)}</span>
+          ${sourcePath}
+        </div>
+        <div class="flex shrink-0 flex-wrap gap-2 font-mono text-xs text-secondary sm:justify-end">
+          <span>${escapeHtml(formatPostDate(post.date))}</span>
+          <span aria-hidden="true">·</span>
+          <span>${escapeHtml(formatPostType(post.postType))}</span>
+        </div>
+      </a>
     </li>
   `;
 }
