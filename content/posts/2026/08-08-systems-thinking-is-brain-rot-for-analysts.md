@@ -1,11 +1,11 @@
 ---
 title: "Systems Thinking Is Brain Rot for Analysts"
 slug: "systems-thinking-is-brain-rot-for-analysts"
-date: "2026-08-08T22:16:20+05:30"
+date: "2026-08-08T17:22:46.679Z"
 description: ""
 tags: ["work-culture"]
 link: "https://blundercheck.timberschroff.com/p/systems-thinking-is-brain-rot-for"
-draft: true
+draft: false
 ---
 
 Timber Stinson-Schroff:
