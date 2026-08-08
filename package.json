@@ -11,7 +11,7 @@
     "build:manifest": "tsx scripts/build-manifest.ts",
     "build": "pnpm run build:css && pnpm run build:manifest",
     "dev:css": "tailwindcss -i ./styles/input.css -o ./public/css/styles.css --watch",
-    "dev:worker": "pnpm run build:manifest && wrangler dev --ip 0.0.0.0",
+    "dev:worker": "pnpm run build:manifest && wrangler dev --ip 0.0.0.0 --port ${PORT:-8787}",
     "dev": "concurrently \"pnpm run dev:css\" \"pnpm run dev:worker\"",
     "deploy": "pnpm run build && wrangler deploy",
     "types": "wrangler types",

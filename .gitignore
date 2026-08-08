@@ -37,6 +37,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Wrangler
 .wrangler
 
+# Amp Orb-generated portal state
+.amp/portals/
+
 # Generated files
 .bear-posts-sync.json
 .bear-posts-sync-pending.json

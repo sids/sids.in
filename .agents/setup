@@ -6,20 +6,23 @@ cd "$repo_root"
 
 echo "Setting up sids.in for Amp..."
 
-if ! command -v node >/dev/null 2>&1; then
-  echo "Node.js 22.13.0 or newer is required."
-  exit 1
+mise_bin="$HOME/.local/bin/mise"
+if [[ ! -x "$mise_bin" ]]; then
+  echo "Installing mise..."
+  curl -fsSL https://mise.run | sh
 fi
 
-if ! node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major > 22 || (major === 22 && minor >= 13) ? 0 : 1)'; then
-  echo "Node.js 22.13.0 or newer is required (found $(node --version))."
-  exit 1
-fi
+export PATH="$HOME/.local/bin:$PATH"
+"$mise_bin" trust --yes "$repo_root/.mise.toml"
+"$mise_bin" install
 
-if ! command -v pnpm >/dev/null 2>&1; then
-  echo "Installing pnpm..."
-  npm install --global "$(node -p 'require("./package.json").packageManager')"
-fi
+# Orb shells and supervised services already include ~/.local/bin in PATH.
+# Link the pinned tools there so they remain selected after this script exits.
+for tool in node npm npx corepack pnpm; do
+  ln -sfn "$("$mise_bin" which "$tool")" "$HOME/.local/bin/$tool"
+done
+
+echo "Using Node $(node --version) and pnpm $(pnpm --version)."
 
 echo "Installing dependencies from pnpm-lock.yaml..."
 pnpm install --frozen-lockfile
