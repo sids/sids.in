@@ -14,4 +14,8 @@ describe("tag helpers", () => {
   it("URL-encodes tag links defensively", () => {
     expect(tagHref('x" onmouseover="alert(1)', "/feed.xml")).toBe('/tags/x%22%20onmouseover%3D%22alert(1)/feed.xml');
   });
+
+  it("joins multiple tags into an AND-filter path", () => {
+    expect(tagHref(["ai", "product-building"])).toBe("/tags/ai+product-building");
+  });
 });

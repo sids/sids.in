@@ -35,6 +35,7 @@ export function normalizeTags(input?: unknown): string[] {
   return tags;
 }
 
-export function tagHref(tag: string, suffix = ""): string {
-  return `/tags/${encodeURIComponent(tag)}${suffix}`;
+export function tagHref(tag: string | string[], suffix = ""): string {
+  const tags = Array.isArray(tag) ? tag : [tag];
+  return `/tags/${tags.map(encodeURIComponent).join("+")}${suffix}`;
 }

@@ -18,22 +18,24 @@ function describeFilter(filter: PostFilterType): string {
 }
 
 export function tagTemplate(
-  tag: string,
+  tags: string[],
   posts: Post[],
   paginationInfo: PaginationInfo,
   currentFilter: PostFilterType = "all"
 ): string {
-  const basePath = tagHref(tag);
+  const basePath = tagHref(tags);
+  const tagLabel = tags.join(" + ");
+  const isMultipleTags = tags.length > 1;
   const emptyMessage = currentFilter === "all"
-    ? "No posts with this tag."
-    : `No ${describeFilter(currentFilter)} with this tag.`;
+    ? `No posts with ${isMultipleTags ? "all of these tags" : "this tag"}.`
+    : `No ${describeFilter(currentFilter)} with ${isMultipleTags ? "all of these tags" : "this tag"}.`;
 
   return `<div>
   <div class="flex items-center justify-between mb-8">
     <h1 class="font-heading text-sm tracking-widest uppercase text-secondary">
-      Tagged: <span style="color: var(--accent)">${escapeHtml(tag)}</span>
+      Tagged: <span class="text-accent">${escapeHtml(tagLabel)}</span>
     </h1>
-    <a href="${tagHref(tag, "/feed")}" class="font-mono text-xs text-secondary">Feed</a>
+    ${isMultipleTags ? "" : `<a href="${tagHref(tags, "/feed")}" class="font-mono text-xs text-secondary">Feed</a>`}
   </div>
   ${postFilter(basePath, currentFilter)}
   ${postsListCards(posts, paginationInfo, basePath, currentFilter, emptyMessage)}
@@ -42,15 +44,16 @@ export function tagTemplate(
 
 // Returns posts list + filter with OOB swap for HTMX partial updates
 export function tagPartial(
-  tag: string,
+  tags: string[],
   posts: Post[],
   paginationInfo: PaginationInfo,
   currentFilter: PostFilterType = "all"
 ): string {
-  const basePath = tagHref(tag);
+  const basePath = tagHref(tags);
+  const isMultipleTags = tags.length > 1;
   const emptyMessage = currentFilter === "all"
-    ? "No posts with this tag."
-    : `No ${describeFilter(currentFilter)} with this tag.`;
+    ? `No posts with ${isMultipleTags ? "all of these tags" : "this tag"}.`
+    : `No ${describeFilter(currentFilter)} with ${isMultipleTags ? "all of these tags" : "this tag"}.`;
 
   return postsListCards(posts, paginationInfo, basePath, currentFilter, emptyMessage) +
     postFilter(basePath, currentFilter, true);

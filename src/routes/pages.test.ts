@@ -190,3 +190,45 @@ describe("routePages feed routes", () => {
     expect(body).toContain('<feed xmlns="http://www.w3.org/2005/Atom">');
   });
 });
+
+describe("routePages multi-tag routes", () => {
+  it("lists only posts containing every tag in a plus-separated path", async () => {
+    const path = "/tags/ai+product-building";
+    const request = new Request(`https://sids.in${path}`);
+    const response = routePages(
+      path,
+      new URLSearchParams(),
+      "https://sids.in",
+      false,
+      null,
+      request,
+      {} as never,
+    );
+
+    expect(response.status).toBe(200);
+    const body = await response.text();
+    expect(body).toContain("AI Is Technology, Not a Product");
+    expect(body).toContain("Building Software is Learning");
+    expect(body).not.toContain("Humans Are Valuable");
+    expect(body).not.toContain("Tim Cook Personified Big Tech's Maturity");
+    expect(body).toContain("/tags/ai+product-building?type=article");
+    expect(body).not.toContain("/tags/ai+product-building/feed");
+  });
+
+  it("returns an empty list when known tags have no posts in common", async () => {
+    const path = "/tags/book+entrepreneurship";
+    const request = new Request(`https://sids.in${path}`);
+    const response = routePages(
+      path,
+      new URLSearchParams(),
+      "https://sids.in",
+      false,
+      null,
+      request,
+      {} as never,
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain("No posts with all of these tags.");
+  });
+});

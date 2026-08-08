@@ -403,20 +403,17 @@ function handleArchive({ path, params, isHtmx, hxTarget, request }: RouteContext
 }
 
 function handleTag({ path, params, origin, isHtmx, hxTarget, request }: RouteContext): Response | null {
-  const tagMatch = path.match(/^\/tags\/([a-z0-9-]+)$/i);
+  const tagMatch = path.match(/^\/tags\/([a-z0-9-]+(?:\+[a-z0-9-]+)*)$/i);
   if (!tagMatch) {
     return null;
   }
 
-  const tag = tagMatch[1]!;
-  const slugs = tagIndex[tag];
-  if (!slugs || slugs.length === 0) {
+  const selectedTags = [...new Set(tagMatch[1]!.toLowerCase().split("+"))];
+  if (selectedTags.some((tag) => !tagIndex[tag]?.length)) {
     return null;
   }
 
-  const tagPosts = slugs
-    .map((slug) => posts.find((p) => p.slug === slug))
-    .filter((p) => p !== undefined);
+  const tagPosts = posts.filter((post) => selectedTags.every((tag) => post.tags.includes(tag)));
 
   const filter = getPostFilter(params);
   const filteredTagPosts = filterPosts(tagPosts, filter);
@@ -431,11 +428,19 @@ function handleTag({ path, params, origin, isHtmx, hxTarget, request }: RouteCon
     .filter((p): p is Post => p !== null);
 
   if (hxTarget === "posts-list") {
-    return htmlPartial(tagPartial(tag, fullPosts, pagination, filter), request);
+    return htmlPartial(tagPartial(selectedTags, fullPosts, pagination, filter), request);
   }
 
-  const content = tagTemplate(tag, fullPosts, pagination, filter);
-  return html(content, `Tag: ${tag}`, `Posts tagged ${tag}`, isHtmx, request, tag);
+  const tagLabel = selectedTags.join(" + ");
+  const content = tagTemplate(selectedTags, fullPosts, pagination, filter);
+  return html(
+    content,
+    `${selectedTags.length > 1 ? "Tags" : "Tag"}: ${tagLabel}`,
+    `Posts tagged ${tagLabel}`,
+    isHtmx,
+    request,
+    selectedTags.length === 1 ? selectedTags[0] : undefined,
+  );
 }
 
 function handleStaticPage({ path, isHtmx, request }: RouteContext): Response | null {
