@@ -1,11 +1,11 @@
 ---
 title: "Solving a Largely Imaginary User Goal"
 slug: "solving-a-largely-imaginary-user-goal"
-date: "2026-08-08T22:35:38+05:30"
+date: "2026-08-08T17:28:53.177Z"
 description: ""
 tags: ["web-dev", "design"]
 link: "https://unsung.aresluna.org/solving-a-largely-imaginary-user-goal"
-draft: true
+draft: false
 ---
 
 Marcin Wichary:
