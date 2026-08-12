@@ -1,11 +1,11 @@
 ---
 title: "Advanced AI Sycophancy"
 slug: "advanced-ai-sycophancy"
-date: "2026-08-09T18:57:28+05:30"
+date: "2026-08-12T09:20:49.006Z"
 description: ""
 tags: ["ai"]
 link: "https://seangoedecke.com/advanced-ai-sycophancy/"
-draft: true
+draft: false
 ---
 
 Sean Goedecke:
