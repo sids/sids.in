@@ -85,6 +85,10 @@ export async function routeAdmin(
     return null;
   }
 
+  if (path === "/admin/") {
+    return redirectResponse("/admin");
+  }
+
   if (isAdminPath && !isValidSessionSecret(env.SESSION_SECRET)) {
     return adminConfigurationErrorResponse();
   }

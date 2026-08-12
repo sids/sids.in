@@ -382,6 +382,16 @@ describe("routeAdmin routing", () => {
 
     expect(response).toBeNull();
   });
+
+  it("redirects the trailing-slash admin path to the canonical admin path", async () => {
+    const request = new Request("https://example.com/admin/");
+
+    const response = await routeAdmin("/admin/", request, TEST_ENV, "https://example.com", false);
+
+    expect(response).not.toBeNull();
+    expect(response!.status).toBe(308);
+    expect(response!.headers.get("Location")).toBe("/admin");
+  });
 });
 
 describe("routeAdmin cache headers", () => {
