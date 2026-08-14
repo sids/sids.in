@@ -66,7 +66,6 @@ function makeState(overrides: Partial<SyncState[string]> = {}): SyncState {
   return {
     "content/posts/2026/06-07-test-post.md": {
       bearId: "bear-id",
-      slug: "test-post",
       lastFileHash: "local-hash",
       lastBearHash: "bear-hash",
       ...overrides,
@@ -75,13 +74,13 @@ function makeState(overrides: Partial<SyncState[string]> = {}): SyncState {
 }
 
 describe("Bear CLI reads", () => {
-  it("searches for the punctuation-containing managed tag and gets content hashes from cat", async () => {
+  it("searches for the managed tag and does not reread tracked search results", async () => {
     const calls: string[][] = [];
     const bearCli = (args: string[]): string => {
       calls.push(args);
       if (args[0] === "search") {
         return JSON.stringify([
-          { id: "bear-id", title: "Test post", tags: ["#sids.in/ai"], location: "notes" },
+          { id: "bear-id", title: "Test post", tags: ["#sids.in/ai"] },
         ]);
       }
       if (args[0] === "cat") {
@@ -90,7 +89,7 @@ describe("Bear CLI reads", () => {
       throw new Error(`Unexpected bearcli command: ${args.join(" ")}`);
     };
 
-    const notes = await readBearNotes(bearCli, async () => ({}));
+    const notes = await readBearNotes(bearCli, async () => makeState());
 
     expect(calls).toEqual([
       [
@@ -99,7 +98,7 @@ describe("Bear CLI reads", () => {
         "--format",
         "json",
         "--fields",
-        "id,title,tags,location",
+        "id,title,tags",
       ],
       ["cat", "bear-id", "--format", "json"],
     ]);
@@ -108,10 +107,29 @@ describe("Bear CLI reads", () => {
       id: "bear-id",
       title: "Test post",
       tags: ["#sids.in/ai"],
-      location: "notes",
       content: bearContent,
       hash: "bear-cli-hash",
     });
+  });
+
+  it("reads tracked notes missing from the managed-tag search", async () => {
+    const calls: string[][] = [];
+    const bearCli = (args: string[]): string => {
+      calls.push(args);
+      if (args[0] === "search") return "[]";
+      if (args[0] === "show") {
+        return JSON.stringify({ id: "bear-id", title: "Test post", tags: [] });
+      }
+      if (args[0] === "cat") {
+        return JSON.stringify({ content: bearContent, hash: "bear-cli-hash" });
+      }
+      throw new Error(`Unexpected bearcli command: ${args.join(" ")}`);
+    };
+
+    const notes = await readBearNotes(bearCli, async () => makeState());
+
+    expect(notes).toHaveLength(1);
+    expect(calls.map(([command]) => command)).toEqual(["search", "show", "cat"]);
   });
 
   it("repairs an empty frontmatter template so a Bear link note can be imported", async () => {
@@ -131,7 +149,7 @@ Commentary
     const bearCli = (args: string[]): string => {
       if (args[0] === "search") {
         return JSON.stringify([
-          { id: "link-note", title: "Link post title", tags: ["#sids.in/ai"], location: "notes" },
+          { id: "link-note", title: "Link post title", tags: ["#sids.in/ai"] },
         ]);
       }
       if (args[0] === "cat") {
@@ -183,6 +201,33 @@ describe("Bear managed tags", () => {
     );
 
     expect(actions).toEqual([]);
+  });
+});
+
+describe("Bear body safeguards", () => {
+  it("does not overwrite a divergent Bear body by default", () => {
+    const post = makePost({ content: localContent.replace("Body", "Changed body"), hash: "changed-local-hash" });
+
+    expect(planActions([post], [makeNote()], makeState())).toEqual([
+      {
+        type: "skip",
+        reason: `Local body differs from Bear for ${post.path}; re-run with --overwrite-bear-content to replace Bear content`,
+      },
+    ]);
+  });
+
+  it("allows an explicit Bear body overwrite", () => {
+    const post = makePost({ content: localContent.replace("Body", "Changed body"), hash: "changed-local-hash" });
+    const note = makeNote();
+
+    expect(planActions([post], [note], makeState(), true)).toEqual([
+      {
+        type: "update-bear",
+        post,
+        note,
+        entry: makeState()[post.path],
+      },
+    ]);
   });
 });
 
@@ -241,22 +286,6 @@ describe("Bear WIP imports", () => {
       },
     ]);
   });
-
-  it("does not force a WIP note into a local file with --from-bear", () => {
-    const actions = planActions(
-      [makePost({ hash: "changed-local-hash" })],
-      [makeNote({ tags: ["sids.in", "sids.in/~wip"], normalizedHash: "changed-bear-hash" })],
-      makeState(),
-      { fromBear: true }
-    );
-
-    expect(actions).toEqual([
-      {
-        type: "skip",
-        reason: "Bear note bear-id (Test post) is tagged as WIP",
-      },
-    ]);
-  });
 });
 
 function makePendingGitPathsStore() {
@@ -280,6 +309,14 @@ function gitUpstreamOutput(args: string[]): string | undefined {
 }
 
 describe("Git publication", () => {
+  it("does not inspect or push Git when there are no pending Bear files", () => {
+    const git = (): string => {
+      throw new Error("Git should not be called");
+    };
+
+    expect(commitAndPushFiles([], git)).toEqual({});
+  });
+
   it("commits only Bear-produced files and pushes HEAD to the tracked upstream branch", () => {
     const calls: string[][] = [];
     const git = (args: string[]): string => {

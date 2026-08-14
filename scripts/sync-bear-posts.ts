@@ -28,7 +28,6 @@ interface BearNote {
   title: string;
   tags: string[];
   hash: string;
-  location?: string;
   content: string;
   normalizedContent: string;
   normalizedHash: string;
@@ -37,23 +36,16 @@ interface BearNote {
 
 interface SyncEntry {
   bearId: string;
-  slug: string;
   lastFileHash: string;
   lastBearHash: string;
 }
 
 type SyncState = Record<string, SyncEntry>;
 
-export interface PlanOptions {
-  fromFiles?: boolean;
-  fromBear?: boolean;
-  overwriteBearContent?: boolean;
-}
-
 type Action =
   | { type: "create-bear"; post: LocalPost }
   | { type: "update-bear"; post: LocalPost; note: BearNote; entry: SyncEntry }
-  | { type: "update-file"; post: LocalPost; note: BearNote; entry: SyncEntry }
+  | { type: "update-file"; post: LocalPost; note: BearNote }
   | { type: "sync-tags"; post: LocalPost; note: BearNote }
   | { type: "create-file"; note: BearNote; path: string }
   | { type: "archive-bear"; note: BearNote; path: string }
@@ -71,14 +63,8 @@ const WIP_META_TAG = `${MANAGED_TAG_PREFIX}/~wip`;
 
 const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run");
-const fromFiles = args.has("--from-files");
-const fromBear = args.has("--from-bear");
 const overwriteBearContent = args.has("--overwrite-bear-content");
 const commitAndPush = args.has("--commit-and-push");
-
-if (fromFiles && fromBear) {
-  throw new Error("Use only one of --from-files or --from-bear.");
-}
 
 function sha256(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -129,45 +115,34 @@ function contentForBearContent(content: string, title: string): string {
   return addBearTitleHeading(canonicalPostContent(content), title);
 }
 
+interface PostContentParts {
+  frontmatterLines?: string[];
+  body: string;
+}
+
+function splitPostContent(content: string): PostContentParts {
+  const canonical = canonicalPostContent(content);
+  const lines = canonical.split("\n");
+  const frontmatterEnd = lines[0] === "---" ? findFrontmatterEnd(lines) : undefined;
+  if (frontmatterEnd === undefined) {
+    return { body: canonical.trimEnd() };
+  }
+  return {
+    frontmatterLines: lines.slice(0, frontmatterEnd + 1),
+    body: lines.slice(frontmatterEnd + 1).join("\n").trimEnd(),
+  };
+}
+
 function replaceContentBody(frontmatterSource: string, bodySource: string): string {
-  const frontmatterLines = frontmatterBlockLines(frontmatterSource);
-  if (!frontmatterLines) {
+  const source = splitPostContent(frontmatterSource);
+  if (!source.frontmatterLines) {
     return canonicalPostContent(frontmatterSource);
   }
-
-  return ensureTrailingNewline([...frontmatterLines, contentBodyWithSpacing(bodySource)].join("\n").trimEnd());
-}
-
-function frontmatterBlockLines(content: string): string[] | undefined {
-  const lines = canonicalPostContent(content).split("\n");
-  if (lines[0] !== "---") {
-    return undefined;
-  }
-
-  const frontmatterEnd = findFrontmatterEnd(lines);
-  if (frontmatterEnd === undefined) {
-    return undefined;
-  }
-
-  return lines.slice(0, frontmatterEnd + 1);
-}
-
-function contentBodyWithSpacing(content: string): string {
-  const lines = canonicalPostContent(content).split("\n");
-  if (lines[0] !== "---") {
-    return canonicalPostContent(content).trimEnd();
-  }
-
-  const frontmatterEnd = findFrontmatterEnd(lines);
-  if (frontmatterEnd === undefined) {
-    return canonicalPostContent(content).trimEnd();
-  }
-
-  return lines.slice(frontmatterEnd + 1).join("\n").trimEnd();
+  return ensureTrailingNewline([...source.frontmatterLines, splitPostContent(bodySource).body].join("\n").trimEnd());
 }
 
 function contentBody(content: string): string {
-  return contentBodyWithSpacing(content).trim();
+  return splitPostContent(content).body.trim();
 }
 
 function bearBodyDiffersFromLocal(post: LocalPost, note: BearNote): boolean {
@@ -190,26 +165,49 @@ function slugify(value: string): string {
     .replace(/-{2,}/g, "-") || "post";
 }
 
-function ensureFrontmatterSlug(content: string, slug: string): string {
-  const lines = content.split("\n");
-  if (lines[0] !== "---") {
-    return content;
-  }
+interface FrontmatterFieldOptions {
+  after?: string;
+  atStart?: boolean;
+  onlyIfEmpty?: boolean;
+  multiline?: boolean;
+}
 
-  const frontmatterEnd = findFrontmatterEnd(lines);
+function setFrontmatterField(
+  content: string,
+  key: string,
+  value: unknown,
+  options: FrontmatterFieldOptions = {}
+): string {
+  const lines = content.split("\n");
+  const frontmatterEnd = lines[0] === "---" ? findFrontmatterEnd(lines) : undefined;
   if (frontmatterEnd === undefined) {
     return content;
   }
 
+  const fieldPattern = new RegExp(`^${key}:\\s*(.*)$`);
   for (let index = 1; index < frontmatterEnd; index += 1) {
-    if (/^slug:\s*/.test(lines[index] || "")) {
-      lines[index] = `slug: "${slug}"`;
-      return lines.join("\n");
+    const match = lines[index]?.match(fieldPattern);
+    if (!match) {
+      continue;
     }
+    if (options.onlyIfEmpty && !/^(?:""|''|null|~)?\s*$/.test(match[1] || "")) {
+      return content;
+    }
+    let end = index + 1;
+    if (options.multiline) {
+      while (end < frontmatterEnd && /^\s+-\s+/.test(lines[end] || "")) {
+        end += 1;
+      }
+    }
+    lines.splice(index, end - index, `${key}: ${JSON.stringify(value)}`);
+    return lines.join("\n");
   }
 
-  const titleIndex = lines.findIndex((line, index) => index > 0 && index < frontmatterEnd && /^title:\s*/.test(line));
-  lines.splice(titleIndex === -1 ? frontmatterEnd : titleIndex + 1, 0, `slug: "${slug}"`);
+  const afterIndex = options.after
+    ? lines.findIndex((line, index) => index > 0 && index < frontmatterEnd && line.startsWith(`${options.after}:`))
+    : -1;
+  const insertIndex = options.atStart ? 1 : afterIndex === -1 ? frontmatterEnd : afterIndex + 1;
+  lines.splice(insertIndex, 0, `${key}: ${JSON.stringify(value)}`);
   return lines.join("\n");
 }
 
@@ -233,82 +231,7 @@ function inferTitleFromBodyHeading(content: string): string | undefined {
   return heading?.[1]?.trim() || undefined;
 }
 
-function ensureFrontmatterTitle(content: string, title: string): string {
-  const lines = content.split("\n");
-  if (lines[0] !== "---") {
-    return content;
-  }
-
-  const frontmatterEnd = findFrontmatterEnd(lines);
-  if (frontmatterEnd === undefined) {
-    return content;
-  }
-
-  for (let index = 1; index < frontmatterEnd; index += 1) {
-    if (/^title:\s*/.test(lines[index] || "")) {
-      lines[index] = `title: ${JSON.stringify(title)}`;
-      return lines.join("\n");
-    }
-  }
-
-  lines.splice(1, 0, `title: ${JSON.stringify(title)}`);
-  return lines.join("\n");
-}
-
-function ensureFrontmatterTags(content: string, tags: string[]): string {
-  const lines = content.split("\n");
-  if (lines[0] !== "---") {
-    return content;
-  }
-
-  const frontmatterEnd = findFrontmatterEnd(lines);
-  if (frontmatterEnd === undefined) {
-    return content;
-  }
-
-  const tagsLine = `tags: ${JSON.stringify(tags)}`;
-  for (let index = 1; index < frontmatterEnd; index += 1) {
-    if (/^tags:\s*/.test(lines[index] || "")) {
-      let end = index + 1;
-      while (end < frontmatterEnd && /^\s+-\s+/.test(lines[end] || "")) {
-        end += 1;
-      }
-      lines.splice(index, end - index, tagsLine);
-      return lines.join("\n");
-    }
-  }
-
-  lines.splice(frontmatterEnd, 0, tagsLine);
-  return lines.join("\n");
-}
-
-function ensureFrontmatterDate(content: string, date: string): string {
-  const lines = content.split("\n");
-  if (lines[0] !== "---") {
-    return content;
-  }
-
-  const frontmatterEnd = findFrontmatterEnd(lines);
-  if (frontmatterEnd === undefined) {
-    return content;
-  }
-
-  for (let index = 1; index < frontmatterEnd; index += 1) {
-    const line = lines[index] || "";
-    if (/^date:\s*/.test(line)) {
-      if (/^date:\s*(?:""|''|null|~)?\s*$/.test(line)) {
-        lines[index] = `date: ${JSON.stringify(date)}`;
-      }
-      return lines.join("\n");
-    }
-  }
-
-  const slugIndex = lines.findIndex((line, index) => index > 0 && index < frontmatterEnd && /^slug:\s*/.test(line));
-  lines.splice(slugIndex === -1 ? frontmatterEnd : slugIndex + 1, 0, `date: ${JSON.stringify(date)}`);
-  return lines.join("\n");
-}
-
-function ensureFrontmatterBlock(content: string, fallbackTitle: string): string {
+function ensureFrontmatterBlock(content: string, fallbackTitle: string, date: string): string {
   const lines = content.split("\n");
   if (lines[0] === "---" && findFrontmatterEnd(lines) !== undefined) {
     return content;
@@ -316,7 +239,6 @@ function ensureFrontmatterBlock(content: string, fallbackTitle: string): string 
 
   const title = inferTitleFromLeadingHeading(content) || fallbackTitle || "Untitled";
   const slug = slugify(title);
-  const date = new Date().toISOString().slice(0, 10);
   const body = content.trimStart();
 
   return ensureTrailingNewline(
@@ -349,29 +271,7 @@ function bearPresentationContent(content: string): string {
 
 function stripBearTitleHeading(content: string): string {
   const lines = content.split("\n");
-  if (!lines[0]?.startsWith("# ")) {
-    return stripBearTitleHeadingAfterFrontmatter(content);
-  }
-
-  let index = 1;
-  while (lines[index]?.trim() === "") {
-    index += 1;
-  }
-
-  if (lines[index] !== "---") {
-    return content;
-  }
-
-  return lines.slice(index).join("\n");
-}
-
-function stripBearTitleHeadingAfterFrontmatter(content: string): string {
-  const lines = content.split("\n");
-  if (lines[0] !== "---") {
-    return content;
-  }
-
-  const frontmatterEnd = findFrontmatterEnd(lines);
+  const frontmatterEnd = lines[0] === "---" ? findFrontmatterEnd(lines) : undefined;
   if (frontmatterEnd === undefined) {
     return content;
   }
@@ -380,19 +280,16 @@ function stripBearTitleHeadingAfterFrontmatter(content: string): string {
   while (lines[headingIndex]?.trim() === "") {
     headingIndex += 1;
   }
-
   if (!lines[headingIndex]?.startsWith("# ")) {
     return content;
   }
 
-  const nextLinesStart = headingIndex + 1;
   const beforeHeading = lines.slice(0, frontmatterEnd + 1);
-  const afterHeading = lines.slice(nextLinesStart);
+  const afterHeading = lines.slice(headingIndex + 1);
   const hadBlankAfterHeading = afterHeading[0]?.trim() === "";
   while (afterHeading[0]?.trim() === "") {
     afterHeading.shift();
   }
-
   return [...beforeHeading, ...(hadBlankAfterHeading ? [""] : []), ...afterHeading].join("\n");
 }
 
@@ -463,7 +360,23 @@ function normalizeFrontmatterTags(tags: unknown): string[] {
     .filter(Boolean);
 }
 
-function desiredBearTags(path: string, frontmatter: PostFrontmatter): string[] {
+function normalizedBearTags(tags: string[]): Set<string> {
+  return new Set(tags.map((tag) => tag.replace(/^#/, "").trim()).filter(Boolean));
+}
+
+function managedBearTags(tags: string[]): Set<string> {
+  const managed = new Set(
+    [...normalizedBearTags(tags)].filter(
+      (tag) => tag === MANAGED_TAG_PREFIX || tag.startsWith(`${MANAGED_TAG_PREFIX}/`)
+    )
+  );
+  if ([...managed].some((tag) => tag.startsWith(`${MANAGED_TAG_PREFIX}/`))) {
+    managed.delete(MANAGED_TAG_PREFIX);
+  }
+  return managed;
+}
+
+function desiredBearTags(path: string, frontmatter: PostFrontmatter, existingTags: string[] = []): string[] {
   const tags = new Set<string>();
   for (const tag of normalizeFrontmatterTags(frontmatter.tags)) {
     tags.add(`${MANAGED_TAG_PREFIX}/${tag}`);
@@ -474,72 +387,29 @@ function desiredBearTags(path: string, frontmatter: PostFrontmatter): string[] {
   if (path.startsWith("content/posts/articles/")) {
     tags.add(ARTICLE_META_TAG);
   }
+  if (normalizedBearTags(existingTags).has(WIP_META_TAG)) {
+    tags.add(WIP_META_TAG);
+  }
   if (tags.size === 0) {
     tags.add(MANAGED_TAG_PREFIX);
   }
   return [...tags].sort();
 }
 
-function normalizeBearTag(tag: string): string {
-  return tag.replace(/^#/, "").trim();
-}
-
-function removeRedundantManagedRoot(tags: Set<string>): Set<string> {
-  if ([...tags].some((tag) => tag.startsWith(`${MANAGED_TAG_PREFIX}/`))) {
-    tags.delete(MANAGED_TAG_PREFIX);
-  }
-  return tags;
-}
-
-function desiredBearTagsPreservingWip(path: string, frontmatter: PostFrontmatter, note: BearNote): string[] {
-  const tags = new Set(desiredBearTags(path, frontmatter));
-  if (hasBearTag(note, WIP_META_TAG)) {
-    tags.add(WIP_META_TAG);
-  }
-  return [...removeRedundantManagedRoot(tags)].sort();
-}
-
-function syncedManagedBearTags(tags: string[]): Set<string> {
-  return removeRedundantManagedRoot(
-    new Set(
-      tags
-        .map(normalizeBearTag)
-        .filter((tag) => tag.startsWith(MANAGED_TAG_PREFIX) && tag !== WIP_META_TAG)
-    )
-  );
-}
-
-function hasBearTag(note: BearNote, tag: string): boolean {
-  return note.tags.map(normalizeBearTag).includes(tag);
-}
-
-function tagsNeedSync(note: BearNote, desiredTags: string[]): boolean {
-  const current = syncedManagedBearTags(note.tags);
-  const desired = new Set(desiredTags);
-  if (current.size !== desired.size) {
-    return true;
-  }
-  for (const tag of desired) {
-    if (!current.has(tag)) {
-      return true;
-    }
-  }
-  return false;
+function tagsNeedSync(note: BearNote, path: string, frontmatter: PostFrontmatter): boolean {
+  const current = managedBearTags(note.tags);
+  const desired = new Set(desiredBearTags(path, frontmatter, note.tags));
+  return current.size !== desired.size || [...desired].some((tag) => !current.has(tag));
 }
 
 function bearContentNeedsSync(post: LocalPost, note: BearNote): boolean {
   return bearPresentationContent(note.content) !== contentForBear(post);
 }
 
-async function getMarkdownFiles(dir: string): Promise<string[]> {
-  const files = await readdir(dir, { recursive: true });
-  return files
+async function readLocalPosts(): Promise<LocalPost[]> {
+  const files = (await readdir(POSTS_DIR, { recursive: true }))
     .filter((file): file is string => typeof file === "string" && file.endsWith(".md"))
     .sort();
-}
-
-async function readLocalPosts(): Promise<LocalPost[]> {
-  const files = await getMarkdownFiles(POSTS_DIR);
   const posts: LocalPost[] = [];
 
   for (const file of files) {
@@ -568,41 +438,22 @@ async function saveState(state: SyncState): Promise<void> {
   await writeFile(STATE_FILE, `${JSON.stringify(sorted, null, 2)}\n`);
 }
 
-function runBearCli(args: string[], input?: string): string {
-  const result = spawnSync("bearcli", args, {
-    cwd: ROOT,
-    input,
-    encoding: "utf-8",
-  });
-
-  if (result.error) {
-    throw new Error(`bearcli ${args.join(" ")} failed: ${result.error.message}`);
-  }
-
+function runCommand(command: string, args: string[], input?: string): string {
+  const result = spawnSync(command, args, { cwd: ROOT, input, encoding: "utf-8" });
   const stdout = result.stdout.trim();
   const stderr = result.stderr.trim();
-  if (result.status !== 0) {
-    throw new Error(`bearcli ${args.join(" ")} failed: ${stderr || stdout}`);
+  if (result.error || result.status !== 0) {
+    throw new Error(`${command} ${args.join(" ")} failed: ${result.error?.message || stderr || stdout}`);
   }
-  return stdout;
+  return stdout || stderr;
+}
+
+function runBearCli(args: string[], input?: string): string {
+  return runCommand("bearcli", args, input);
 }
 
 function runGit(args: string[]): string {
-  const result = spawnSync("git", args, {
-    cwd: ROOT,
-    encoding: "utf-8",
-  });
-
-  if (result.error) {
-    throw new Error(`git ${args.join(" ")} failed: ${result.error.message}`);
-  }
-
-  const stdout = result.stdout.trim();
-  const stderr = result.stderr.trim();
-  if (result.status !== 0) {
-    throw new Error(`git ${args.join(" ")} failed: ${stderr || stdout}`);
-  }
-  return stdout || stderr;
+  return runCommand("git", args);
 }
 
 type BearCliRunner = (args: string[], input?: string) => string;
@@ -613,14 +464,6 @@ export async function readBearNotes(
   stateLoader: SyncStateLoader = loadState
 ): Promise<BearNote[]> {
   const state = await stateLoader();
-  const notesById = new Map<string, BearNote>();
-  for (const entry of Object.values(state)) {
-    const note = readBearNoteById(entry.bearId, bearCli);
-    if (note) {
-      notesById.set(note.id, note);
-    }
-  }
-
   // Bear search tags containing punctuation must be closed with a trailing #.
   // `list --tag sids.in` returns no matches even though the tag exists.
   const output = bearCli([
@@ -629,13 +472,22 @@ export async function readBearNotes(
     "--format",
     "json",
     "--fields",
-    "id,title,tags,location",
+    "id,title,tags",
   ]);
-  const rawNotes = JSON.parse(output || "[]") as RawBearNoteMetadata[];
-
-  for (const rawNote of rawNotes) {
-    const note = readBearNote(rawNote, bearCli);
+  const notesById = new Map<string, BearNote>();
+  for (const metadata of JSON.parse(output || "[]") as RawBearNoteMetadata[]) {
+    const note = readBearNote(metadata, bearCli);
     notesById.set(note.id, note);
+  }
+
+  for (const bearId of new Set(Object.values(state).map((entry) => entry.bearId))) {
+    if (notesById.has(bearId)) {
+      continue;
+    }
+    const note = readBearNoteById(bearId, bearCli);
+    if (note) {
+      notesById.set(note.id, note);
+    }
   }
 
   return [...notesById.values()];
@@ -645,7 +497,6 @@ interface RawBearNoteMetadata {
   id: string;
   title: string;
   tags?: string[];
-  location?: string;
 }
 
 interface RawBearNoteContent {
@@ -661,7 +512,7 @@ function readBearNote(metadata: RawBearNoteMetadata, bearCli: BearCliRunner): Be
 
 function readBearNoteById(id: string, bearCli: BearCliRunner): BearNote | undefined {
   try {
-    const output = bearCli(["show", id, "--format", "json", "--fields", "id,title,tags,location"]);
+    const output = bearCli(["show", id, "--format", "json", "--fields", "id,title,tags"]);
     return readBearNote(JSON.parse(output) as RawBearNoteMetadata, bearCli);
   } catch {
     return undefined;
@@ -670,28 +521,36 @@ function readBearNoteById(id: string, bearCli: BearCliRunner): BearNote | undefi
 
 interface RawBearNote extends RawBearNoteMetadata, RawBearNoteContent {}
 
+function repairBearContent(note: RawBearNote): { content: string; frontmatter?: PostFrontmatter } {
+  const today = new Date().toISOString().slice(0, 10);
+  let content = ensureFrontmatterBlock(stripManagedBearTagLines(note.content), note.title, today);
+  const title = inferTitleFromBodyHeading(content) || note.title.trim();
+  if (title) {
+    content = setFrontmatterField(content, "title", title, { atStart: true });
+  }
+  content = setFrontmatterField(content, "date", today, { after: "slug", onlyIfEmpty: true });
+  content = canonicalPostContent(content);
+
+  const frontmatter = parsePostFrontmatter(content, `Bear note ${note.id}`, false);
+  if (!frontmatter) {
+    return { content };
+  }
+  content = canonicalPostContent(setFrontmatterField(content, "slug", frontmatter.slug, { after: "title" }));
+  return { content, frontmatter };
+}
+
 function normalizeBearNote(note: RawBearNote): BearNote {
   const content = normalizeLineEndings(note.content || "");
-  const contentWithoutManagedTags = stripManagedBearTagLines(content);
-  const contentWithFrontmatter = ensureFrontmatterBlock(contentWithoutManagedTags, note.title);
-  const inferredTitle = inferTitleFromBodyHeading(contentWithFrontmatter) || note.title.trim();
-  const contentWithTitle = inferredTitle ? ensureFrontmatterTitle(contentWithFrontmatter, inferredTitle) : contentWithFrontmatter;
-  const contentWithDate = ensureFrontmatterDate(contentWithTitle, new Date().toISOString().slice(0, 10));
-  const rawNormalizedContent = canonicalPostContent(contentWithDate);
-  const frontmatter = parsePostFrontmatter(rawNormalizedContent, `Bear note ${note.id}`, false);
-  const normalizedContent = frontmatter
-    ? canonicalPostContent(ensureFrontmatterSlug(rawNormalizedContent, frontmatter.slug))
-    : rawNormalizedContent;
+  const repaired = repairBearContent({ ...note, content });
   return {
     id: note.id,
     title: note.title,
     tags: note.tags || [],
     hash: note.hash,
-    location: note.location,
     content,
-    normalizedContent,
-    normalizedHash: sha256(normalizedContent),
-    frontmatter: frontmatter ? { ...frontmatter, slug: frontmatter.slug } : undefined,
+    normalizedContent: repaired.content,
+    normalizedHash: sha256(repaired.content),
+    frontmatter: repaired.frontmatter,
   };
 }
 
@@ -708,7 +567,7 @@ function indexByUnique<T>(items: T[], keyFor: (item: T) => string | undefined): 
 }
 
 function bearToFileSkip(note: BearNote): Extract<Action, { type: "skip" }> | undefined {
-  if (!hasBearTag(note, WIP_META_TAG)) {
+  if (!normalizedBearTags(note.tags).has(WIP_META_TAG)) {
     return undefined;
   }
   return { type: "skip", reason: `Bear note ${note.id} (${note.title}) is tagged as WIP` };
@@ -718,18 +577,14 @@ export function planActions(
   localPosts: LocalPost[],
   bearNotes: BearNote[],
   state: SyncState,
-  options: PlanOptions = {}
+  allowBodyOverwrite = false
 ): Action[] {
-  const planFromFiles = options.fromFiles ?? false;
-  const planFromBear = options.fromBear ?? false;
-  const planOverwriteBearContent = options.overwriteBearContent ?? false;
   const actions: Action[] = [];
   const notesById = new Map(bearNotes.map((note) => [note.id, note]));
   const postsByPath = new Map(localPosts.map((post) => [post.path, post]));
   const notesBySlug = indexByUnique(bearNotes, (note) => note.frontmatter?.slug);
   const notesByTitle = indexByUnique(bearNotes, (note) => note.frontmatter?.title || note.title);
   const matchedNoteIds = new Set<string>();
-  const matchedPaths = new Set<string>();
 
   for (const post of localPosts) {
     const entry = state[post.path];
@@ -761,26 +616,24 @@ export function planActions(
     }
 
     matchedNoteIds.add(note.id);
-    matchedPaths.add(post.path);
 
     const effectiveEntry = entry || {
       bearId: note.id,
-      slug: post.frontmatter.slug,
       lastFileHash: post.hash,
       lastBearHash: note.normalizedHash,
     };
 
-    const fileChanged = planFromFiles || post.hash !== effectiveEntry.lastFileHash;
-    const bearChanged = planFromBear || note.normalizedHash !== effectiveEntry.lastBearHash;
+    const fileChanged = post.hash !== effectiveEntry.lastFileHash;
+    const bearChanged = note.normalizedHash !== effectiveEntry.lastBearHash;
     const bearBodyChanged = bearBodyDiffersFromLocal(post, note);
-    const bearPresentationChanged = planOverwriteBearContent
+    const bearPresentationChanged = allowBodyOverwrite
       ? bearContentNeedsSync(post, note)
       : bearMetadataNeedsSync(post, note);
-    const tagChanged = tagsNeedSync(note, desiredBearTags(post.path, post.frontmatter));
+    const tagChanged = tagsNeedSync(note, post.path, post.frontmatter);
 
-    if (fileChanged && bearChanged && !planFromFiles && !planFromBear) {
+    if (fileChanged && bearChanged) {
       actions.push({ type: "conflict", post, note, reason: "Both local file and Bear note changed" });
-    } else if (fileChanged && bearBodyChanged && !planOverwriteBearContent && !bearPresentationChanged) {
+    } else if (fileChanged && bearBodyChanged && !allowBodyOverwrite && !bearPresentationChanged) {
       actions.push({
         type: "skip",
         reason: `Local body differs from Bear for ${post.path}; re-run with --overwrite-bear-content to replace Bear content`,
@@ -790,15 +643,10 @@ export function planActions(
     } else if (bearPresentationChanged && !bearChanged) {
       actions.push({ type: "update-bear", post, note, entry: effectiveEntry });
     } else if (bearChanged && !fileChanged) {
-      actions.push(bearToFileSkip(note) ?? { type: "update-file", post, note, entry: effectiveEntry });
-    } else if (planFromFiles) {
-      actions.push({ type: "update-bear", post, note, entry: effectiveEntry });
-    } else if (planFromBear) {
-      actions.push(bearToFileSkip(note) ?? { type: "update-file", post, note, entry: effectiveEntry });
+      actions.push(bearToFileSkip(note) ?? { type: "update-file", post, note });
     } else {
       state[post.path] = {
         bearId: note.id,
-        slug: post.frontmatter.slug,
         lastFileHash: post.hash,
         lastBearHash: note.normalizedHash,
       };
@@ -833,7 +681,7 @@ export function planActions(
     }
     const noteForImport = addBearTagsToFrontmatter(note);
     const path = pathForNewBearNote(noteForImport);
-    if (matchedPaths.has(path) || postsByPath.has(path)) {
+    if (postsByPath.has(path)) {
       actions.push({ type: "skip", reason: `Bear note ${note.id} maps to existing path ${path}` });
       continue;
     }
@@ -849,8 +697,7 @@ function addBearTagsToFrontmatter(note: BearNote): BearNote {
   }
 
   const tags = new Set(normalizeFrontmatterTags(note.frontmatter.tags));
-  for (const rawTag of note.tags) {
-    const tag = normalizeBearTag(rawTag);
+  for (const tag of normalizedBearTags(note.tags)) {
     const prefix = `${MANAGED_TAG_PREFIX}/`;
     if (!tag.startsWith(prefix)) {
       continue;
@@ -867,7 +714,7 @@ function addBearTagsToFrontmatter(note: BearNote): BearNote {
     return note;
   }
 
-  const normalizedContent = ensureFrontmatterTags(note.normalizedContent, mergedTags);
+  const normalizedContent = setFrontmatterField(note.normalizedContent, "tags", mergedTags, { multiline: true });
   return {
     ...note,
     normalizedContent,
@@ -887,7 +734,7 @@ function pathForNewBearNote(note: BearNote): string {
     throw new Error(`Bear note ${note.id} has invalid date: ${String(frontmatter.date)}`);
   }
 
-  const isArticle = note.tags.map(normalizeBearTag).includes(ARTICLE_META_TAG);
+  const isArticle = normalizedBearTags(note.tags).has(ARTICLE_META_TAG);
   if (isArticle) {
     return `content/posts/articles/${dateParts.year}-${dateParts.month}-${frontmatter.slug}.md`;
   }
@@ -915,7 +762,7 @@ function frontmatterDateParts(value: string | Date): { year: string; month: stri
 }
 
 function syncBearTags(noteId: string, currentTags: string[], desiredTags: string[]): void {
-  const current = syncedManagedBearTags(currentTags);
+  const current = managedBearTags(currentTags);
   const desired = new Set(desiredTags);
   const tagsToRemove = [...current].filter((tag) => !desired.has(tag));
   const tagsToAdd = desiredTags.filter((tag) => !current.has(tag));
@@ -926,6 +773,12 @@ function syncBearTags(noteId: string, currentTags: string[], desiredTags: string
   if (tagsToAdd.length > 0) {
     runBearCli(["tags", "add", noteId, ...tagsToAdd]);
   }
+}
+
+function overwriteBearNote(note: BearNote, content: string, path: string, frontmatter: PostFrontmatter): void {
+  runBearCli(["overwrite", note.id, "--base", note.hash, "--force"], content);
+  // Overwrite clears Bear tags, so re-add the complete desired set.
+  syncBearTags(note.id, [], desiredBearTags(path, frontmatter, note.tags));
 }
 
 async function applyAction(action: Action, state: SyncState): Promise<void> {
@@ -945,7 +798,6 @@ async function applyAction(action: Action, state: SyncState): Promise<void> {
       syncBearTags(created.id, [], desiredBearTags(action.post.path, action.post.frontmatter));
       state[action.post.path] = {
         bearId: created.id,
-        slug: action.post.frontmatter.slug,
         lastFileHash: action.post.hash,
         lastBearHash: action.post.hash,
       };
@@ -954,69 +806,51 @@ async function applyAction(action: Action, state: SyncState): Promise<void> {
     case "update-bear": {
       const content = overwriteBearContent ? contentForBear(action.post) : contentForBearPreservingBody(action.post, action.note);
       const writtenHash = sha256(canonicalPostContent(content));
-      runBearCli(["overwrite", action.note.id, "--base", action.note.hash, "--force"], content);
-      syncBearTags(
-        action.note.id,
-        [],
-        desiredBearTagsPreservingWip(action.post.path, action.post.frontmatter, action.note)
-      );
+      overwriteBearNote(action.note, content, action.post.path, action.post.frontmatter);
       state[action.post.path] = {
         bearId: action.note.id,
-        slug: action.post.frontmatter.slug,
         lastFileHash: writtenHash === action.post.hash ? action.post.hash : action.entry.lastFileHash,
         lastBearHash: writtenHash,
       };
       break;
     }
     case "update-file": {
-      const content = ensureTrailingNewline(action.note.normalizedContent.trimEnd());
-      const absolutePath = join(ROOT, action.post.path);
-      await writeFile(absolutePath, content);
-      runBearCli(
-        ["overwrite", action.note.id, "--base", action.note.hash, "--force"],
-        contentForBearContent(content, action.note.frontmatter?.title || action.post.frontmatter.title)
-      );
-      syncBearTags(
-        action.note.id,
-        [],
-        desiredBearTagsPreservingWip(
-          action.post.path,
-          action.note.frontmatter || action.post.frontmatter,
-          action.note
-        )
+      const content = action.note.normalizedContent;
+      const frontmatter = action.note.frontmatter || action.post.frontmatter;
+      await writeFile(join(ROOT, action.post.path), content);
+      overwriteBearNote(
+        action.note,
+        contentForBearContent(content, frontmatter.title),
+        action.post.path,
+        frontmatter
       );
       state[action.post.path] = {
         bearId: action.note.id,
-        slug: action.note.frontmatter?.slug || action.post.frontmatter.slug,
-        lastFileHash: sha256(content),
-        lastBearHash: sha256(content),
+        lastFileHash: action.note.normalizedHash,
+        lastBearHash: action.note.normalizedHash,
       };
       break;
     }
     case "create-file": {
-      const content = ensureTrailingNewline(action.note.normalizedContent.trimEnd());
+      const content = action.note.normalizedContent;
+      const frontmatter = action.note.frontmatter!;
       const absolutePath = join(ROOT, action.path);
       await mkdir(dirname(absolutePath), { recursive: true });
       await writeFile(absolutePath, content, { flag: "wx" });
-      runBearCli(
-        ["overwrite", action.note.id, "--base", action.note.hash, "--force"],
-        contentForBearContent(content, action.note.frontmatter!.title)
-      );
-      syncBearTags(
-        action.note.id,
-        [],
-        desiredBearTagsPreservingWip(action.path, action.note.frontmatter!, action.note)
-      );
+      overwriteBearNote(action.note, contentForBearContent(content, frontmatter.title), action.path, frontmatter);
       state[action.path] = {
         bearId: action.note.id,
-        slug: action.note.frontmatter?.slug || "",
-        lastFileHash: sha256(content),
-        lastBearHash: sha256(content),
+        lastFileHash: action.note.normalizedHash,
+        lastBearHash: action.note.normalizedHash,
       };
       break;
     }
     case "sync-tags": {
-      syncBearTags(action.note.id, action.note.tags, desiredBearTags(action.post.path, action.post.frontmatter));
+      syncBearTags(
+        action.note.id,
+        action.note.tags,
+        desiredBearTags(action.post.path, action.post.frontmatter, action.note.tags)
+      );
       break;
     }
     case "archive-bear": {
@@ -1081,9 +915,12 @@ function pushHeadToUpstream(git: GitRunner): string {
 
 export function commitAndPushFiles(paths: string[], git: GitRunner = runGit): GitPublication {
   const uniquePaths = [...new Set(paths)].sort();
+  if (uniquePaths.length === 0) {
+    return {};
+  }
   let commitOutput: string | undefined;
 
-  if (uniquePaths.length > 0 && git(["status", "--porcelain", "--", ...uniquePaths])) {
+  if (git(["status", "--porcelain", "--", ...uniquePaths])) {
     git(["add", "--", ...uniquePaths]);
     commitOutput = git([
       "commit",
@@ -1144,7 +981,7 @@ async function main(): Promise<void> {
   const localPosts = await readLocalPosts();
   const bearNotes = await readBearNotes();
   const state = await loadState();
-  const actions = planActions(localPosts, bearNotes, state, { fromFiles, fromBear, overwriteBearContent });
+  const actions = planActions(localPosts, bearNotes, state, overwriteBearContent);
   const actionable = actions.filter((action) => action.type !== "skip" && action.type !== "conflict");
 
   console.log(`${dryRun ? "Dry run:" : "Sync:"} ${localPosts.length} local posts, ${bearNotes.length} Bear notes.`);
