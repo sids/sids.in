@@ -45,7 +45,7 @@ type SyncState = Record<string, SyncEntry>;
 type Action =
   | { type: "create-bear"; post: LocalPost }
   | { type: "update-bear"; post: LocalPost; note: BearNote; entry: SyncEntry }
-  | { type: "update-file"; post: LocalPost; note: BearNote }
+  | { type: "update-file"; post: LocalPost; note: BearNote; repairBear: boolean }
   | { type: "sync-tags"; post: LocalPost; note: BearNote }
   | { type: "create-file"; note: BearNote; path: string }
   | { type: "archive-bear"; note: BearNote; path: string }
@@ -151,6 +151,11 @@ function bearBodyDiffersFromLocal(post: LocalPost, note: BearNote): boolean {
 
 function bearMetadataNeedsSync(post: LocalPost, note: BearNote): boolean {
   return bearPresentationContent(note.content) !== contentForBearPreservingBody(post, note);
+}
+
+function bearNoteNeedsWriteback(note: BearNote): boolean {
+  const title = note.frontmatter?.title || note.title;
+  return bearPresentationContent(note.content) !== contentForBearContent(note.normalizedContent, title);
 }
 
 function slugify(value: string): string {
@@ -643,7 +648,9 @@ export function planActions(
     } else if (bearPresentationChanged && !bearChanged) {
       actions.push({ type: "update-bear", post, note, entry: effectiveEntry });
     } else if (bearChanged && !fileChanged) {
-      actions.push(bearToFileSkip(note) ?? { type: "update-file", post, note });
+      actions.push(
+        bearToFileSkip(note) ?? { type: "update-file", post, note, repairBear: bearNoteNeedsWriteback(note) }
+      );
     } else {
       state[post.path] = {
         bearId: note.id,
@@ -818,12 +825,20 @@ async function applyAction(action: Action, state: SyncState): Promise<void> {
       const content = action.note.normalizedContent;
       const frontmatter = action.note.frontmatter || action.post.frontmatter;
       await writeFile(join(ROOT, action.post.path), content);
-      overwriteBearNote(
-        action.note,
-        contentForBearContent(content, frontmatter.title),
-        action.post.path,
-        frontmatter
-      );
+      if (action.repairBear) {
+        overwriteBearNote(
+          action.note,
+          contentForBearContent(content, frontmatter.title),
+          action.post.path,
+          frontmatter
+        );
+      } else {
+        syncBearTags(
+          action.note.id,
+          action.note.tags,
+          desiredBearTags(action.post.path, frontmatter, action.note.tags)
+        );
+      }
       state[action.post.path] = {
         bearId: action.note.id,
         lastFileHash: action.note.normalizedHash,

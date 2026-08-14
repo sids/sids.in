@@ -204,6 +204,33 @@ describe("Bear managed tags", () => {
   });
 });
 
+describe("Bear-to-file updates", () => {
+  it("does not write a normal Bear edit back to Bear", () => {
+    const changedLocalContent = localContent.replace("Body", "Changed body");
+    const changedBearContent = bearContent.replace("Body", "Changed body");
+    const note = makeNote({
+      content: changedBearContent,
+      normalizedContent: changedLocalContent,
+      normalizedHash: "changed-bear-hash",
+    });
+
+    expect(planActions([makePost()], [note], makeState())).toEqual([
+      { type: "update-file", post: makePost(), note, repairBear: false },
+    ]);
+  });
+
+  it("writes repaired Bear metadata back after pulling content", () => {
+    const note = makeNote({
+      content: bearContent.replace('slug: "test-post"', 'slug: ""'),
+      normalizedHash: "changed-bear-hash",
+    });
+
+    expect(planActions([makePost()], [note], makeState())).toEqual([
+      { type: "update-file", post: makePost(), note, repairBear: true },
+    ]);
+  });
+});
+
 describe("Bear body safeguards", () => {
   it("does not overwrite a divergent Bear body by default", () => {
     const post = makePost({ content: localContent.replace("Body", "Changed body"), hash: "changed-local-hash" });

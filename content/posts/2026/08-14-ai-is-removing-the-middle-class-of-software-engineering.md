@@ -30,13 +30,14 @@ Florian Herrengt:
 > 
 > Silence.
 
-
+[On not understanding large codebase](https://sids.in/posts/in-defense-of-not-understanding-your-codebase):
 > Whenever I talk about this, someone eventually tells me that nobody ever fully understood large systems anyway. It's true. 
 > 
 > You were never expected to understand every service and every database. But at least someone did and would explain it to you.
 > 
 > Now they ask an LLM because they don't actually know themselves.
 
+Concluding:
 > Of course, bad engineers were always a liability.
 > 
 > It has been like this for decades, well before OpenAI or Anthropic existed. Bad decisions compounded, unnecessary complexity accumulated and teams ended up maintaining systems nobody really understood.
