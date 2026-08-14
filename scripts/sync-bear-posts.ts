@@ -67,7 +67,7 @@ const PENDING_GIT_PATHS_FILE = join(ROOT, ".bear-posts-sync-pending.json");
 const MANAGED_TAG_PREFIX = "sids.in";
 const ARTICLE_META_TAG = `${MANAGED_TAG_PREFIX}/~article`;
 const DRAFT_META_TAG = `${MANAGED_TAG_PREFIX}/~draft`;
-const WIP_TAG = "wip";
+const WIP_META_TAG = `${MANAGED_TAG_PREFIX}/~wip`;
 
 const args = new Set(process.argv.slice(2));
 const dryRun = args.has("--dry-run");
@@ -255,6 +255,59 @@ function ensureFrontmatterTitle(content: string, title: string): string {
   return lines.join("\n");
 }
 
+function ensureFrontmatterTags(content: string, tags: string[]): string {
+  const lines = content.split("\n");
+  if (lines[0] !== "---") {
+    return content;
+  }
+
+  const frontmatterEnd = findFrontmatterEnd(lines);
+  if (frontmatterEnd === undefined) {
+    return content;
+  }
+
+  const tagsLine = `tags: ${JSON.stringify(tags)}`;
+  for (let index = 1; index < frontmatterEnd; index += 1) {
+    if (/^tags:\s*/.test(lines[index] || "")) {
+      let end = index + 1;
+      while (end < frontmatterEnd && /^\s+-\s+/.test(lines[end] || "")) {
+        end += 1;
+      }
+      lines.splice(index, end - index, tagsLine);
+      return lines.join("\n");
+    }
+  }
+
+  lines.splice(frontmatterEnd, 0, tagsLine);
+  return lines.join("\n");
+}
+
+function ensureFrontmatterDate(content: string, date: string): string {
+  const lines = content.split("\n");
+  if (lines[0] !== "---") {
+    return content;
+  }
+
+  const frontmatterEnd = findFrontmatterEnd(lines);
+  if (frontmatterEnd === undefined) {
+    return content;
+  }
+
+  for (let index = 1; index < frontmatterEnd; index += 1) {
+    const line = lines[index] || "";
+    if (/^date:\s*/.test(line)) {
+      if (/^date:\s*(?:""|''|null|~)?\s*$/.test(line)) {
+        lines[index] = `date: ${JSON.stringify(date)}`;
+      }
+      return lines.join("\n");
+    }
+  }
+
+  const slugIndex = lines.findIndex((line, index) => index > 0 && index < frontmatterEnd && /^slug:\s*/.test(line));
+  lines.splice(slugIndex === -1 ? frontmatterEnd : slugIndex + 1, 0, `date: ${JSON.stringify(date)}`);
+  return lines.join("\n");
+}
+
 function ensureFrontmatterBlock(content: string, fallbackTitle: string): string {
   const lines = content.split("\n");
   if (lines[0] === "---" && findFrontmatterEnd(lines) !== undefined) {
@@ -428,12 +481,24 @@ function normalizeBearTag(tag: string): string {
   return tag.replace(/^#/, "").trim();
 }
 
+function desiredBearTagsPreservingWip(path: string, frontmatter: PostFrontmatter, note: BearNote): string[] {
+  const tags = new Set(desiredBearTags(path, frontmatter));
+  if (hasBearTag(note, WIP_META_TAG)) {
+    tags.add(WIP_META_TAG);
+  }
+  return [...tags].sort();
+}
+
 function hasBearTag(note: BearNote, tag: string): boolean {
   return note.tags.map(normalizeBearTag).includes(tag);
 }
 
 function tagsNeedSync(note: BearNote, desiredTags: string[]): boolean {
-  const current = new Set(note.tags.map(normalizeBearTag).filter((tag) => tag.startsWith(MANAGED_TAG_PREFIX)));
+  const current = new Set(
+    note.tags
+      .map(normalizeBearTag)
+      .filter((tag) => tag.startsWith(MANAGED_TAG_PREFIX) && tag !== WIP_META_TAG)
+  );
   const desired = new Set(desiredTags);
   if (current.size !== desired.size) {
     return true;
@@ -593,9 +658,10 @@ function normalizeBearNote(note: RawBearNote): BearNote {
   const content = normalizeLineEndings(note.content || "");
   const contentWithoutManagedTags = stripManagedBearTagLines(content);
   const contentWithFrontmatter = ensureFrontmatterBlock(contentWithoutManagedTags, note.title);
-  const inferredTitle = inferTitleFromBodyHeading(contentWithFrontmatter);
+  const inferredTitle = inferTitleFromBodyHeading(contentWithFrontmatter) || note.title.trim();
   const contentWithTitle = inferredTitle ? ensureFrontmatterTitle(contentWithFrontmatter, inferredTitle) : contentWithFrontmatter;
-  const rawNormalizedContent = canonicalPostContent(contentWithTitle);
+  const contentWithDate = ensureFrontmatterDate(contentWithTitle, new Date().toISOString().slice(0, 10));
+  const rawNormalizedContent = canonicalPostContent(contentWithDate);
   const frontmatter = parsePostFrontmatter(rawNormalizedContent, `Bear note ${note.id}`, false);
   const normalizedContent = frontmatter
     ? canonicalPostContent(ensureFrontmatterSlug(rawNormalizedContent, frontmatter.slug))
@@ -626,10 +692,10 @@ function indexByUnique<T>(items: T[], keyFor: (item: T) => string | undefined): 
 }
 
 function bearToFileSkip(note: BearNote): Extract<Action, { type: "skip" }> | undefined {
-  if (!hasBearTag(note, WIP_TAG)) {
+  if (!hasBearTag(note, WIP_META_TAG)) {
     return undefined;
   }
-  return { type: "skip", reason: `Bear note ${note.id} (${note.title}) is tagged #${WIP_TAG}` };
+  return { type: "skip", reason: `Bear note ${note.id} (${note.title}) is tagged as WIP` };
 }
 
 export function planActions(
@@ -749,15 +815,49 @@ export function planActions(
       actions.push({ type: "skip", reason: `Bear note ${note.id} (${note.title}) lacks required post frontmatter` });
       continue;
     }
-    const path = pathForNewBearNote(note);
+    const noteForImport = addBearTagsToFrontmatter(note);
+    const path = pathForNewBearNote(noteForImport);
     if (matchedPaths.has(path) || postsByPath.has(path)) {
       actions.push({ type: "skip", reason: `Bear note ${note.id} maps to existing path ${path}` });
       continue;
     }
-    actions.push({ type: "create-file", note, path });
+    actions.push({ type: "create-file", note: noteForImport, path });
   }
 
   return actions;
+}
+
+function addBearTagsToFrontmatter(note: BearNote): BearNote {
+  if (!note.frontmatter) {
+    return note;
+  }
+
+  const tags = new Set(normalizeFrontmatterTags(note.frontmatter.tags));
+  for (const rawTag of note.tags) {
+    const tag = normalizeBearTag(rawTag);
+    const prefix = `${MANAGED_TAG_PREFIX}/`;
+    if (!tag.startsWith(prefix)) {
+      continue;
+    }
+    const nestedTag = tag.slice(prefix.length);
+    if (nestedTag && !nestedTag.startsWith("~")) {
+      tags.add(nestedTag);
+    }
+  }
+
+  const mergedTags = [...tags].sort();
+  const currentTags = normalizeFrontmatterTags(note.frontmatter.tags);
+  if (mergedTags.length === currentTags.length && mergedTags.every((tag, index) => tag === currentTags[index])) {
+    return note;
+  }
+
+  const normalizedContent = ensureFrontmatterTags(note.normalizedContent, mergedTags);
+  return {
+    ...note,
+    normalizedContent,
+    normalizedHash: sha256(normalizedContent),
+    frontmatter: { ...note.frontmatter, tags: mergedTags },
+  };
 }
 
 function pathForNewBearNote(note: BearNote): string {
@@ -801,7 +901,7 @@ function frontmatterDateParts(value: string | Date): { year: string; month: stri
 function syncBearTags(noteId: string, currentTags: string[], desiredTags: string[]): void {
   const currentManagedTags = currentTags
     .map(normalizeBearTag)
-    .filter((tag) => tag.startsWith(MANAGED_TAG_PREFIX));
+    .filter((tag) => tag.startsWith(MANAGED_TAG_PREFIX) && tag !== WIP_META_TAG);
   const desired = new Set(desiredTags);
   const tagsToRemove = currentManagedTags.filter((tag) => !desired.has(tag));
   const current = new Set(currentManagedTags);
@@ -842,7 +942,11 @@ async function applyAction(action: Action, state: SyncState): Promise<void> {
       const content = overwriteBearContent ? contentForBear(action.post) : contentForBearPreservingBody(action.post, action.note);
       const writtenHash = sha256(canonicalPostContent(content));
       runBearCli(["overwrite", action.note.id, "--base", action.note.hash, "--force"], content);
-      syncBearTags(action.note.id, [], desiredBearTags(action.post.path, action.post.frontmatter));
+      syncBearTags(
+        action.note.id,
+        [],
+        desiredBearTagsPreservingWip(action.post.path, action.post.frontmatter, action.note)
+      );
       state[action.post.path] = {
         bearId: action.note.id,
         slug: action.post.frontmatter.slug,
@@ -862,7 +966,11 @@ async function applyAction(action: Action, state: SyncState): Promise<void> {
       syncBearTags(
         action.note.id,
         [],
-        desiredBearTags(action.post.path, action.note.frontmatter || action.post.frontmatter)
+        desiredBearTagsPreservingWip(
+          action.post.path,
+          action.note.frontmatter || action.post.frontmatter,
+          action.note
+        )
       );
       state[action.post.path] = {
         bearId: action.note.id,
@@ -881,7 +989,11 @@ async function applyAction(action: Action, state: SyncState): Promise<void> {
         ["overwrite", action.note.id, "--base", action.note.hash, "--force"],
         contentForBearContent(content, action.note.frontmatter!.title)
       );
-      syncBearTags(action.note.id, [], desiredBearTags(action.path, action.note.frontmatter!));
+      syncBearTags(
+        action.note.id,
+        [],
+        desiredBearTagsPreservingWip(action.path, action.note.frontmatter!, action.note)
+      );
       state[action.path] = {
         bearId: action.note.id,
         slug: action.note.frontmatter?.slug || "",

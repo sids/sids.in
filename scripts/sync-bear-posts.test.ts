@@ -113,42 +113,101 @@ describe("Bear CLI reads", () => {
       hash: "bear-cli-hash",
     });
   });
+
+  it("repairs an empty frontmatter template so a Bear link note can be imported", async () => {
+    const emptyTemplate = `---
+title: ""
+slug: ""
+date: ""
+description: ""
+tags: []
+link: "https://example.com/post"
+draft: true
+---
+# Link post title
+
+Commentary
+`;
+    const bearCli = (args: string[]): string => {
+      if (args[0] === "search") {
+        return JSON.stringify([
+          { id: "link-note", title: "Link post title", tags: ["#sids.in/ai"], location: "notes" },
+        ]);
+      }
+      if (args[0] === "cat") {
+        return JSON.stringify({ content: emptyTemplate, hash: "link-note-hash" });
+      }
+      throw new Error(`Unexpected bearcli command: ${args.join(" ")}`);
+    };
+    const today = new Date().toISOString().slice(0, 10);
+
+    const notes = await readBearNotes(bearCli, async () => ({}));
+
+    expect(notes[0]?.frontmatter).toMatchObject({
+      title: "Link post title",
+      slug: "link-post-title",
+      date: today,
+      link: "https://example.com/post",
+      draft: true,
+    });
+    expect(notes[0]?.normalizedContent).toContain(`date: "${today}"`);
+    expect(planActions([], notes, {})).toMatchObject([
+      {
+        type: "create-file",
+        path: `content/posts/${today.slice(0, 4)}/${today.slice(5, 7)}-${today.slice(8, 10)}-link-post-title.md`,
+        note: {
+          normalizedContent: expect.stringContaining('tags: ["ai"]'),
+          frontmatter: { tags: ["ai"] },
+        },
+      },
+    ]);
+  });
 });
 
-describe("Bear #wip imports", () => {
-  it("does not create a local file for a new #wip note", () => {
+describe("Bear WIP imports", () => {
+  it("does not create a local file for a new #sids.in/~wip note", () => {
     const actions = planActions(
       [],
-      [makeNote({ tags: ["sids.in", "wip"], frontmatter: { ...frontmatter, date: "invalid" } })],
+      [makeNote({ tags: ["sids.in", "sids.in/~wip"], frontmatter: { ...frontmatter, date: "invalid" } })],
       {}
     );
 
     expect(actions).toEqual([
       {
         type: "skip",
-        reason: "Bear note bear-id (Test post) is tagged #wip",
+        reason: "Bear note bear-id (Test post) is tagged as WIP",
       },
     ]);
   });
 
-  it("does not update a local file from an existing #wip note", () => {
+  it("does not update a local file from an existing #sids.in/~wip note", () => {
     const actions = planActions(
       [makePost()],
-      [makeNote({ tags: ["sids.in", "#wip"], normalizedHash: "changed-bear-hash" })],
+      [makeNote({ tags: ["sids.in", "sids.in/~wip"], normalizedHash: "changed-bear-hash" })],
       makeState({ lastBearHash: "old-bear-hash" })
     );
 
     expect(actions).toEqual([
       {
         type: "skip",
-        reason: "Bear note bear-id (Test post) is tagged #wip",
+        reason: "Bear note bear-id (Test post) is tagged as WIP",
       },
     ]);
   });
 
-  it("still updates a #wip Bear note from a changed local file", () => {
+  it("does not treat the WIP marker as a stale managed tag", () => {
+    const actions = planActions(
+      [makePost()],
+      [makeNote({ tags: ["sids.in", "sids.in/~wip"] })],
+      makeState()
+    );
+
+    expect(actions).toEqual([]);
+  });
+
+  it("still updates a WIP Bear note from a changed local file", () => {
     const post = makePost({ hash: "changed-local-hash" });
-    const note = makeNote({ tags: ["sids.in", "wip"] });
+    const note = makeNote({ tags: ["sids.in", "sids.in/~wip"] });
     const actions = planActions([post], [note], makeState({ lastFileHash: "old-local-hash" }));
 
     expect(actions).toEqual([
@@ -161,10 +220,10 @@ describe("Bear #wip imports", () => {
     ]);
   });
 
-  it("does not force a #wip note into a local file with --from-bear", () => {
+  it("does not force a WIP note into a local file with --from-bear", () => {
     const actions = planActions(
       [makePost({ hash: "changed-local-hash" })],
-      [makeNote({ tags: ["sids.in", "wip"], normalizedHash: "changed-bear-hash" })],
+      [makeNote({ tags: ["sids.in", "sids.in/~wip"], normalizedHash: "changed-bear-hash" })],
       makeState(),
       { fromBear: true }
     );
@@ -172,7 +231,7 @@ describe("Bear #wip imports", () => {
     expect(actions).toEqual([
       {
         type: "skip",
-        reason: "Bear note bear-id (Test post) is tagged #wip",
+        reason: "Bear note bear-id (Test post) is tagged as WIP",
       },
     ]);
   });

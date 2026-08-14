@@ -162,7 +162,7 @@ The sync script:
 - creates missing Bear notes from local posts
 - creates local Markdown files from new Bear notes tagged under `#sids.in`
 - updates the side that changed when only one side changed
-- skips syncing Bear notes tagged `#wip` from Bear to local files
+- skips syncing Bear notes tagged `#sids.in/~wip` from Bear to local files
 - reports and skips conflicts when both sides changed
 - archives Bear notes when their local post was deleted
 - keeps Bear tags in sync from frontmatter tags as nested tags under `#sids.in`
@@ -174,13 +174,14 @@ Managed Bear tags:
 - `#sids.in/<tag>` for each YAML frontmatter tag
 - `#sids.in/~draft` for draft posts
 - `#sids.in/~article` for article posts and for routing new Bear-created notes to `content/posts/articles/`
+- `#sids.in/~wip` for Bear notes that must not sync to local files
 
 New Bear-created notes should contain normal post frontmatter. Path routing is:
 
 - `#sids.in/~article` → `content/posts/articles/YYYY-MM-slug.md`
 - otherwise → `content/posts/YYYY/MM-DD-slug.md`
 
-If a Bear-created note has no YAML frontmatter, the sync creates frontmatter with `draft: true`, today’s date, empty tags/description, and a title from the leading Markdown `# Title` or Bear’s note title. If a note has frontmatter but a missing or empty `title`, and has a Markdown `# Title` in the body, the sync copies that heading into frontmatter. If `slug` is missing or empty, the sync derives one from `title`. Repaired frontmatter is written back to both the Bear note and the local Markdown file.
+If a Bear-created note has no YAML frontmatter, the sync creates frontmatter with `draft: true`, today’s date, empty tags/description, and a title from the leading Markdown `# Title` or Bear’s note title. If a note has frontmatter but a missing or empty `title`, the sync uses the body’s Markdown `# Title` or Bear’s note title. If `slug` is missing or empty, the sync derives one from `title`; if `date` is missing or empty, it uses today’s date. For newly imported notes, regular nested Bear tags such as `#sids.in/ai` are merged into YAML `tags`, while metadata tags beginning with `~` are excluded. Repaired frontmatter is written back to both the Bear note and the local Markdown file.
 
 Bear inserts tag lines into note content. The sync script treats managed `#sids.in...` tag lines as Bear metadata: it ignores them for change detection and strips them before writing Bear content back to local Markdown.
 
