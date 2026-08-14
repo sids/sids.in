@@ -464,7 +464,7 @@ function normalizeFrontmatterTags(tags: unknown): string[] {
 }
 
 function desiredBearTags(path: string, frontmatter: PostFrontmatter): string[] {
-  const tags = new Set<string>([MANAGED_TAG_PREFIX]);
+  const tags = new Set<string>();
   for (const tag of normalizeFrontmatterTags(frontmatter.tags)) {
     tags.add(`${MANAGED_TAG_PREFIX}/${tag}`);
   }
@@ -474,6 +474,9 @@ function desiredBearTags(path: string, frontmatter: PostFrontmatter): string[] {
   if (path.startsWith("content/posts/articles/")) {
     tags.add(ARTICLE_META_TAG);
   }
+  if (tags.size === 0) {
+    tags.add(MANAGED_TAG_PREFIX);
+  }
   return [...tags].sort();
 }
 
@@ -481,12 +484,29 @@ function normalizeBearTag(tag: string): string {
   return tag.replace(/^#/, "").trim();
 }
 
+function removeRedundantManagedRoot(tags: Set<string>): Set<string> {
+  if ([...tags].some((tag) => tag.startsWith(`${MANAGED_TAG_PREFIX}/`))) {
+    tags.delete(MANAGED_TAG_PREFIX);
+  }
+  return tags;
+}
+
 function desiredBearTagsPreservingWip(path: string, frontmatter: PostFrontmatter, note: BearNote): string[] {
   const tags = new Set(desiredBearTags(path, frontmatter));
   if (hasBearTag(note, WIP_META_TAG)) {
     tags.add(WIP_META_TAG);
   }
-  return [...tags].sort();
+  return [...removeRedundantManagedRoot(tags)].sort();
+}
+
+function syncedManagedBearTags(tags: string[]): Set<string> {
+  return removeRedundantManagedRoot(
+    new Set(
+      tags
+        .map(normalizeBearTag)
+        .filter((tag) => tag.startsWith(MANAGED_TAG_PREFIX) && tag !== WIP_META_TAG)
+    )
+  );
 }
 
 function hasBearTag(note: BearNote, tag: string): boolean {
@@ -494,11 +514,7 @@ function hasBearTag(note: BearNote, tag: string): boolean {
 }
 
 function tagsNeedSync(note: BearNote, desiredTags: string[]): boolean {
-  const current = new Set(
-    note.tags
-      .map(normalizeBearTag)
-      .filter((tag) => tag.startsWith(MANAGED_TAG_PREFIX) && tag !== WIP_META_TAG)
-  );
+  const current = syncedManagedBearTags(note.tags);
   const desired = new Set(desiredTags);
   if (current.size !== desired.size) {
     return true;
@@ -899,12 +915,9 @@ function frontmatterDateParts(value: string | Date): { year: string; month: stri
 }
 
 function syncBearTags(noteId: string, currentTags: string[], desiredTags: string[]): void {
-  const currentManagedTags = currentTags
-    .map(normalizeBearTag)
-    .filter((tag) => tag.startsWith(MANAGED_TAG_PREFIX) && tag !== WIP_META_TAG);
+  const current = syncedManagedBearTags(currentTags);
   const desired = new Set(desiredTags);
-  const tagsToRemove = currentManagedTags.filter((tag) => !desired.has(tag));
-  const current = new Set(currentManagedTags);
+  const tagsToRemove = [...current].filter((tag) => !desired.has(tag));
   const tagsToAdd = desiredTags.filter((tag) => !current.has(tag));
 
   if (tagsToRemove.length > 0) {

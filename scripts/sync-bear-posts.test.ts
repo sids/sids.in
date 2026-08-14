@@ -164,6 +164,28 @@ Commentary
   });
 });
 
+describe("Bear managed tags", () => {
+  it("does not add the bare root when a nested tag exists", () => {
+    const actions = planActions(
+      [makePost({ frontmatter: { ...frontmatter, tags: ["ai"] } })],
+      [makeNote({ tags: ["sids.in/ai"] })],
+      makeState()
+    );
+
+    expect(actions).toEqual([]);
+  });
+
+  it("ignores Bear's implied parent tag when a nested tag exists", () => {
+    const actions = planActions(
+      [makePost({ frontmatter: { ...frontmatter, tags: ["ai"] } })],
+      [makeNote({ tags: ["sids.in", "sids.in/ai"] })],
+      makeState()
+    );
+
+    expect(actions).toEqual([]);
+  });
+});
+
 describe("Bear WIP imports", () => {
   it("does not create a local file for a new #sids.in/~wip note", () => {
     const actions = planActions(

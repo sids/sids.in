@@ -170,7 +170,7 @@ The sync script:
 
 Managed Bear tags:
 
-- `#sids.in`
+- `#sids.in` when a post has no deeper managed tag
 - `#sids.in/<tag>` for each YAML frontmatter tag
 - `#sids.in/~draft` for draft posts
 - `#sids.in/~article` for article posts and for routing new Bear-created notes to `content/posts/articles/`
