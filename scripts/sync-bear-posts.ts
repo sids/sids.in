@@ -540,10 +540,11 @@ export async function readBearNotes(
     }
   }
 
+  // Bear search tags containing punctuation must be closed with a trailing #.
+  // `list --tag sids.in` returns no matches even though the tag exists.
   const output = bearCli([
-    "list",
-    "--tag",
-    MANAGED_TAG_PREFIX,
+    "search",
+    `#${MANAGED_TAG_PREFIX}#`,
     "--format",
     "json",
     "--fields",

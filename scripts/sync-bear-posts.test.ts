@@ -75,13 +75,13 @@ function makeState(overrides: Partial<SyncState[string]> = {}): SyncState {
 }
 
 describe("Bear CLI reads", () => {
-  it("gets metadata from list and content hashes from cat", async () => {
+  it("searches for the punctuation-containing managed tag and gets content hashes from cat", async () => {
     const calls: string[][] = [];
     const bearCli = (args: string[]): string => {
       calls.push(args);
-      if (args[0] === "list") {
+      if (args[0] === "search") {
         return JSON.stringify([
-          { id: "bear-id", title: "Test post", tags: ["#sids.in"], location: "notes" },
+          { id: "bear-id", title: "Test post", tags: ["#sids.in/ai"], location: "notes" },
         ]);
       }
       if (args[0] === "cat") {
@@ -94,9 +94,8 @@ describe("Bear CLI reads", () => {
 
     expect(calls).toEqual([
       [
-        "list",
-        "--tag",
-        "sids.in",
+        "search",
+        "#sids.in#",
         "--format",
         "json",
         "--fields",
@@ -108,7 +107,7 @@ describe("Bear CLI reads", () => {
     expect(notes[0]).toMatchObject({
       id: "bear-id",
       title: "Test post",
-      tags: ["#sids.in"],
+      tags: ["#sids.in/ai"],
       location: "notes",
       content: bearContent,
       hash: "bear-cli-hash",
