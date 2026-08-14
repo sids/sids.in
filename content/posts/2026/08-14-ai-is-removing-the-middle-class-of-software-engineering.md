@@ -1,11 +1,11 @@
 ---
 title: "AI is removing the middle class of software engineering"
 slug: "ai-is-removing-the-middle-class-of-software-engineering"
-date: "2026-08-14"
+date: "2026-08-14T12:14:14.207Z"
 description: ""
 tags: []
 link: "https://blog.florianherrengt.com/ai-removing-middle-class-software-engineering.html"
-draft: true
+draft: false
 ---
 
 So much good stuff in there. I’ll quote from across sections.
