@@ -1,11 +1,11 @@
 ---
 title: "Everyone Is Building a Software Factory"
 slug: "everyone-is-building-a-software-factory"
-date: "2026-08-29T19:10:49+05:30"
+date: "2026-08-29T14:28:02.287Z"
 description: ""
 tags: ["agentic-engineering", "work-culture"]
 link: "https://blog.exe.dev/bones-of-the-software-factory"
-draft: true
+draft: false
 ---
 
 Philip Zeyliger:
