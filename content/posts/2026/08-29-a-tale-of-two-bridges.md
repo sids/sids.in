@@ -1,11 +1,11 @@
 ---
 title: "A Tale of Two Bridges"
 slug: "a-tale-of-two-bridges"
-date: "2026-08-29T17:17:53+05:30"
+date: "2026-08-29T14:27:48.635Z"
 description: ""
 tags: ["entrepreneurship", "product-building"]
 link: "http://hintjens.com/blog:16"
-draft: true
+draft: false
 ---
 
 Pieter Hintjens:
