@@ -1,11 +1,11 @@
 ---
 title: "There's No Limit to How Bad Code Can Get"
 slug: "theres-no-limit-to-how-bad-code-can-get"
-date: "2026-09-07T21:17:38+05:30"
+date: "2026-09-07T16:19:41.077Z"
 description: ""
 tags: ["programming"]
 link: "https://zachkehs.com/blog/theres_no_limit_to_how_bad_code_can_get/"
-draft: true
+draft: false
 ---
 
 Zach Kehs:
