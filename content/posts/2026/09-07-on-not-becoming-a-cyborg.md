@@ -1,11 +1,11 @@
 ---
 title: "On Not Becoming a Cyborg"
 slug: "on-not-becoming-a-cyborg"
-date: "2026-09-07T21:54:35+05:30"
+date: "2026-09-08T01:22:02.739Z"
 description: ""
 tags: ["ai", "quote"]
 link: "https://nolanlawson.com/2026/08/31/on-not-becoming-a-cyborg/?utm_source=substack&utm_medium=email"
-draft: true
+draft: false
 ---
 
 Nolan Lawson:
