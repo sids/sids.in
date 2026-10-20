@@ -1,11 +1,11 @@
 ---
 title: "It's Still OK to Enjoy Programming"
 slug: "its-still-ok-to-enjoy-programming"
-date: "2026-10-20T14:53:36+05:30"
+date: "2026-10-20T10:43:53.397Z"
 description: ""
 tags: ["programming", "ai"]
 link: "https://chriskiehl.com/article/it-is-still-ok-to-enjoy-programming"
-draft: true
+draft: false
 ---
 
 Chris Kiehl:
