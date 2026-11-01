@@ -1,10 +1,10 @@
 ---
 title: "Prompts for Better Code from Coding Agents"
 slug: "prompts-for-better-code-from-coding-agents"
-date: "2026-11-01T08:51:53+05:30"
+date: "2026-11-01T07:37:43.163Z"
 description: ""
 tags: ["ai-tip", "agentic-engineering"]
-draft: true
+draft: false
 ---
 
 There is a meme on X that frontier LLMs have gotten so good that how we prompt doesn’t matter. Absolute BS.
