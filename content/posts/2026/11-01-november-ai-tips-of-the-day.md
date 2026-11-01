@@ -1,10 +1,10 @@
 ---
 title: "November AI Tips of the Day"
 slug: "november-ai-tips-of-the-day"
-date: "2026-11-01T08:03:16+05:30"
+date: "2026-11-01T02:44:50.661Z"
 description: ""
 tags: ["ai-tip", "ai"]
-draft: true
+draft: false
 ---
 
 I’ve not been posting as much to this blog recently. In order to force myself to be more regular, I’m going to post a short note with a tip for using AI every day of November.
