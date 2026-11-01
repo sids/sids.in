@@ -49,6 +49,12 @@ export default {
             code: {
               fontFamily: "Overpass Mono, monospace",
             },
+            "code::before": {
+              content: "none",
+            },
+            "code::after": {
+              content: "none",
+            },
           },
         },
       },
